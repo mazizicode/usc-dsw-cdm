@@ -109,16 +109,22 @@ body{font-size:17px;line-height:1.6}
 .bot-nav{padding:14px 24px}
 .step-nav{padding:14px 12px;gap:6px}
 .card-accent{border-radius:16px}
+
+/* Admin Dashboard styles */
+.admin-badge{display:inline-block;font-size:11px;font-weight:700;color:#990000;background:#fef2f2;padding:2px 10px;border-radius:10px}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script>
 
+
 firebase.initializeApp({apiKey:"AIzaSyBPdcyZcwpgrY5jOAYsPiPoNpwmJmKQwzg",authDomain:"usc-dsw-cdm-e5fd7.firebaseapp.com",projectId:"usc-dsw-cdm-e5fd7",storageBucket:"usc-dsw-cdm-e5fd7.firebasestorage.app",messagingSenderId:"170623137328",appId:"1:170623137328:web:67069099494d1e01a31ff5"});
+
 
 </script>
 <script>
+
 
 
 const{useState,useEffect}=React;
@@ -180,6 +186,43 @@ mswComps:{},
 clos:[{text:"",ces:"",adei:"",assess:""},{text:"",ces:"",adei:"",assess:""},{text:"",ces:"",adei:"",assess:""},{text:"",ces:"",adei:"",assess:""},{text:"",ces:"",adei:"",assess:""}],
 modules:[emptyMod()]
 };
+
+
+var ADMIN_EMAILS=["mirwaisa@usc.edu"];
+function isAdmin(email){return ADMIN_EMAILS.indexOf(email.toLowerCase())>=0;}
+
+function loadAllFaculty(cb){
+  firebase.firestore().collection("cdm_data").get().then(function(snap){
+    var faculty=[];
+    var promises=[];
+    snap.forEach(function(userDoc){
+      var uid=userDoc.id;
+      promises.push(
+        firebase.firestore().collection("cdm_data").doc(uid).collection("courses").orderBy("lastUpdated","desc").get().then(function(coursesSnap){
+          var courses=[];
+          coursesSnap.forEach(function(cDoc){
+            var d=cDoc.data();
+            courses.push({id:cDoc.id,name:d.courseName||"Untitled",leadName:d.leadName||"",lastUpdated:d.lastUpdated,userEmail:d.userEmail||"",userName:d.userName||""});
+          });
+          if(courses.length>0){
+            faculty.push({uid:uid,email:courses[0].userEmail,name:courses[0].userName,courses:courses});
+          }
+        })
+      );
+    });
+    Promise.all(promises).then(function(){
+      faculty.sort(function(a,b){return(a.name||"").localeCompare(b.name||"");});
+      cb(faculty);
+    });
+  }).catch(function(e){console.error("Admin load error:",e);cb([]);});
+}
+
+function loadFacultyCourse(uid,cid,cb){
+  firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(doc){
+    if(doc.exists){var d=doc.data().cdmData;if(d){try{var p=JSON.parse(d);if(!p.cesExplain)p.cesExplain={};cb(p);}catch(e){cb(null);}}else cb(null);}
+    else cb(null);
+  }).catch(function(){cb(null);});
+}
 
 function load(){return INIT;}
 function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").orderBy("lastUpdated","desc").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
@@ -518,6 +561,118 @@ function UserBar(props){
     React.createElement("button",{onClick:function(){firebase.auth().signOut();},style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600}},"Sign Out"));
 }
 
+
+function AdminDashboard(props){
+  var user=props.user;var onLogout=props.onLogout;var onViewCourse=props.onViewCourse;var onSwitchToFaculty=props.onSwitchToFaculty;
+  var _f=useState(null),faculty=_f[0],setFaculty=_f[1];
+  var _s=useState(""),search=_s[0],setSearch=_s[1];
+  useEffect(function(){loadAllFaculty(function(f){setFaculty(f);});},[]);
+  var filtered=faculty?faculty.filter(function(f){
+    var q=search.toLowerCase();
+    if(!q)return true;
+    return(f.name||"").toLowerCase().indexOf(q)>=0||(f.email||"").toLowerCase().indexOf(q)>=0||f.courses.some(function(c){return(c.name||"").toLowerCase().indexOf(q)>=0;});
+  }):null;
+  var totalCourses=faculty?faculty.reduce(function(s,f){return s+f.courses.length;},0):0;
+  return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)"}},
+    React.createElement("div",{className:"top-bar"}),React.createElement("div",{className:"gold-bar-top"}),
+    React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",background:"#fff",borderBottom:"2px solid #990000"}},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+        user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:32,height:32,borderRadius:16}}):null,
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#333"}},user.displayName||user.email),
+          React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fef2f2",padding:"2px 10px",borderRadius:10}},"ADMINISTRATOR"))),
+      React.createElement("div",{style:{display:"flex",gap:12}},
+        React.createElement("button",{onClick:onSwitchToFaculty,style:{background:"#fff",border:"1px solid #990000",color:"#990000",padding:"8px 18px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:600}},"Switch to Faculty View"),
+        React.createElement("button",{onClick:onLogout,style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600}},"Sign Out"))),
+    React.createElement("div",{style:{maxWidth:1000,margin:"0 auto",padding:"30px 24px"}},
+      React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:40,marginBottom:16}}),
+      React.createElement("h1",{style:{fontSize:30,fontWeight:900,color:"#990000",marginBottom:6}},"Admin Dashboard"),
+      React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},"View and manage all faculty Course Design Maps."),
+      React.createElement("div",{style:{display:"flex",gap:16,marginBottom:24}},
+        React.createElement("div",{style:{flex:1,background:"#fff",border:"1px solid #e8e0d0",borderRadius:14,padding:20,textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:32,fontWeight:900,color:"#990000"}},faculty?faculty.length:"..."),
+          React.createElement("div",{style:{fontSize:14,color:"#888"}},"Faculty Members")),
+        React.createElement("div",{style:{flex:1,background:"#fff",border:"1px solid #e8e0d0",borderRadius:14,padding:20,textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:32,fontWeight:900,color:"#990000"}},totalCourses),
+          React.createElement("div",{style:{fontSize:14,color:"#888"}},"Total CDMs")),
+        React.createElement("div",{style:{flex:1,background:"#fff",border:"1px solid #e8e0d0",borderRadius:14,padding:20,textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:32,fontWeight:900,color:"#22c55e"}},String.fromCharCode(9679)),
+          React.createElement("div",{style:{fontSize:14,color:"#888"}},"System Active"))),
+      React.createElement("div",{className:"field",style:{marginBottom:20}},
+        React.createElement("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:"Search by faculty name, email, or course...",style:{width:"100%",padding:"12px 18px",borderRadius:12,border:"1px solid #ddd",fontSize:15}})),
+      !filtered?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:30,fontSize:15}},"Loading all faculty data..."):
+      filtered.length===0?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:30,fontSize:15}},search?"No results found.":"No faculty have created CDMs yet."):
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16}},
+        filtered.map(function(f){
+          return React.createElement("div",{key:f.uid,style:{background:"#fff",border:"1px solid #e8e0d0",borderRadius:14,overflow:"hidden"}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px",background:"#FAF5EE",borderBottom:"1px solid #e8e0d0"}},
+              React.createElement("div",null,
+                React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#333"}},f.name||"Unknown"),
+                React.createElement("div",{style:{fontSize:13,color:"#888"}},f.email)),
+              React.createElement("span",{style:{fontSize:13,fontWeight:600,color:"#990000"}},f.courses.length+" CDM"+(f.courses.length!==1?"s":""))),
+            React.createElement("div",{style:{padding:"10px 20px"}},
+              f.courses.map(function(course){
+                var upd=course.lastUpdated?new Date(course.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"Never";
+                return React.createElement("div",{key:course.id,style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid #f0f0f0",cursor:"pointer"},onClick:function(){onViewCourse(f.uid,course.id,course.name,f.name);}},
+                  React.createElement("div",null,
+                    React.createElement("div",{style:{fontSize:15,fontWeight:600,color:"#990000"}},course.name),
+                    React.createElement("div",{style:{fontSize:12,color:"#999"}},"Last edited: "+upd)),
+                  React.createElement("span",{style:{fontSize:14,color:"#990000",fontWeight:600}},"View "+String.fromCharCode(8250)));
+              })));
+        }))));
+}
+
+function AdminCDMViewer(props){
+  var cdmData=props.data;var courseName=props.courseName;var facultyName=props.facultyName;var onBack=props.onBack;var onExport=props.onExport;
+  if(!cdmData)return React.createElement("div",{style:{padding:40,textAlign:"center"}},"Loading...");
+  var d=cdmData;
+  return React.createElement("div",{style:{minHeight:"100vh",background:"#f8f6f2"}},
+    React.createElement("div",{className:"top-bar"}),React.createElement("div",{className:"gold-bar-top"}),
+    React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",background:"#fff",borderBottom:"1px solid #eee",flexWrap:"wrap",gap:8}},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+        React.createElement("button",{onClick:onBack,style:{background:"#990000",border:"none",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:8}},String.fromCharCode(8592)+" Back to Admin"),
+        React.createElement("span",{style:{fontWeight:700,fontSize:14,color:"#333"}},facultyName),
+        React.createElement("span",{style:{color:"#990000",fontWeight:600,fontSize:14}},String.fromCharCode(8212)+" "+courseName)),
+      React.createElement("button",{onClick:onExport,className:"btn-p",style:{padding:"8px 20px",fontSize:13}},"Download PDF")),
+    React.createElement("div",{style:{maxWidth:1000,margin:"0 auto",padding:"24px"}},
+      React.createElement("div",{style:{background:"#fef2f2",border:"1px solid #990000",borderRadius:12,padding:"12px 18px",marginBottom:20,fontSize:14,color:"#990000",fontWeight:600}},"Admin Read-Only View — You are viewing "+facultyName+"'s CDM. Changes cannot be made from this view."),
+      React.createElement("div",{className:"card"},
+        React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#990000",marginBottom:12}},"Course Information"),
+        React.createElement("div",{className:"g3",style:{gap:12}},
+          ["Course: "+(d.courseName||"—"),"Lead: "+(d.courseLead||"—"),"Email: "+(d.leadEmail||"—"),
+           "Program Director: "+(d.progDirector||"—"),"Area of Focus: "+(d.areaOfFocus||"—"),
+           "Modality: "+(d.modality==="async_sync"?"Async & Sync":"Async Only"),
+           "Sync Min: "+(d.syncMin||"—"),"Async Min: "+(d.asyncMin||"—"),
+           "ID: "+(d.instDesigner||"—")].map(function(txt,i){
+            return React.createElement("div",{key:i,style:{fontSize:14,color:"#555",padding:"4px 0"}},txt);
+          }))),
+      d.courseDesc?React.createElement("div",{className:"card"},
+        React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:8}},"Course Description"),
+        React.createElement("p",{style:{fontSize:14,color:"#444",lineHeight:1.6}},d.courseDesc)):null,
+      React.createElement("div",{className:"card"},
+        React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:12}},"Course Learning Outcomes"),
+        d.clos.filter(function(cl){return cl.text;}).map(function(cl,i){
+          return React.createElement("div",{key:i,style:{padding:"10px 0",borderBottom:"1px solid #f0f0f0"}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
+              React.createElement("span",{className:"badge"},"CLO "+(i+1)),
+              React.createElement("span",{style:{fontSize:13,color:"#888"}},"CSWE: "+(cl.ces||"—")+" | ADEI: "+(cl.adei||"—"))),
+            React.createElement("p",{style:{fontSize:14,color:"#333"}},cl.text));
+        })),
+      React.createElement("div",{className:"card"},
+        React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:12}},"Learning Modules"),
+        d.modules.filter(function(m){return m.title;}).map(function(mod,mi){
+          return React.createElement("div",{key:mi,style:{marginBottom:16,padding:14,background:"#FAF5EE",borderRadius:12,border:"1px solid #e8e0d0"}},
+            React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:6}},"Module "+(mi+1)+": "+mod.title),
+            mod.overview?React.createElement("p",{style:{fontSize:13,color:"#666",marginBottom:8}},mod.overview):null,
+            React.createElement("div",{style:{fontSize:13,color:"#888",marginBottom:8}},"Sync: "+(mod.syncMin||"0")+" min | Async: "+(mod.asyncMin||"0")+" min"),
+            mod.objectives.filter(function(o){return o.text;}).map(function(obj,oi){
+              return React.createElement("div",{key:oi,style:{padding:"8px 0",borderTop:"1px solid #e0d8cc",fontSize:13}},
+                React.createElement("div",{style:{fontWeight:600,color:"#333",marginBottom:4}},"Obj "+(oi+1)+": "+obj.text),
+                React.createElement("div",{style:{color:"#888"}},"CLOs: "+(obj.clos||"—")+" | CSWE: "+(obj.ces||"—")+" | ADEI: "+(obj.adei||"—")));
+            }));
+        }))));
+}
+
 function Dashboard(pp){
   var user=pp.user,onSel=pp.onSelect,onNew=pp.onNew,onOut=pp.onLogout;
   var _c=useState(null),courses=_c[0],setCourses=_c[1];
@@ -535,7 +690,8 @@ function Dashboard(pp){
       React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:40,marginBottom:16}}),
       React.createElement("h1",{style:{fontSize:32,fontWeight:900,color:"#990000",marginBottom:8}},"My Course Design Maps"),
       React.createElement("p",{style:{fontSize:16,color:"#999",marginBottom:24}},"Select a course to continue working, or create a new CDM."),
-      React.createElement("button",{onClick:onNew,className:"btn-p",style:{width:"100%",marginBottom:20,padding:"14px",fontSize:14}},"+  Create New CDM"),
+      React.createElement("button",{onClick:onNew,className:"btn-p",style:{width:"100%",marginBottom:12,padding:"14px",fontSize:14}},"+  Create New CDM"),
+      pp.isAdmin?React.createElement("button",{onClick:pp.onAdminMode,style:{width:"100%",marginBottom:20,padding:"12px",fontSize:14,fontWeight:700,background:"#fff",border:"2px solid #990000",color:"#990000",borderRadius:14,cursor:"pointer"}},"\u{1F6E1} Open Admin Dashboard"):null,
       !courses?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20}},"Loading your courses..."):
       courses.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
         React.createElement("p",{style:{fontSize:16}},"No courses yet. Click Create New CDM to get started.")):
@@ -567,6 +723,10 @@ useEffect(function(){
   });return function(){unsub();};
 },[]);
 
+var _adm=useState(false),adminMode=_adm[0],setAdminMode=_adm[1];
+var _av=useState(null),adminViewData=_av[0],setAdminViewData=_av[1];
+var _avInfo=useState({}),adminViewInfo=_avInfo[0],setAdminViewInfo=_avInfo[1];
+
 var openCourse=function(cid){setCurrentCourseId(cid);setDataLoaded(false);loadCourse(authUser.uid,cid,function(d){setData(d);setDataLoaded(true);setShowDashboard(false);setStep(0);});};
 var createCourse=function(){createNewCourse(authUser.uid,function(nid){openCourse(nid);});};
 var goToDashboard=function(){setShowDashboard(true);setStep(0);setCurrentCourseId(null);setDataLoaded(false);setData(INIT);};
@@ -576,7 +736,21 @@ const goN=()=>setStep(s=>Math.min(s+1,STEPS.length-1));
 const goP=()=>setStep(s=>Math.max(s-1,0));
 if(authLoading){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading..."));}
 if(!authUser){return React.createElement(LoginScreen,null);}
-if(showDashboard){return React.createElement(Dashboard,{user:authUser,onSelect:openCourse,onNew:createCourse,onLogout:function(){firebase.auth().signOut();}});}
+if(showDashboard){
+  if(isAdmin(authUser.email)&&adminMode){
+    if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,onBack:function(){setAdminViewData(null);},onExport:function(){
+      var tmpData=adminViewData;var oldData=data;setData(tmpData);setTimeout(function(){
+        var revStep=document.querySelector('[class*="btn-p"]');
+        setData(oldData);alert("To download this CDM as PDF, open the faculty member's CDM in the app and use the Review & Export step.");
+      },100);
+    }});}
+    return React.createElement(AdminDashboard,{user:authUser,onLogout:function(){firebase.auth().signOut();},onSwitchToFaculty:function(){setAdminMode(false);},onViewCourse:function(uid,cid,cname,fname){
+      setAdminViewInfo({courseName:cname,facultyName:fname});
+      loadFacultyCourse(uid,cid,function(d){setAdminViewData(d);});
+    }});
+  }
+  return React.createElement(Dashboard,{user:authUser,onSelect:openCourse,onNew:createCourse,onLogout:function(){firebase.auth().signOut();},isAdmin:isAdmin(authUser.email),onAdminMode:function(){setAdminMode(true);}});
+}
 if(!dataLoaded){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading your course..."));}
 return React.createElement("div",null,
 React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard}),
@@ -598,6 +772,7 @@ React.createElement("span",{style:{fontSize:13,color:"#999"}},"Step "+step+" of 
 step<STEPS.length-1?React.createElement("button",{onClick:goN,className:"btn-p",style:{padding:"10px 24px"}},"Next \u2192"):React.createElement("div",{style:{width:80}})));}
 
 ReactDOM.render(React.createElement(App),document.getElementById("root"));
+
 
 
 
