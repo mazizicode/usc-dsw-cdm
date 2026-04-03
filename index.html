@@ -855,7 +855,7 @@ function VersionPanel(props){
             React.createElement("div",null,
               React.createElement("span",{className:"ver-badge locked"},"v"+v.versionNumber),
               React.createElement("span",{style:{fontSize:13,color:"#333",marginLeft:8}},v.versionNote||"No note"),
-              React.createElement("div",{style:{fontSize:11,color:"#999",marginTop:2}},"Saved by "+v.createdBy+" on "+time)),
+              React.createElement("div",{style:{fontSize:12,color:"#999",marginTop:2}},"Saved by "+v.createdBy+" on "+time)),
             React.createElement("span",{style:{fontSize:12,color:"#990000"}},"View "+String.fromCharCode(8250)));
         }))):null,
     viewData?React.createElement("div",{style:{marginTop:16,background:"#fff",border:"2px solid #990000",borderRadius:14,padding:20}},
@@ -898,7 +898,7 @@ function Dashboard(pp){
           var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"Never";
           return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
             React.createElement("div",{style:{flex:1}},
-              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:10,fontWeight:700,background:"#990000",color:"#fff",padding:"1px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
               React.createElement("div",{style:{fontSize:14,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X"),
@@ -926,13 +926,50 @@ var _av=useState(null),adminViewData=_av[0],setAdminViewData=_av[1];
 var _avInfo=useState({}),adminViewInfo=_avInfo[0],setAdminViewInfo=_avInfo[1];
 
 var openCourse=function(cid){setCurrentCourseId(cid);setDataLoaded(false);loadCourse(authUser.uid,cid,function(d){setData(d);setDataLoaded(true);setShowDashboard(false);setStep(0);});};
+var _showDup=useState(null),dupInfo=_showDup[0],setDupInfo=_showDup[1];
+
 var createCourse=function(){
   var name=prompt("Enter the course number and name:\n(e.g., SOWK 705 - Advanced Clinical Practice)");
   if(!name||!name.trim())return;
+  var trimmed=name.trim();
+  loadCourseList(authUser.uid,function(courses){
+    var match=null;
+    for(var i=0;i<courses.length;i++){
+      if(courses[i].name.toLowerCase()===trimmed.toLowerCase()){match=courses[i];break;}
+    }
+    if(match){
+      setDupInfo({name:trimmed,existingId:match.id,existingName:match.name});
+    }else{
+      doCreateFresh(trimmed);
+    }
+  });
+};
+
+var doCreateFresh=function(name){
   var initWithName=Object.assign({},INIT);
-  initWithName.courseName=name.trim();
+  initWithName.courseName=name;
   var ref=firebase.firestore().collection("cdm_data").doc(authUser.uid).collection("courses").doc();
-  ref.set({cdmData:JSON.stringify(initWithName),courseName:name.trim(),leadName:"",cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){openCourse(ref.id);}).catch(function(e){alert("Error creating course: "+e.message);});
+  ref.set({cdmData:JSON.stringify(initWithName),courseName:name,leadName:"",cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){openCourse(ref.id);}).catch(function(e){alert("Error creating course: "+e.message);});
+};
+
+var doCreateNewVersion=function(existingId,name){
+  loadCourse(authUser.uid,existingId,function(existingData){
+    createVersion(authUser.uid,existingId,existingData,"Archived before creating new version",function(updated,newNum){
+      var fresh=Object.assign({},INIT);
+      fresh.courseName=name;
+      fresh.cdmVersion=newNum;
+      fresh.cdmVersionNote="New version - started fresh";
+      firebase.firestore().collection("cdm_data").doc(authUser.uid).collection("courses").doc(existingId).set({
+        cdmData:JSON.stringify(fresh),courseName:name,leadName:"",cdmVersion:newNum,
+        lastUpdated:firebase.firestore.FieldValue.serverTimestamp()
+      }).then(function(){setDupInfo(null);openCourse(existingId);}).catch(function(e){alert("Error: "+e.message);});
+    });
+  });
+};
+
+var doCreateSeparate=function(name){
+  doCreateFresh(name+" (New)");
+  setDupInfo(null);
 };
 var goToDashboard=function(){setShowDashboard(true);setStep(0);setCurrentCourseId(null);setDataLoaded(false);setData(INIT);};
 
@@ -941,6 +978,31 @@ const goN=()=>setStep(s=>Math.min(s+1,STEPS.length-1));
 const goP=()=>setStep(s=>Math.max(s-1,0));
 if(authLoading){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading..."));}
 if(!authUser){return React.createElement(LoginScreen,null);}
+if(dupInfo){return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)",display:"flex",alignItems:"center",justifyContent:"center"}},
+  React.createElement("div",{style:{maxWidth:560,width:"100%",padding:"0 24px"}},
+    React.createElement("div",{style:{background:"#fff",borderRadius:20,padding:32,boxShadow:"0 4px 24px rgba(0,0,0,0.1)",border:"1px solid #e8e0d0"}},
+      React.createElement("div",{style:{textAlign:"center",marginBottom:20}},
+        React.createElement("div",{style:{fontSize:40,marginBottom:8}},"\u26A0\uFE0F"),
+        React.createElement("h2",{style:{fontSize:24,fontWeight:900,color:"#990000",marginBottom:8}},"Course Already Exists"),
+        React.createElement("p",{style:{fontSize:15,color:"#666"}},"A CDM for ",React.createElement("strong",null,dupInfo.existingName)," already exists in your courses. What would you like to do?")),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+        React.createElement("button",{onClick:function(){setDupInfo(null);openCourse(dupInfo.existingId);},style:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"16px 20px",borderRadius:14,border:"2px solid #990000",background:"#fff",cursor:"pointer",textAlign:"left"}},
+          React.createElement("div",{style:{fontSize:28}},"\u{1F4C2}"),
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:15,fontWeight:700,color:"#990000"}},"Open Existing CDM"),
+            React.createElement("div",{style:{fontSize:12,color:"#888"}},"Continue working on the CDM you already started"))),
+        React.createElement("button",{onClick:function(){doCreateNewVersion(dupInfo.existingId,dupInfo.name);},style:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"16px 20px",borderRadius:14,border:"2px solid #FFCC00",background:"#FFFBEB",cursor:"pointer",textAlign:"left"}},
+          React.createElement("div",{style:{fontSize:28}},"\u{1F504}"),
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:15,fontWeight:700,color:"#92400E"}},"Create New Version"),
+            React.createElement("div",{style:{fontSize:12,color:"#888"}},"Archive the current version and start a fresh update"))),
+        React.createElement("button",{onClick:function(){doCreateSeparate(dupInfo.name);},style:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"16px 20px",borderRadius:14,border:"1px solid #ddd",background:"#f9f9f9",cursor:"pointer",textAlign:"left"}},
+          React.createElement("div",{style:{fontSize:28}},"\u{1F4CB}"),
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:15,fontWeight:700,color:"#333"}},"Create Separate CDM"),
+            React.createElement("div",{style:{fontSize:12,color:"#888"}},"Create an independent CDM with the same course name"))),
+        React.createElement("button",{onClick:function(){setDupInfo(null);},style:{width:"100%",padding:"12px",borderRadius:12,border:"none",background:"none",cursor:"pointer",fontSize:14,color:"#999",fontWeight:600}},"Cancel")))));
+}
 if(showDashboard){
   if(isAdmin(authUser.email)&&adminMode){
     if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,onBack:function(){setAdminViewData(null);},onExport:function(){
