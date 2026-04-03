@@ -73,14 +73,43 @@ input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 2px #FFCC0
 .msw-card.ck{border-color:#990000;background:#fef3f3}
 .msw-card .comp-name{font-size:10px;font-weight:700;color:#990000;margin-top:4px}
 .msw-card .comp-desc{font-size:9px;color:#777;margin-top:2px;line-height:1.3}
+
+/* Accessibility & sizing improvements */
+body{font-size:15px}
+.field input,.field textarea,.field select{font-size:14px;padding:10px 14px}
+.field label{font-size:11px}
+.stitle{font-size:24px}
+.ssub{font-size:13px;margin-bottom:18px}
+.badge{font-size:11px;padding:3px 12px}
+.btn-p{padding:14px 30px;font-size:14px}
+.btn-s{font-size:13px;padding:12px}
+.btn-o{font-size:13px;padding:10px 20px}
+.step-btn{font-size:12px;padding:8px 14px}
+.card{padding:20px}
+.bullet-item{font-size:14px}
+.how-label{font-size:14px}
+.how-desc{font-size:13px}
+.tip-text{font-size:13px}
+.ces-inner{padding:16px}
+.ces-inner p{font-size:13px}
+.msw-card .comp-name{font-size:11px}
+.msw-card .comp-desc{font-size:10px}
+.obj-row{padding:18px}
+.gold-left{padding:12px 16px;font-size:13px}
+.content{max-width:960px}
+.g2{gap:14px}.g3{gap:14px}.g4{gap:14px}
+.mod-tab{font-size:13px;padding:10px 18px}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script>
+
 firebase.initializeApp({apiKey:"AIzaSyBPdcyZcwpgrY5jOAYsPiPoNpwmJmKQwzg",authDomain:"usc-dsw-cdm-e5fd7.firebaseapp.com",projectId:"usc-dsw-cdm-e5fd7",storageBucket:"usc-dsw-cdm-e5fd7.firebasestorage.app",messagingSenderId:"170623137328",appId:"1:170623137328:web:67069099494d1e01a31ff5"});
+
 </script>
 <script>
+
 
 const{useState,useEffect}=React;
 const C={cardinal:"#990000",gold:"#FFCC00",dark:"#1a1a1a",cream:"#FFF8E7",warm:"#FAF5EE"};
@@ -402,10 +431,10 @@ const pct=Math.round(items.filter(i=>i.d).length/items.length*100);
 const[gen,setGen]=useState(false);
 const esc=s=>(s||"\u2014").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
 const doExport=()=>{setGen(true);const w=window.open("","_blank");if(!w){alert("Please allow popups.");setGen(false);return;}
-let h=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CDM Report</title>
+let h=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CDM Report - "+esc(data.courseName)+"</title>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Source Sans 3',sans-serif;color:#1a1a1a;font-size:11px;line-height:1.5}@page{size:landscape;margin:.45in}.page{page-break-after:always;padding:6px}.page:last-child{page-break-after:auto}h1{font-size:22px;color:#990000;font-weight:900;margin-bottom:4px}h2{font-size:14px;color:#990000;font-weight:700;border-bottom:2px solid #990000;padding-bottom:3px;margin:14px 0 8px}h3{font-size:12px;color:#990000;font-weight:700;margin:8px 0 4px}.bar{height:2px;background:#FFCC00;margin-bottom:8px}table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10px}th{background:#990000;color:#fff;padding:5px 6px;text-align:left;font-weight:700;font-size:9px;text-transform:uppercase}td{padding:5px 6px;border:1px solid #ddd;vertical-align:top}tr:nth-child(even) td{background:#faf5ee}.badge{display:inline-block;background:#990000;color:#fff;font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:4px}.badge-gold{background:#FFCC00;color:#1a1a1a}.ig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:8px 0}.ig div{background:#faf5ee;padding:5px 8px;border-radius:5px;border:1px solid #e8e0d0}.ig label{font-size:7px;font-weight:700;color:#990000;text-transform:uppercase;display:block;margin-bottom:1px}.ig span{font-size:10px}.ft{text-align:center;font-size:7px;color:#999;padding-top:6px;border-top:1px solid #990000;margin-top:10px}.mh{background:#faf5ee;border:2px solid #990000;border-radius:6px;padding:7px 10px;margin-bottom:6px}.mh h3{margin:0;font-size:13px}.ov{background:#fff8e7;border-left:3px solid #FFCC00;padding:5px 10px;font-size:10px;margin:5px 0;border-radius:0 5px 5px 0}.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #990000;padding-bottom:5px;margin-bottom:10px}.hdr .sub{font-size:9px;color:#999;font-style:italic}</style></head><body>`;
-h+=`<div class="page"><div style="text-align:center;padding:14px 0 8px"><div style="font-size:9px;color:#999;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px">USC Suzanne Dworak-Peck School of Social Work</div><h1>Course Design Map (CDM)</h1><div style="font-size:13px;color:#333">Doctor of Social Work (DSW) Program</div><div style="width:80px;height:2px;background:#FFCC00;margin:6px auto"></div></div><div class="bar"></div><h2>General Course Information</h2><div class="ig">`;
+h+=`<div class="page"><div style="text-align:center;padding:14px 0 8px"><div style="font-size:10px;color:#999;margin-bottom:5px">USC Suzanne Dworak-Peck School of Social Work</div><h1>Course Design Map (CDM)</h1><div style="font-size:16px;font-weight:700;color:#333;margin-top:4px">"+esc(data.courseName)+"</div><div style="font-size:13px;color:#555">Doctor of Social Work (DSW) Program</div><div style="width:80px;height:2px;background:#FFCC00;margin:6px auto"></div></div><div class="bar"></div><h2>General Course Information</h2><div class="ig">`;
 [["Course",data.courseName],["Dev Started",data.devStarted],["Target Delivery",data.targetDelivery],["Course Lead",data.courseLead],["Email",data.leadEmail],["Phone",data.leadPhone],["Instructional Designer",data.instDesigner],["Program Director",data.progDirector],["Area of Focus",data.areaOfFocus],["Modality",data.modality==="async_sync"?"Async & Sync":"Async Only"],["Sync Min/Module",data.syncMin],["Async Min/Module",data.asyncMin]].forEach(([l,v])=>{h+=`<div><label>${l}</label><span>${esc(v)}</span></div>`;});
 h+=`</div>`;
 if(data.courseDesc)h+=`<h3>Course Description</h3><p style="font-size:10px;color:#444;margin:3px 0">${esc(data.courseDesc)}</p>`;
@@ -413,7 +442,7 @@ h+=`<h2>CSWE 2025 Core Expertise & Skills Mapping</h2><table><tr><th>CSWE</th><t
 CSWE_SKILLS.forEach(c=>{h+=`<tr><td><span class="badge">CES ${c.id}</span> ${c.short}</td><td>${c.desc}</td><td style="text-align:center;font-weight:700;color:${data.cesChecked[c.id]?"#990000":"#ccc"}">${data.cesChecked[c.id]?"\u2713":"\u2014"}</td><td>${esc(data.cesExplain[c.id])}</td><td>${esc(data.cesClos[c.id])}</td></tr>`;});
 h+=`</table>`;
 const mswAct=MSW_COMPS.filter(c=>data.mswComps[c.id]);
-if(mswAct.length){h+=`<h3>CSWE 2022 MSW Competencies</h3><p style="font-size:10px">`;mswAct.forEach(c=>{h+=`<span class="badge badge-gold">C${c.id}: ${c.name}</span> `;});h+=`</p>`;}
+if(mswAct.length){h+=`<h3>CSWE 2022 MSW Competencies</h3><p style="font-size:10px">`;mswAct.forEach(function(c,i){h+='<span class="badge badge-gold">C'+c.id+": "+c.name+"</span>";if(i<mswAct.length-1)h+=" &nbsp;\u2022 &nbsp;";});h+=`</p>`;}
 h+=`<h2>Course Learning Outcomes</h2><table><tr><th>CLO</th><th>Outcome</th><th>CSWE Aligned</th><th>ADEI</th><th>Assessment</th></tr>`;
 data.clos.forEach((c,i)=>{if(c.text)h+=`<tr><td><span class="badge">CLO ${i+1}</span></td><td>${esc(c.text)}</td><td>${esc(c.ces)}</td><td>${esc(c.adei)}</td><td>${esc(c.assess)}</td></tr>`;});
 h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | DSW Program | CDM v5.0</div></div>`;
@@ -452,16 +481,16 @@ function LoginScreen(){
     firebase.auth().signInWithPopup(provider).catch(function(e){alert("Sign-in failed: "+e.message);});
   };
   return React.createElement("div",{style:{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)"}},
-    React.createElement("div",{style:{textAlign:"center",maxWidth:420,padding:"0 20px"}},
+    React.createElement("div",{style:{textAlign:"center",maxWidth:480,padding:"0 24px"}},
       React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:50,marginBottom:20}}),
-      React.createElement("h1",{style:{fontSize:28,fontWeight:900,color:"#990000",marginBottom:4}},"Course Design Map"),
-      React.createElement("p",{style:{fontSize:14,color:"#333",marginBottom:4}},"Doctor of Social Work (DSW) Program"),
-      React.createElement("p",{style:{fontSize:11,color:"#999",fontStyle:"italic",marginBottom:30}},"Aligned with CSWE 2025 Accreditation Standards"),
+      React.createElement("h1",{style:{fontSize:34,fontWeight:900,color:"#990000",marginBottom:6}},"Course Design Map"),
+      React.createElement("p",{style:{fontSize:16,color:"#333",marginBottom:4}},"Doctor of Social Work (DSW) Program"),
+      React.createElement("p",{style:{fontSize:13,color:"#999",fontStyle:"italic",marginBottom:30}},"Aligned with CSWE 2025 Accreditation Standards"),
       React.createElement("div",{style:{height:2,background:"#FFCC00",width:80,margin:"0 auto 30px"}}),
-      React.createElement("button",{onClick:doLogin,style:{display:"flex",alignItems:"center",justifyContent:"center",gap:10,margin:"0 auto",padding:"12px 32px",borderRadius:12,border:"1px solid #ddd",background:"#fff",cursor:"pointer",fontSize:14,fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",transition:"all 0.2s"}},
+      React.createElement("button",{onClick:doLogin,style:{display:"flex",alignItems:"center",justifyContent:"center",gap:10,margin:"0 auto",padding:"14px 40px",borderRadius:12,border:"1px solid #ddd",background:"#fff",cursor:"pointer",fontSize:16,fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",transition:"all 0.2s"}},
         React.createElement("img",{src:"https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg",alt:"G",style:{width:20,height:20}}),
         "Sign in with Google"),
-      React.createElement("p",{style:{fontSize:11,color:"#bbb",marginTop:16}},"Use your USC Google account to sign in")
+      React.createElement("p",{style:{fontSize:12,color:"#bbb",marginTop:16}},"Use your USC Google account to sign in"),React.createElement("p",{style:{fontSize:11,color:"#ccc",marginTop:6}},"Always use the same Google account to access your saved work")
     )
   );
 }
@@ -492,10 +521,10 @@ function Dashboard(pp){
         user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:28,height:28,borderRadius:14}}):null,
         React.createElement("span",{style:{fontWeight:600,fontSize:13,color:"#333"}},user.displayName||user.email)),
       React.createElement("button",{onClick:onOut,style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:12,fontWeight:600}},"Sign Out")),
-    React.createElement("div",{style:{maxWidth:700,margin:"0 auto",padding:"30px 16px"}},
+    React.createElement("div",{style:{maxWidth:800,margin:"0 auto",padding:"30px 20px"}},
       React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:40,marginBottom:16}}),
-      React.createElement("h1",{style:{fontSize:26,fontWeight:900,color:"#990000",marginBottom:4}},"My Course Design Maps"),
-      React.createElement("p",{style:{fontSize:12,color:"#999",marginBottom:24}},"Select a course to continue working, or create a new CDM."),
+      React.createElement("h1",{style:{fontSize:28,fontWeight:900,color:"#990000",marginBottom:6}},"My Course Design Maps"),
+      React.createElement("p",{style:{fontSize:14,color:"#999",marginBottom:24}},"Select a course to continue working, or create a new CDM."),
       React.createElement("button",{onClick:onNew,className:"btn-p",style:{width:"100%",marginBottom:20,padding:"14px",fontSize:14}},"+  Create New CDM"),
       !courses?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20}},"Loading your courses..."):
       courses.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
@@ -505,8 +534,8 @@ function Dashboard(pp){
           var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"Never";
           return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
             React.createElement("div",{style:{flex:1}},
-              React.createElement("div",{style:{fontSize:14,fontWeight:700,color:"#990000",marginBottom:3}},c.name),
-              React.createElement("div",{style:{fontSize:11,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
+              React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:4}},c.name),
+              React.createElement("div",{style:{fontSize:13,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X"),
               React.createElement("span",{style:{color:"#990000",fontSize:18}},String.fromCharCode(8250))));}))));
@@ -559,6 +588,7 @@ React.createElement("span",{style:{fontSize:11,color:"#999"}},"Step "+step+" of 
 step<STEPS.length-1?React.createElement("button",{onClick:goN,className:"btn-p",style:{padding:"10px 24px"}},"Next \u2192"):React.createElement("div",{style:{width:80}})));}
 
 ReactDOM.render(React.createElement(App),document.getElementById("root"));
+
 
 
 </script>
