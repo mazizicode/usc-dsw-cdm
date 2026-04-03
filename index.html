@@ -74,31 +74,41 @@ input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 2px #FFCC0
 .msw-card .comp-name{font-size:10px;font-weight:700;color:#990000;margin-top:4px}
 .msw-card .comp-desc{font-size:9px;color:#777;margin-top:2px;line-height:1.3}
 
-/* Accessibility & sizing improvements */
-body{font-size:15px}
-.field input,.field textarea,.field select{font-size:14px;padding:10px 14px}
-.field label{font-size:11px}
-.stitle{font-size:24px}
-.ssub{font-size:13px;margin-bottom:18px}
-.badge{font-size:11px;padding:3px 12px}
-.btn-p{padding:14px 30px;font-size:14px}
-.btn-s{font-size:13px;padding:12px}
-.btn-o{font-size:13px;padding:10px 20px}
-.step-btn{font-size:12px;padding:8px 14px}
-.card{padding:20px}
-.bullet-item{font-size:14px}
-.how-label{font-size:14px}
-.how-desc{font-size:13px}
-.tip-text{font-size:13px}
-.ces-inner{padding:16px}
-.ces-inner p{font-size:13px}
-.msw-card .comp-name{font-size:11px}
-.msw-card .comp-desc{font-size:10px}
-.obj-row{padding:18px}
-.gold-left{padding:12px 16px;font-size:13px}
-.content{max-width:960px}
-.g2{gap:14px}.g3{gap:14px}.g4{gap:14px}
-.mod-tab{font-size:13px;padding:10px 18px}
+/* Accessibility & sizing - 25% larger */
+body{font-size:17px;line-height:1.6}
+.field input,.field textarea,.field select{font-size:16px;padding:12px 16px;border-radius:12px}
+.field label{font-size:13px;letter-spacing:.6px}
+.field{margin-bottom:4px}
+.stitle{font-size:30px;margin-bottom:8px}
+.ssub{font-size:15px;margin-bottom:20px}
+.badge{font-size:13px;padding:4px 14px;border-radius:14px}
+.btn-p{padding:16px 36px;font-size:16px;border-radius:14px}
+.btn-s{font-size:15px;padding:14px;border-radius:14px}
+.btn-o{font-size:15px;padding:12px 24px;border-radius:12px}
+.step-btn{font-size:13px;padding:10px 16px;border-radius:24px}
+.card{padding:24px;border-radius:16px}
+.bullet-item{font-size:16px;padding:6px 0}
+.bullet-dot{font-size:20px}
+.how-item{margin-bottom:16px}
+.how-label{font-size:16px}
+.how-desc{font-size:15px;line-height:1.6}
+.tip-text{font-size:15px}
+.tip-item{padding:6px 0}
+.ces-card{border-radius:14px}
+.ces-inner{padding:18px}
+.ces-inner p{font-size:15px}
+.msw-card{border-radius:12px;padding:14px}
+.msw-card .comp-name{font-size:13px;margin-top:6px}
+.msw-card .comp-desc{font-size:12px;margin-top:4px;line-height:1.4}
+.obj-row{padding:22px;border-radius:14px}
+.gold-left{padding:16px 20px;font-size:15px;border-radius:0 12px 12px 0}
+.content{max-width:1060px;padding-left:24px;padding-right:24px}
+.g2{gap:16px}.g3{gap:16px}.g4{gap:16px}
+.mod-tabs{gap:10px}
+.mod-tab{font-size:14px;padding:12px 22px;border-radius:12px}
+.bot-nav{padding:14px 24px}
+.step-nav{padding:14px 12px;gap:6px}
+.card-accent{border-radius:16px}
 </style>
 </head>
 <body>
@@ -203,21 +213,21 @@ React.createElement("h1",{style:{fontSize:34,fontWeight:900,color:C.cardinal,mar
 React.createElement("p",{style:{fontSize:15,fontWeight:500,marginBottom:2}},"Doctor of Social Work (DSW) Program"),
 React.createElement("p",{style:{fontSize:11,color:"#999",marginBottom:22,fontStyle:"italic"}},"Aligned with CSWE 2025 Accreditation Standards for Practice Doctorate Programs"),
 React.createElement("div",{className:"card",style:{textAlign:"left",marginBottom:22}},
-React.createElement("h3",{style:{fontSize:13,fontWeight:700,color:C.cardinal,marginBottom:8}},"\u{1F4D0} What is the CDM?"),
-React.createElement("p",{style:{fontSize:13,color:"#555",lineHeight:1.6}},"The Course Design Map establishes a foundational blueprint for your DSW course. It organizes content into structured learning modules aligned with Course Learning Outcomes and the ",React.createElement("strong",null,"CSWE 2025 Core Expertise and Skills")," for Practice Doctorate Programs. Using backward design principles, it ensures every element connects intentionally toward practitioner-scholar success."),
+React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:C.cardinal,marginBottom:10}},"\u{1F4D0} What is the CDM?"),
+React.createElement("p",{style:{fontSize:15,color:"#555",lineHeight:1.7}},"The Course Design Map establishes a foundational blueprint for your DSW course. It organizes content into structured learning modules aligned with Course Learning Outcomes and the ",React.createElement("strong",null,"CSWE 2025 Core Expertise and Skills")," for Practice Doctorate Programs. Using backward design principles, it ensures every element connects intentionally toward practitioner-scholar success."),
 React.createElement("div",{className:"g3",style:{marginTop:16}},
 React.createElement("div",{className:"card",style:{textAlign:"center",padding:"20px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:150,gap:6}},
 React.createElement("img",{src:ALIGN_IMG,alt:"Alignment",style:{width:36,height:36,objectFit:"contain"}}),
-React.createElement("div",{style:{fontSize:12,fontWeight:700,color:C.cardinal,marginTop:4}},"Alignment"),
-React.createElement("div",{style:{fontSize:10,color:"#888",lineHeight:"1.4",textAlign:"center"}},"CLOs \u2194 Activities \u2194 Assessments \u2194 CSWE")),
+React.createElement("div",{style:{fontSize:14,fontWeight:700,color:C.cardinal,marginTop:6}},"Alignment"),
+React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",textAlign:"center"}},"CLOs \u2194 Activities \u2194 Assessments \u2194 CSWE")),
 React.createElement("div",{className:"card",style:{textAlign:"center",padding:"20px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:150,gap:6}},
 React.createElement("span",{style:{fontSize:30}},"📐"),
-React.createElement("div",{style:{fontSize:12,fontWeight:700,color:C.cardinal,marginTop:4}},"Backward Design"),
-React.createElement("div",{style:{fontSize:10,color:"#888",lineHeight:"1.4",textAlign:"center"}},"Outcomes first, then assessments, then activities")),
+React.createElement("div",{style:{fontSize:14,fontWeight:700,color:C.cardinal,marginTop:6}},"Backward Design"),
+React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",textAlign:"center"}},"Outcomes first, then assessments, then activities")),
 React.createElement("div",{className:"card",style:{textAlign:"center",padding:"20px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:150,gap:6}},
 React.createElement("img",{src:CSWE_IMG,alt:"CSWE",style:{width:52,height:30,objectFit:"contain"}}),
-React.createElement("div",{style:{fontSize:12,fontWeight:700,color:C.cardinal,marginTop:4}},"Accreditation"),
-React.createElement("div",{style:{fontSize:10,color:"#888",lineHeight:"1.4",textAlign:"center"}},"Evidence for Standards D3.0.1, D5.0.1"))
+React.createElement("div",{style:{fontSize:14,fontWeight:700,color:C.cardinal,marginTop:6}},"Accreditation"),
+React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",textAlign:"center"}},"Evidence for Standards D3.0.1, D5.0.1"))
 )),
 React.createElement("div",{className:"gold-left",style:{marginBottom:22,fontSize:12}},
 React.createElement("strong",{style:{color:C.cardinal}},"\u{1F4BE} Auto-Save: "),"Your progress is automatically saved in your browser. You can close and return anytime."),
@@ -481,16 +491,16 @@ function LoginScreen(){
     firebase.auth().signInWithPopup(provider).catch(function(e){alert("Sign-in failed: "+e.message);});
   };
   return React.createElement("div",{style:{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)"}},
-    React.createElement("div",{style:{textAlign:"center",maxWidth:480,padding:"0 24px"}},
+    React.createElement("div",{style:{textAlign:"center",maxWidth:540,padding:"0 28px"}},
       React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:50,marginBottom:20}}),
-      React.createElement("h1",{style:{fontSize:34,fontWeight:900,color:"#990000",marginBottom:6}},"Course Design Map"),
-      React.createElement("p",{style:{fontSize:16,color:"#333",marginBottom:4}},"Doctor of Social Work (DSW) Program"),
-      React.createElement("p",{style:{fontSize:13,color:"#999",fontStyle:"italic",marginBottom:30}},"Aligned with CSWE 2025 Accreditation Standards"),
+      React.createElement("h1",{style:{fontSize:40,fontWeight:900,color:"#990000",marginBottom:8}},"Course Design Map"),
+      React.createElement("p",{style:{fontSize:18,color:"#333",marginBottom:6}},"Doctor of Social Work (DSW) Program"),
+      React.createElement("p",{style:{fontSize:14,color:"#999",fontStyle:"italic",marginBottom:30}},"Aligned with CSWE 2025 Accreditation Standards"),
       React.createElement("div",{style:{height:2,background:"#FFCC00",width:80,margin:"0 auto 30px"}}),
-      React.createElement("button",{onClick:doLogin,style:{display:"flex",alignItems:"center",justifyContent:"center",gap:10,margin:"0 auto",padding:"14px 40px",borderRadius:12,border:"1px solid #ddd",background:"#fff",cursor:"pointer",fontSize:16,fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",transition:"all 0.2s"}},
+      React.createElement("button",{onClick:doLogin,style:{display:"flex",alignItems:"center",justifyContent:"center",gap:10,margin:"0 auto",padding:"16px 48px",borderRadius:14,border:"1px solid #ddd",background:"#fff",cursor:"pointer",fontSize:17,fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",transition:"all 0.2s"}},
         React.createElement("img",{src:"https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg",alt:"G",style:{width:20,height:20}}),
         "Sign in with Google"),
-      React.createElement("p",{style:{fontSize:12,color:"#bbb",marginTop:16}},"Use your USC Google account to sign in"),React.createElement("p",{style:{fontSize:11,color:"#ccc",marginTop:6}},"Always use the same Google account to access your saved work")
+      React.createElement("p",{style:{fontSize:14,color:"#bbb",marginTop:16}},"Use your USC Google account to sign in"),React.createElement("p",{style:{fontSize:12,color:"#ccc",marginTop:8}},"Always use the same Google account to access your saved work")
     )
   );
 }
@@ -521,10 +531,10 @@ function Dashboard(pp){
         user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:28,height:28,borderRadius:14}}):null,
         React.createElement("span",{style:{fontWeight:600,fontSize:13,color:"#333"}},user.displayName||user.email)),
       React.createElement("button",{onClick:onOut,style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:12,fontWeight:600}},"Sign Out")),
-    React.createElement("div",{style:{maxWidth:800,margin:"0 auto",padding:"30px 20px"}},
+    React.createElement("div",{style:{maxWidth:900,margin:"0 auto",padding:"36px 24px"}},
       React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:40,marginBottom:16}}),
-      React.createElement("h1",{style:{fontSize:28,fontWeight:900,color:"#990000",marginBottom:6}},"My Course Design Maps"),
-      React.createElement("p",{style:{fontSize:14,color:"#999",marginBottom:24}},"Select a course to continue working, or create a new CDM."),
+      React.createElement("h1",{style:{fontSize:32,fontWeight:900,color:"#990000",marginBottom:8}},"My Course Design Maps"),
+      React.createElement("p",{style:{fontSize:16,color:"#999",marginBottom:24}},"Select a course to continue working, or create a new CDM."),
       React.createElement("button",{onClick:onNew,className:"btn-p",style:{width:"100%",marginBottom:20,padding:"14px",fontSize:14}},"+  Create New CDM"),
       !courses?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20}},"Loading your courses..."):
       courses.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
@@ -534,8 +544,8 @@ function Dashboard(pp){
           var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"Never";
           return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
             React.createElement("div",{style:{flex:1}},
-              React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:4}},c.name),
-              React.createElement("div",{style:{fontSize:13,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
+              React.createElement("div",{style:{fontSize:18,fontWeight:700,color:"#990000",marginBottom:4}},c.name),
+              React.createElement("div",{style:{fontSize:14,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X"),
               React.createElement("span",{style:{color:"#990000",fontSize:18}},String.fromCharCode(8250))));}))));
