@@ -78,17 +78,10 @@ input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 2px #FFCC0
 <body>
 <div id="root"></div>
 <script>
-// Firebase Configuration
-firebase.initializeApp({
-  apiKey: "AIzaSyBPdcyZcwpgrY5jOAYsPiPoNpwmJmKQwzg",
-  authDomain: "usc-dsw-cdm-e5fd7.firebaseapp.com",
-  projectId: "usc-dsw-cdm-e5fd7",
-  storageBucket: "usc-dsw-cdm-e5fd7.firebasestorage.app",
-  messagingSenderId: "170623137328",
-  appId: "1:170623137328:web:67069099494d1e01a31ff5"
-});
+firebase.initializeApp({apiKey:"AIzaSyBPdcyZcwpgrY5jOAYsPiPoNpwmJmKQwzg",authDomain:"usc-dsw-cdm-e5fd7.firebaseapp.com",projectId:"usc-dsw-cdm-e5fd7",storageBucket:"usc-dsw-cdm-e5fd7.firebasestorage.app",messagingSenderId:"170623137328",appId:"1:170623137328:web:67069099494d1e01a31ff5"});
 </script>
 <script>
+
 const{useState,useEffect}=React;
 const C={cardinal:"#990000",gold:"#FFCC00",dark:"#1a1a1a",cream:"#FFF8E7",warm:"#FAF5EE"};
 
@@ -150,23 +143,11 @@ modules:[emptyMod()]
 };
 
 function load(){return INIT;}
-function loadFromFirestore(uid,callback){
-  var ref=firebase.firestore().collection("cdm_data").doc(uid);
-  ref.get().then(function(doc){
-    if(doc.exists){var d=doc.data().cdmData;if(d){try{var parsed=JSON.parse(d);if(!parsed.cesExplain)parsed.cesExplain={};callback(parsed);}catch(e){callback(INIT);}}else{callback(INIT);}}
-    else{callback(INIT);}
-  }).catch(function(e){console.error("Load error:",e);callback(INIT);});
-}
-function save(d){
-  var user=firebase.auth().currentUser;
-  if(!user)return;
-  firebase.firestore().collection("cdm_data").doc(user.uid).set({
-    cdmData:JSON.stringify(d),
-    userEmail:user.email,
-    userName:user.displayName,
-    lastUpdated:firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(function(e){console.error("Save error:",e);});
-}
+function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").orderBy("lastUpdated","desc").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
+function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};cb(p);}catch(e){cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(){cb(INIT);});}
+function createNewCourse(uid,cb){var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(INIT),courseName:"New Course",leadName:"",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){cb(r.id);});}
+function deleteCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).delete().then(cb);}
+function save(d,cid){var u=firebase.auth().currentUser;if(!u||!cid)return;firebase.firestore().collection("cdm_data").doc(u.uid).collection("courses").doc(cid).set({cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",leadName:d.courseLead||"",userEmail:u.email,userName:u.displayName,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error("Save:",e);});}
 
 function F({label,value,onChange,placeholder,type="text",className=""}){
 return React.createElement("div",{className:"field "+className},
@@ -444,7 +425,7 @@ mod.objectives.forEach((o,oi)=>{if(!o.text)return;h+=`<tr><td><span class="badge
 h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | DSW Program | Module ${mi+1}</div></div>`;});
 h+="<scr"+"ipt>window.onload=function(){setTimeout(function(){window.print()},700)}</scr"+"ipt></body></html>";
 w.document.write(h);w.document.close();setTimeout(()=>setGen(false),800);};
-const resetAll=()=>{if(confirm("Clear all data and start fresh? This cannot be undone.")){var u=firebase.auth().currentUser;if(u){firebase.firestore().collection("cdm_data").doc(u.uid).delete().then(function(){window.location.reload();});}}};
+const resetAll=()=>{if(confirm("Delete this course CDM? This cannot be undone.")){var u=firebase.auth().currentUser;if(u&&currentCourseId){deleteCourse(u.uid,currentCourseId,function(){goToDashboard();});}}};
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"Review & Export"),
 React.createElement("div",{className:"ssub"},"Review completion status and generate a PDF report."),
@@ -486,45 +467,80 @@ function LoginScreen(){
 }
 
 function UserBar(props){
-  var user=props.user;
-  var doLogout=function(){firebase.auth().signOut();};
-  return React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 16px",background:"#fff",borderBottom:"1px solid #eee",fontSize:12}},
-    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
-      user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:24,height:24,borderRadius:12}}):null,
-      React.createElement("span",{style:{fontWeight:600,color:"#333"}},user.displayName||user.email),
-      React.createElement("span",{style:{color:"#999"}}," | Cloud sync active")
-    ),
-    React.createElement("button",{onClick:doLogout,style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:11,fontWeight:600}},"Sign Out")
-  );
+  var user=props.user;var cname=props.courseName;var onBack=props.onBack;
+  return React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 16px",background:"#fff",borderBottom:"1px solid #eee",fontSize:12,flexWrap:"wrap",gap:4}},
+    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}},
+      React.createElement("button",{onClick:onBack,style:{background:"#990000",border:"none",color:"#fff",cursor:"pointer",fontSize:10,fontWeight:700,padding:"4px 10px",borderRadius:8}},String.fromCharCode(8592)+" My Courses"),
+      React.createElement("span",{style:{color:"#ccc"}},"|"),
+      user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:20,height:20,borderRadius:10}}):null,
+      React.createElement("span",{style:{fontWeight:600,color:"#333"}},user.displayName||""),
+      cname?React.createElement("span",{style:{color:"#990000",fontWeight:600}}," "+String.fromCharCode(8212)+" "+cname):null,
+      React.createElement("span",{style:{color:"#22c55e",fontSize:10}},String.fromCharCode(9679)+" Saved")),
+    React.createElement("button",{onClick:function(){firebase.auth().signOut();},style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:11,fontWeight:600}},"Sign Out"));
+}
+
+function Dashboard(pp){
+  var user=pp.user,onSel=pp.onSelect,onNew=pp.onNew,onOut=pp.onLogout;
+  var _c=useState(null),courses=_c[0],setCourses=_c[1];
+  var _d=useState(null),deling=_d[0],setDeling=_d[1];
+  useEffect(function(){loadCourseList(user.uid,function(c){setCourses(c);});},[]);
+  var doRm=function(id){if(!confirm("Delete this course CDM? Cannot be undone."))return;setDeling(id);deleteCourse(user.uid,id,function(){loadCourseList(user.uid,function(c){setCourses(c);setDeling(null);});});};
+  return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)"}},
+    React.createElement("div",{className:"top-bar"}),React.createElement("div",{className:"gold-bar-top"}),
+    React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",background:"#fff",borderBottom:"1px solid #eee"}},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+        user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:28,height:28,borderRadius:14}}):null,
+        React.createElement("span",{style:{fontWeight:600,fontSize:13,color:"#333"}},user.displayName||user.email)),
+      React.createElement("button",{onClick:onOut,style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:12,fontWeight:600}},"Sign Out")),
+    React.createElement("div",{style:{maxWidth:700,margin:"0 auto",padding:"30px 16px"}},
+      React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:40,marginBottom:16}}),
+      React.createElement("h1",{style:{fontSize:26,fontWeight:900,color:"#990000",marginBottom:4}},"My Course Design Maps"),
+      React.createElement("p",{style:{fontSize:12,color:"#999",marginBottom:24}},"Select a course to continue working, or create a new CDM."),
+      React.createElement("button",{onClick:onNew,className:"btn-p",style:{width:"100%",marginBottom:20,padding:"14px",fontSize:14}},"+  Create New CDM"),
+      !courses?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20}},"Loading your courses..."):
+      courses.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
+        React.createElement("p",{style:{fontSize:14}},"No courses yet. Click Create New CDM to get started.")):
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+        courses.map(function(c){
+          var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"Never";
+          return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
+            React.createElement("div",{style:{flex:1}},
+              React.createElement("div",{style:{fontSize:14,fontWeight:700,color:"#990000",marginBottom:3}},c.name),
+              React.createElement("div",{style:{fontSize:11,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+              React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X"),
+              React.createElement("span",{style:{color:"#990000",fontSize:18}},String.fromCharCode(8250))));}))));
 }
 
 function App(){
-const[authUser,setAuthUser]=useState(null);
-const[authLoading,setAuthLoading]=useState(true);
-const[step,setStep]=useState(0);
-const[data,setData]=useState(INIT);
-const[dataLoaded,setDataLoaded]=useState(false);
+var _a=useState(null),authUser=_a[0],setAuthUser=_a[1];
+var _b=useState(true),authLoading=_b[0],setAuthLoading=_b[1];
+var _s=useState(0),step=_s[0],setStep=_s[1];
+var _d=useState(INIT),data=_d[0],setData=_d[1];
+var _l=useState(false),dataLoaded=_l[0],setDataLoaded=_l[1];
+var _ci=useState(null),currentCourseId=_ci[0],setCurrentCourseId=_ci[1];
+var _sd=useState(true),showDashboard=_sd[0],setShowDashboard=_sd[1];
 
 useEffect(function(){
   var unsub=firebase.auth().onAuthStateChanged(function(user){
-    setAuthUser(user);
-    setAuthLoading(false);
-    if(user&&!dataLoaded){
-      loadFromFirestore(user.uid,function(d){setData(d);setDataLoaded(true);});
-    }
-    if(!user){setDataLoaded(false);setData(INIT);setStep(0);}
-  });
-  return function(){unsub();};
+    setAuthUser(user);setAuthLoading(false);
+    if(!user){setDataLoaded(false);setData(INIT);setStep(0);setCurrentCourseId(null);setShowDashboard(true);}
+  });return function(){unsub();};
 },[]);
 
-useEffect(function(){if(authUser&&dataLoaded){save(data);}},[data]);
+var openCourse=function(cid){setCurrentCourseId(cid);setDataLoaded(false);loadCourse(authUser.uid,cid,function(d){setData(d);setDataLoaded(true);setShowDashboard(false);setStep(0);});};
+var createCourse=function(){createNewCourse(authUser.uid,function(nid){openCourse(nid);});};
+var goToDashboard=function(){setShowDashboard(true);setStep(0);setCurrentCourseId(null);setDataLoaded(false);setData(INIT);};
+
+useEffect(function(){if(authUser&&dataLoaded&&currentCourseId){save(data,currentCourseId);}},[data]);
 const goN=()=>setStep(s=>Math.min(s+1,STEPS.length-1));
 const goP=()=>setStep(s=>Math.max(s-1,0));
 if(authLoading){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading..."));}
 if(!authUser){return React.createElement(LoginScreen,null);}
-if(!dataLoaded){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading your data..."));}
+if(showDashboard){return React.createElement(Dashboard,{user:authUser,onSelect:openCourse,onNew:createCourse,onLogout:function(){firebase.auth().signOut();}});}
+if(!dataLoaded){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading your course..."));}
 return React.createElement("div",null,
-React.createElement(UserBar,{user:authUser}),
+React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard}),
 React.createElement("div",{className:"top-bar"}),
 React.createElement("div",{className:"gold-bar-top"}),
 React.createElement(Nav,{cur:step,set:setStep}),
@@ -543,6 +559,7 @@ React.createElement("span",{style:{fontSize:11,color:"#999"}},"Step "+step+" of 
 step<STEPS.length-1?React.createElement("button",{onClick:goN,className:"btn-p",style:{padding:"10px 24px"}},"Next \u2192"):React.createElement("div",{style:{width:80}})));}
 
 ReactDOM.render(React.createElement(App),document.getElementById("root"));
+
 
 </script>
 </body>
