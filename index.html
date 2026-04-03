@@ -247,9 +247,9 @@ function loadFacultyCourse(uid,cid,cb){
 }
 
 function load(){return INIT;}
-function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").orderBy("lastUpdated","desc").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
-function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};cb(p);}catch(e){cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(){cb(INIT);});}
-function createNewCourse(uid,cb){var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(INIT),courseName:"New Course",leadName:"",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){cb(r.id);});}
+function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
+function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
+function createNewCourse(uid,cb){var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(INIT),courseName:"New Course",leadName:"",cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){cb(r.id);}).catch(function(e){console.error("Create course error:",e);alert("Error creating course. Please check that Firestore rules are updated. Error: "+e.message);});}
 function deleteCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).delete().then(cb);}
 
 function loadComments(uid,cid,cb){
@@ -630,7 +630,7 @@ function UserBar(props){
       user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:20,height:20,borderRadius:10}}):null,
       React.createElement("span",{style:{fontWeight:600,color:"#333"}},user.displayName||""),
       cname?React.createElement("span",{style:{color:"#990000",fontWeight:600}}," "+String.fromCharCode(8212)+" "+cname):null,
-      data&&data.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#FFCC00",background:"#990000",padding:"2px 8px",borderRadius:8}},"v"+(data.cdmVersion||"1.0")):null,React.createElement("span",{style:{color:"#22c55e",fontSize:12}},String.fromCharCode(9679)+" Saved")),
+      props.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#FFCC00",background:"#990000",padding:"2px 8px",borderRadius:8}},"v"+(props.cdmVersion||"1.0")):null,React.createElement("span",{style:{color:"#22c55e",fontSize:12}},String.fromCharCode(9679)+" Saved")),
     React.createElement("button",{onClick:function(){firebase.auth().signOut();},style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600}},"Sign Out"));
 }
 
@@ -951,7 +951,7 @@ if(showDashboard){
 }
 if(!dataLoaded){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading your course..."));}
 return React.createElement("div",null,
-React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard}),
+React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard,cdmVersion:data.cdmVersion}),
 React.createElement("div",{className:"top-bar"}),
 React.createElement("div",{className:"gold-bar-top"}),
 React.createElement(Nav,{cur:step,set:setStep}),
