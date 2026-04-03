@@ -771,7 +771,7 @@ function CommentsStep(props){
       authorName:authUser.displayName||authUser.email,
       authorEmail:authUser.email,
       role:amAdmin?"Administrator":"Faculty"
-    },function(){setNewText("");setLoading(false);refresh();});
+    },function(){setNewText("");setLoading(false);setTimeout(function(){refresh();},500);});
   };
 
   var sections=["General","Course Info","CSWE Mapping","CLO 1","CLO 2","CLO 3","CLO 4","CLO 5","Module 1","Module 2","Module 3","Module 4","Module 5","Assessment","ADEI"];
@@ -926,7 +926,14 @@ var _av=useState(null),adminViewData=_av[0],setAdminViewData=_av[1];
 var _avInfo=useState({}),adminViewInfo=_avInfo[0],setAdminViewInfo=_avInfo[1];
 
 var openCourse=function(cid){setCurrentCourseId(cid);setDataLoaded(false);loadCourse(authUser.uid,cid,function(d){setData(d);setDataLoaded(true);setShowDashboard(false);setStep(0);});};
-var createCourse=function(){createNewCourse(authUser.uid,function(nid){openCourse(nid);});};
+var createCourse=function(){
+  var name=prompt("Enter the course number and name:\n(e.g., SOWK 705 - Advanced Clinical Practice)");
+  if(!name||!name.trim())return;
+  var initWithName=Object.assign({},INIT);
+  initWithName.courseName=name.trim();
+  var ref=firebase.firestore().collection("cdm_data").doc(authUser.uid).collection("courses").doc();
+  ref.set({cdmData:JSON.stringify(initWithName),courseName:name.trim(),leadName:"",cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){openCourse(ref.id);}).catch(function(e){alert("Error creating course: "+e.message);});
+};
 var goToDashboard=function(){setShowDashboard(true);setStep(0);setCurrentCourseId(null);setDataLoaded(false);setData(INIT);};
 
 useEffect(function(){if(authUser&&dataLoaded&&currentCourseId){save(data,currentCourseId);}},[data]);
