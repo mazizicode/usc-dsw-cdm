@@ -210,7 +210,7 @@ cdmCreated:null
 };
 
 
-var ADMIN_EMAILS=["mirwaisa@usc.edu"];
+var ADMIN_EMAILS=["mirwaisa@usc.edu","singhmi@usc.edu"];
 function isAdmin(email){return ADMIN_EMAILS.indexOf(email.toLowerCase())>=0;}
 
 function loadAllFaculty(cb){
@@ -330,7 +330,7 @@ React.createElement("p",{style:{fontSize:15,fontWeight:500,marginBottom:2}},"Doc
 React.createElement("p",{style:{fontSize:14,color:"#999",marginBottom:22,fontStyle:"italic"}},"Aligned with CSWE 2025 Accreditation Standards for Practice Doctorate Programs"),
 React.createElement("div",{className:"card",style:{textAlign:"left",marginBottom:22}},
 React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:C.cardinal,marginBottom:10}},"\u{1F4D0} What is the CDM?"),
-React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The Course Design Map establishes a foundational blueprint for your DSW course. It organizes content into structured learning modules aligned with Course Learning Outcomes and the ",React.createElement("strong",null,"CSWE 2025 Core Expertise and Skills")," for Practice Doctorate Programs. Using backward design principles, it ensures every element connects intentionally toward practitioner-scholar success."),
+React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The Course Design Map establishes a foundational blueprint for your DSW course. It organizes content into structured learning modules aligned with Course Learning Objectives and the ",React.createElement("strong",null,"CSWE 2025 Core Expertise and Skills")," for Practice Doctorate Programs. Using backward design principles, it ensures every element connects intentionally toward practitioner-scholar success."),
 React.createElement("div",{className:"g3",style:{marginTop:16}},
 React.createElement("div",{className:"card",style:{textAlign:"center",padding:"20px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:150,gap:6}},
 React.createElement("img",{src:ALIGN_IMG,alt:"Alignment",style:{width:36,height:36,objectFit:"contain"}}),
@@ -362,7 +362,7 @@ const bullets=["Create manageable units of learning calibrated for doctoral-leve
 "Document pedagogical decisions for accreditation self-study evidence (Standards D3.0.1, D5.0.1)"];
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"Objective"),
-React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7,marginBottom:16}},"The Course Design Map (CDM) establishes a foundational blueprint for DSW courses, providing a comprehensive visual representation of all key elements in the learning environment. It organizes course content into structured learning modules (units), which are further broken down into weekly (unit) objectives, instructional materials, activities, and assessments \u2014 all aligned with Course Learning Outcomes (CLOs) and the CSWE 2025 Core Expertise and Skills for Practice Doctorate Programs."),
+React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7,marginBottom:16}},"The Course Design Map (CDM) establishes a foundational blueprint for DSW courses, providing a comprehensive visual representation of all key elements in the learning environment. It organizes course content into structured learning modules (units), which are further broken down into weekly (unit) objectives, instructional materials, activities, and assessments \u2014 all aligned with Course Learning Objectives (CLOs) and the CSWE 2025 Core Expertise and Skills for Practice Doctorate Programs."),
 React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7,marginBottom:20}},"This CDM tool supports the course\u2019s planning, design, and iterative development, ensuring consistency, alignment, and quality throughout the instructional design process. It operationalizes backward design (Wiggins & McTighe): you start with what learners should be able to do, then map assessments that prove they can do it, and finally plan the learning activities that get them there."),
 React.createElement("div",{className:"stitle",style:{marginTop:8}},"Why Design Map Your DSW Course?"),
 React.createElement("div",{className:"ssub"}),
@@ -377,7 +377,7 @@ const items=[
 {l:"Instructional Materials",d:"Materials that support the lessons: links to videos, textbook chapters, journal articles, website URLs, scholarly databases, and other relevant resources appropriate for doctoral-level study."},
 {l:"Course Activities & Learner Interaction",d:"Activities facilitated by the instructor. Divided into Synchronous (live Zoom sessions, seminars, consultations) and Asynchronous (Canvas-based modules following the 5-step structure: Start Here, Learn, Skill Builder, Reflect & Connect, Wrap Up)."},
 {l:"Assessment & Measurement",d:"Evaluations of how effectively students retain, apply, analyze, and demonstrate learning. Includes both formative (knowledge checks, reflections) and summative (capstone milestones, scholarly papers, case analyses, presentations). Assessments are linked to Core Expertise and Skills."},
-{l:"Course Learning Outcomes Addressed",d:"Indicate which CLOs are addressed. Weekly Learning Objectives (WLOs) and CLOs must be aligned to ensure coherence and clarity of purpose."},
+{l:"Course Learning Objectives Addressed",d:"Indicate which CLOs are addressed. Weekly Learning Objectives (WLOs) and CLOs must be aligned to ensure coherence and clarity of purpose."},
 {l:"CSWE 2025 Core Expertise & Skills",d:"Indicate which of the six Core Expertise and Skills are addressed in each module. This mapping provides accreditation evidence for Standard D3.0.1 and Standard D5.0.1."},
 {l:"Teaching Strategies / Course Notes",d:"How you will present content to facilitate learning: voiceover lectures, case walkthroughs, think-alouds, simulations, expert applications, scaffolded practice, peer consultation, etc."}];
 const tips=["How do your teaching strategies, learning activities, and weekly resources support practitioner-scholars in meeting the module objectives?",
@@ -473,7 +473,7 @@ const addCLO=()=>set(d=>({...d,clos:[...d.clos,{text:"",ces:"",adei:"",assess:""
 const removeCLO=i=>set(d=>({...d,clos:d.clos.filter((_,idx)=>idx!==i)}));
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}},
-React.createElement("div",{className:"stitle"},"Course Learning Outcomes"),
+React.createElement("div",{className:"stitle"},"Course Learning Objectives"),
 React.createElement("button",{onClick:()=>setShowBloom(!showBloom),style:{fontSize:13,padding:"8px 16px",borderRadius:20,fontWeight:700,border:"none",cursor:"pointer",background:showBloom?C.gold:"#eee",color:showBloom?C.dark:"#888"}},showBloom?"Hide Bloom's":"Show Bloom's Verbs")),
 React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},"Use doctoral-level action verbs: Analyze, Synthesize, Evaluate, Create, Design, Critique, Lead, Innovate."),
 showBloom&&React.createElement("div",{className:"card warm-bg",style:{marginBottom:18}},
@@ -485,12 +485,12 @@ React.createElement("div",{style:{fontSize:12,color:"#666"}},verbs.join(", ")));
 React.createElement("p",{style:{fontSize:12,marginTop:8,fontStyle:"italic",color:"#999"}},"\u2B50 = Priority levels for doctoral-level work")),
 React.createElement("div",{className:"gold-left",style:{marginBottom:16}},
 React.createElement("strong",{style:{color:C.cardinal,fontSize:15}},"\u{1F4D0} Alignment Framework"),
-React.createElement("p",{style:{fontSize:14,color:"#555",lineHeight:1.7,marginTop:6}},"Assessments should demonstrate how effectively practitioner-scholars have achieved the intended learning outcomes, while instruction ensures that students are supported in reaching those outcomes. Assessments, learning objectives, instructional strategies, and Core Expertise and Skills must be closely aligned and mutually reinforcing. The weekly/unit learning modules should demonstrate clear vertical alignment (module objectives \u2192 CLOs \u2192 CSWE) and horizontal alignment (objectives \u2194 activities \u2194 assessments) throughout the course.")),
+React.createElement("p",{style:{fontSize:14,color:"#555",lineHeight:1.7,marginTop:6}},"Assessments should demonstrate how effectively practitioner-scholars have achieved the intended learning objectives, while instruction ensures that students are supported in reaching those outcomes. Assessments, learning objectives, instructional strategies, and Core Expertise and Skills must be closely aligned and mutually reinforcing. The weekly/unit learning modules should demonstrate clear vertical alignment (module objectives \u2192 CLOs \u2192 CSWE) and horizontal alignment (objectives \u2194 activities \u2194 assessments) throughout the course.")),
 data.clos.map((clo,i)=>React.createElement("div",{key:i,className:"card",style:{marginBottom:10}},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
 React.createElement("span",{className:"badge"},"CLO "+(i+1)),
 data.clos.length>1&&React.createElement("button",{onClick:()=>removeCLO(i),style:{fontSize:13,color:"#e55",background:"none",border:"none",cursor:"pointer"}},"Remove")),
-React.createElement(A,{label:"Learning Outcome",value:clo.text,onChange:v=>setCLO(i,"text",v),placeholder:"Upon completion, practitioner-scholars will be able to...",rows:2}),
+React.createElement(A,{label:"Learning Objective",value:clo.text,onChange:v=>setCLO(i,"text",v),placeholder:"Upon completion, practitioner-scholars will be able to...",rows:2}),
 React.createElement("div",{className:"g4",style:{marginTop:10}},
 React.createElement(F,{label:"CSWE Aligned",value:clo.ces,onChange:v=>setCLO(i,"ces",v),placeholder:"CSWE 1, 3"}),
 React.createElement("div",{className:"field"},
@@ -552,7 +552,7 @@ function ReviewStep({data}){
 const ckCES=CSWE_SKILLS.filter(c=>data.cesChecked[c.id]);
 const fCLOs=data.clos.filter(c=>c.text.trim());
 const fMods=data.modules.filter(m=>m.title.trim());
-const items=[{l:"Course Information",d:!!data.courseName&&!!data.courseLead},{l:"CSWE Mapping",d:ckCES.length>0},{l:"Learning Outcomes",d:fCLOs.length>0},{l:"Learning Modules",d:fMods.length>0}];
+const items=[{l:"Course Information",d:!!data.courseName&&!!data.courseLead},{l:"CSWE Mapping",d:ckCES.length>0},{l:"Learning Objectives",d:fCLOs.length>0},{l:"Learning Modules",d:fMods.length>0}];
 const pct=Math.round(items.filter(i=>i.d).length/items.length*100);
 const[gen,setGen]=useState(false);
 const esc=s=>(s||"\u2014").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
@@ -569,7 +569,7 @@ CSWE_SKILLS.forEach(c=>{h+=`<tr><td><span class="badge">CES ${c.id}</span> ${c.s
 h+=`</table>`;
 const mswAct=MSW_COMPS.filter(c=>data.mswComps[c.id]);
 if(mswAct.length){h+=`<h3>CSWE 2022 MSW Competencies</h3><p style="font-size:10px">`;mswAct.forEach(function(c,i){h+='<span class="badge badge-gold">C'+c.id+": "+c.name+"</span>";if(i<mswAct.length-1)h+=" &nbsp;\u2022 &nbsp;";});h+=`</p>`;}
-h+=`<h2>Course Learning Outcomes</h2><table><tr><th>CLO</th><th>Outcome</th><th>CSWE Aligned</th><th>ADEI</th><th>Assessment</th></tr>`;
+h+=`<h2>Course Learning Objectives</h2><table><tr><th>CLO</th><th>Objective</th><th>CSWE Aligned</th><th>ADEI</th><th>Assessment</th></tr>`;
 data.clos.forEach((c,i)=>{if(c.text)h+=`<tr><td><span class="badge">CLO ${i+1}</span></td><td>${esc(c.text)}</td><td>${esc(c.ces)}</td><td>${esc(c.adei)}</td><td>${esc(c.assess)}</td></tr>`;});
 h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | DSW Program | CDM v5.0</div></div>`;
 data.modules.forEach((mod,mi)=>{if(!mod.title)return;
@@ -723,7 +723,7 @@ function AdminCDMViewer(props){
         React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:8}},"Course Description"),
         React.createElement("p",{style:{fontSize:14,color:"#444",lineHeight:1.6}},d.courseDesc)):null,
       React.createElement("div",{className:"card"},
-        React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:12}},"Course Learning Outcomes"),
+        React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:12}},"Course Learning Objectives"),
         d.clos.filter(function(cl){return cl.text;}).map(function(cl,i){
           return React.createElement("div",{key:i,style:{padding:"10px 0",borderBottom:"1px solid #f0f0f0"}},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
