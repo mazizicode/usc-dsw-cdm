@@ -195,10 +195,18 @@ const STEPS=[
 ];
 
 const emptyObj=()=>({text:"",materials:"",syncAct:"",asyncAct:"",assessment:"",clos:"",ces:"",strategies:"",adei:""});
-const emptyMod=()=>({id:Date.now()+Math.random(),title:"",syncMin:"",asyncMin:"",terms:"",overview:"",objectives:[emptyObj(),emptyObj(),emptyObj()]});
+const emptyMod=()=>({id:Date.now()+Math.random(),title:"",syncMin:"",asyncMin:"",terms:"",overview:"",objectives:[emptyObj(),emptyObj(),emptyObj()],
+asyncContent:{
+startHere:{welcome:"",objectives:"",readings:""},
+learn:{guidedQuestions:"",knowledgeChecks:"",miniLectures:"",additionalChecks:""},
+skillBuilder:{activities:"",type:""},
+reflectConnect:{activities:"",type:""},
+wrapUp:{competenceAssessment:"",liveSessionQuestions:""}
+}});
 const INIT={
 courseName:"",devStarted:"",targetDelivery:"",courseLead:"",leadEmail:"",leadPhone:"",
 instDesigner:"Mirwais Azizi",progDirector:"",areaOfFocus:"",modality:"async_sync",
+contentType:"both",
 syncMin:"",asyncMin:"",courseDesc:"",
 cesChecked:{},cesClos:{},cesExplain:{},
 mswComps:{},
@@ -248,7 +256,7 @@ function loadFacultyCourse(uid,cid,cb){
 
 function load(){return INIT;}
 function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
-function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
+function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
 function createNewCourse(uid,cb){var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(INIT),courseName:"New Course",leadName:"",cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){cb(r.id);}).catch(function(e){console.error("Create course error:",e);alert("Error creating course. Please check that Firestore rules are updated. Error: "+e.message);});}
 function deleteCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).delete().then(cb);}
 
@@ -402,7 +410,7 @@ function CourseInfo({data,set}){
 const s=(k,v)=>set(d=>({...d,[k]:v}));
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"General Course Information"),
-React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},"Enter your course details. All fields auto-save."),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.contentType==="async"?"#FEF3C7":data.contentType==="sync"?"#DBEAFE":"#F0FDF4",color:data.contentType==="async"?"#92400E":data.contentType==="sync"?"#1E40AF":"#166534"}},data.contentType==="async"?"Asynchronous Only":data.contentType==="sync"?"Synchronous Only":"Async & Sync")),
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement(F,{label:"Course Number / Name",value:data.courseName,onChange:v=>s("courseName",v),placeholder:"SOWK-XXX Course Title"}),
 React.createElement(F,{label:"Development Started",value:data.devStarted,onChange:v=>s("devStarted",v),placeholder:"August 2025"}),
@@ -506,12 +514,18 @@ React.createElement("button",{onClick:addCLO,className:"btn-s"},"+ Add CLO"));}
 // ==== STEP 6: Modules ====
 function ModulesStep({data,set}){
 const[active,setActive]=useState(0);
+const[viewMode,setViewMode]=useState("architecture");
+const hasAsync=data.contentType!=="sync";
+const hasSync=data.contentType!=="async";
 const addMod=()=>set(d=>({...d,modules:[...d.modules,emptyMod()]}));
 const removeMod=i=>{if(data.modules.length<=1)return;set(d=>({...d,modules:d.modules.filter((_,idx)=>idx!==i)}));if(active>=data.modules.length-1)setActive(Math.max(0,data.modules.length-2));};
 const setM=(k,v)=>set(d=>{const m=[...d.modules];m[active]={...m[active],[k]:v};return{...d,modules:m}});
 const setO=(oi,k,v)=>set(d=>{const m=[...d.modules];const o=[...m[active].objectives];o[oi]={...o[oi],[k]:v};m[active]={...m[active],objectives:o};return{...d,modules:m}});
 const addO=()=>set(d=>{const m=[...d.modules];m[active]={...m[active],objectives:[...m[active].objectives,emptyObj()]};return{...d,modules:m}});
 const removeO=oi=>set(d=>{const m=[...d.modules];m[active]={...m[active],objectives:m[active].objectives.filter((_,i)=>i!==oi)};return{...d,modules:m}});
+const setAsync=(section,key,val)=>set(d=>{const m=[...d.modules];const ac=Object.assign({},m[active].asyncContent||{});
+if(!ac[section])ac[section]={};ac[section]=Object.assign({},ac[section],{[key]:val});
+m[active]={...m[active],asyncContent:ac};return{...d,modules:m}});
 const mod=data.modules[active];if(!mod)return null;
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"Learning Modules"),
@@ -522,7 +536,7 @@ React.createElement("button",{onClick:addMod,className:"btn-s",style:{width:"aut
 ),
 React.createElement("div",{className:"card card-accent"},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
-React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:8,background:data.contentType==="async"?"#FEF3C7":data.contentType==="sync"?"#DBEAFE":"#F0FDF4",color:data.contentType==="async"?"#92400E":data.contentType==="sync"?"#1E40AF":"#166534"}},data.contentType==="async"?"ASYNC ONLY":data.contentType==="sync"?"SYNC ONLY":"ASYNC & SYNC")),
 data.modules.length>1&&React.createElement("button",{onClick:()=>removeMod(active),style:{fontSize:13,padding:"6px 14px",borderRadius:20,background:"#fef2f2",color:"#e55",border:"none",cursor:"pointer"}},"Remove Module")),
 React.createElement("div",{className:"g4"},
 React.createElement(F,{label:"Module Title",value:mod.title,onChange:v=>setM("title",v),placeholder:"Foundations of..."}),
@@ -530,22 +544,51 @@ React.createElement(F,{label:"Sync Minutes",value:mod.syncMin,onChange:v=>setM("
 React.createElement(F,{label:"Async Minutes",value:mod.asyncMin,onChange:v=>setM("asyncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Essential Terms",value:mod.terms,onChange:v=>setM("terms",v),placeholder:"Trauma, Resilience..."})),
 React.createElement(A,{label:"Module Overview",value:mod.overview,onChange:v=>setM("overview",v),placeholder:"Brief narrative overview of this module\u2019s focus and connection to the course.",rows:2,className:"",style:{marginTop:10}})),
-mod.objectives.map((obj,oi)=>React.createElement("div",{key:oi,className:"obj-row"},
+React.createElement("div",{style:{display:"flex",gap:8,marginTop:16,marginBottom:16}},
+hasAsync?React.createElement("button",{onClick:function(){setViewMode(viewMode==="architecture"?"asyncContent":"architecture");},style:{padding:"10px 20px",borderRadius:10,border:viewMode==="asyncContent"?"2px solid #990000":"1px solid #ddd",background:viewMode==="asyncContent"?"#FEF2F2":"#fff",color:viewMode==="asyncContent"?"#990000":"#666",fontSize:14,fontWeight:600,cursor:"pointer"}},viewMode==="asyncContent"?String.fromCharCode(8592)+" Back to Module Architecture":String.fromCharCode(128203)+" Design Async Content (5-Step)"):null),
+viewMode==="asyncContent"&&hasAsync?React.createElement("div",{style:{background:"#FFFBEB",border:"2px solid #FFCC00",borderRadius:16,padding:24,marginBottom:16}},
+React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#92400E",marginBottom:4}},"Asynchronous Content Design"),
+React.createElement("p",{style:{fontSize:14,color:"#92400E",marginBottom:16}},"Module "+(active+1)+": "+(mod.title||"Untitled")+" "+String.fromCharCode(8212)+" Design the 5-step async learning experience for this module."),
+React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16}},
+React.createElement("div",{className:"card",style:{border:"1px solid #e8e0d0"}},
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},React.createElement("span",{style:{fontSize:20}},String.fromCharCode(127968)),React.createElement("h4",{style:{fontSize:16,fontWeight:700,color:"#990000"}},"1. Start Here: Welcome & Orientation")),
+React.createElement(A,{label:"Welcome Message",value:(mod.asyncContent&&mod.asyncContent.startHere?mod.asyncContent.startHere.welcome:""),onChange:function(v){setAsync("startHere","welcome",v);},placeholder:"Welcome message for students entering this module...",rows:2}),
+React.createElement(A,{label:"Module Learning Objectives",value:(mod.asyncContent&&mod.asyncContent.startHere?mod.asyncContent.startHere.objectives:""),onChange:function(v){setAsync("startHere","objectives",v);},placeholder:"List the learning objectives students will see at the start...",rows:2}),
+React.createElement(A,{label:"Required Readings & Pre-Work",value:(mod.asyncContent&&mod.asyncContent.startHere?mod.asyncContent.startHere.readings:""),onChange:function(v){setAsync("startHere","readings",v);},placeholder:"Textbook chapters, articles, videos to review before engaging..."})),
+React.createElement("div",{className:"card",style:{border:"1px solid #e8e0d0"}},
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},React.createElement("span",{style:{fontSize:20}},String.fromCharCode(128214)),React.createElement("h4",{style:{fontSize:16,fontWeight:700,color:"#990000"}},"2. Learn")),
+React.createElement(A,{label:"Guided Reading Questions",value:(mod.asyncContent&&mod.asyncContent.learn?mod.asyncContent.learn.guidedQuestions:""),onChange:function(v){setAsync("learn","guidedQuestions",v);},placeholder:"Questions that guide students through the readings..."}),
+React.createElement(A,{label:"Mini Lecture(s)",value:(mod.asyncContent&&mod.asyncContent.learn?mod.asyncContent.learn.miniLectures:""),onChange:function(v){setAsync("learn","miniLectures",v);},placeholder:"Pre-recorded lectures, voiceover presentations, video content..."}),
+React.createElement(A,{label:"Knowledge Check(s) (Automated)",value:(mod.asyncContent&&mod.asyncContent.learn?mod.asyncContent.learn.knowledgeChecks:""),onChange:function(v){setAsync("learn","knowledgeChecks",v);},placeholder:"Auto-graded quizzes, comprehension checks, formative assessments..."})),
+React.createElement("div",{className:"card",style:{border:"1px solid #e8e0d0"}},
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},React.createElement("span",{style:{fontSize:20}},String.fromCharCode(128736)),React.createElement("h4",{style:{fontSize:16,fontWeight:700,color:"#990000"}},"3. Skill Builder & Applications")),
+React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:8,fontStyle:"italic"}},"Options include: Instructor modeling, practice demonstration, case walkthrough, facilitated example, think-aloud, worked example, mini simulation/role play, expert application, comparative illustration"),
+React.createElement(A,{label:"Skill Builder Activities",value:(mod.asyncContent&&mod.asyncContent.skillBuilder?mod.asyncContent.skillBuilder.activities:""),onChange:function(v){setAsync("skillBuilder","activities",v);},placeholder:"Describe the skill-building activities for this module...",rows:3})),
+React.createElement("div",{className:"card",style:{border:"1px solid #e8e0d0"}},
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},React.createElement("span",{style:{fontSize:20}},String.fromCharCode(128172)),React.createElement("h4",{style:{fontSize:16,fontWeight:700,color:"#990000"}},"4. Reflect & Connect")),
+React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:8,fontStyle:"italic"}},"Options include: Ungraded quiz prompt, peer interaction on Discussion Board, reflection journal, group activity"),
+React.createElement(A,{label:"Reflect & Connect Activities",value:(mod.asyncContent&&mod.asyncContent.reflectConnect?mod.asyncContent.reflectConnect.activities:""),onChange:function(v){setAsync("reflectConnect","activities",v);},placeholder:"Describe reflection and peer interaction activities...",rows:3})),
+React.createElement("div",{className:"card",style:{border:"1px solid #e8e0d0"}},
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},React.createElement("span",{style:{fontSize:20}},String.fromCharCode(9989)),React.createElement("h4",{style:{fontSize:16,fontWeight:700,color:"#990000"}},"5. Module Wrap Up")),
+React.createElement(A,{label:"Competence Assessment",value:(mod.asyncContent&&mod.asyncContent.wrapUp?mod.asyncContent.wrapUp.competenceAssessment:""),onChange:function(v){setAsync("wrapUp","competenceAssessment",v);},placeholder:"End-of-module competence assessment, self-evaluation, or summative check..."}),
+React.createElement(A,{label:"Live Session Question(s)",value:(mod.asyncContent&&mod.asyncContent.wrapUp?mod.asyncContent.wrapUp.liveSessionQuestions:""),onChange:function(v){setAsync("wrapUp","liveSessionQuestions",v);},placeholder:"Questions students prepare for live sessions or submit for instructor review..."}))
+)):null,
+viewMode==="architecture"?React.createElement("div",null,mod.objectives.map((obj,oi)=>React.createElement("div",{key:oi,className:"obj-row"},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
 React.createElement("span",{className:"badge"},"Objective "+(oi+1)),
 mod.objectives.length>1&&React.createElement("button",{onClick:()=>removeO(oi),style:{fontSize:13,color:"#e55",background:"none",border:"none",cursor:"pointer"}},"Remove")),
 React.createElement(A,{label:"Objective Statement",value:obj.text,onChange:v=>setO(oi,"text",v),placeholder:"Upon completion, practitioner-scholars will be able to...",rows:2}),
 React.createElement("div",{className:"g2",style:{marginTop:10}},
 React.createElement(A,{label:"Instructional Materials",value:obj.materials,onChange:v=>setO(oi,"materials",v),placeholder:"Chapter 1, Pre-recorded Lecture...",rows:2}),
-React.createElement(A,{label:"Sync Activities",value:obj.syncAct,onChange:v=>setO(oi,"syncAct",v),placeholder:"Small group discussion, debate...",rows:2}),
-React.createElement(A,{label:"Async Activities (Canvas)",value:obj.asyncAct,onChange:v=>setO(oi,"asyncAct",v),placeholder:"Guided reading questions, knowledge checks...",rows:2}),
+hasSync?React.createElement(A,{label:"Synchronous Activities",value:obj.syncAct,onChange:v=>setO(oi,"syncAct",v),placeholder:"Small group discussion, debate...",rows:2}):null,
+hasAsync?React.createElement(A,{label:"Asynchronous Activities (Canvas)",value:obj.asyncAct,onChange:v=>setO(oi,"asyncAct",v),placeholder:"Guided reading questions, knowledge checks...",rows:2}):null,
 React.createElement(A,{label:"Assessment & Measurement",value:obj.assessment,onChange:v=>setO(oi,"assessment",v),placeholder:"Quiz, Discussion Board, Case Study...",rows:2})),
 React.createElement("div",{className:"g4",style:{marginTop:10}},
 React.createElement(F,{label:"CLOs Addressed",value:obj.clos,onChange:v=>setO(oi,"clos",v),placeholder:"CLO 1, 2"}),
 React.createElement(F,{label:"CSWE Addressed",value:obj.ces,onChange:v=>setO(oi,"ces",v),placeholder:"CSWE 1, 3"}),
 React.createElement(F,{label:"Teaching Strategies",value:obj.strategies,onChange:v=>setO(oi,"strategies",v),placeholder:"Peer learning..."}),
 React.createElement(F,{label:"ADEI Integration",value:obj.adei,onChange:v=>setO(oi,"adei",v),placeholder:"Direct / Infused"})))),
-React.createElement("button",{onClick:addO,className:"btn-s",style:{marginTop:6}},"+ Add Objective"));}
+React.createElement("button",{onClick:addO,className:"btn-s",style:{marginTop:6}},"+ Add Objective")):null);}
 
 // ==== STEP 7: Review & Export ====
 function ReviewStep({data}){
@@ -932,6 +975,10 @@ var createCourse=function(){
   var name=prompt("Enter the course number and name:\n(e.g., SOWK 705 - Advanced Clinical Practice)");
   if(!name||!name.trim())return;
   var trimmed=name.trim();
+  var ctChoice=prompt("Select content delivery type:\n\n1 = Asynchronous Only\n2 = Synchronous Only\n3 = Both (Async & Sync)\n\nEnter 1, 2, or 3:");
+  if(!ctChoice)return;
+  var contentType=ctChoice==="1"?"async":ctChoice==="2"?"sync":"both";
+  var modalityVal=ctChoice==="1"?"async_only":ctChoice==="2"?"sync_only":"async_sync";
   loadCourseList(authUser.uid,function(courses){
     var match=null;
     for(var i=0;i<courses.length;i++){
@@ -948,6 +995,7 @@ var createCourse=function(){
 var doCreateFresh=function(name){
   var initWithName=Object.assign({},INIT);
   initWithName.courseName=name;
+  if(typeof contentType!=="undefined"){initWithName.contentType=contentType;initWithName.modality=modalityVal;}
   var ref=firebase.firestore().collection("cdm_data").doc(authUser.uid).collection("courses").doc();
   ref.set({cdmData:JSON.stringify(initWithName),courseName:name,leadName:"",cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){openCourse(ref.id);}).catch(function(e){alert("Error creating course: "+e.message);});
 };
