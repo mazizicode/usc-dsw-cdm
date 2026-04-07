@@ -428,7 +428,7 @@ React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement("div",{className:"field"},React.createElement("label",null,"Modality"),
 React.createElement("div",{style:{display:"flex",gap:16,marginTop:6}},
 ["async_sync","async_only"].map(v=>React.createElement("label",{key:v,style:{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:13}},
-React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:()=>s("modality",v),style:{accentColor:C.cardinal}}),v==="async_sync"?"Async & Sync":"Async Only")))),
+React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?"Async & Sync":"Async Only")))),
 React.createElement(F,{label:"Sync Min / Module",value:data.syncMin,onChange:v=>s("syncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Async Min / Module",value:data.asyncMin,onChange:v=>s("asyncMin",v),placeholder:"75"})),
 React.createElement(A,{label:"Course Description (do not modify)",value:data.courseDesc,onChange:v=>s("courseDesc",v),placeholder:"Paste the official course description here.",rows:5}));}
@@ -1039,17 +1039,17 @@ var createCourse=function(){
       if(courses[i].name.toLowerCase()===trimmed.toLowerCase()){match=courses[i];break;}
     }
     if(match){
-      setDupInfo({name:trimmed,existingId:match.id,existingName:match.name});
+      setDupInfo({name:trimmed,existingId:match.id,existingName:match.name,contentType:contentType,modalityVal:modalityVal});
     }else{
-      doCreateFresh(trimmed);
+      doCreateFresh(trimmed,contentType,modalityVal);
     }
   });
 };
 
-var doCreateFresh=function(name){
+var doCreateFresh=function(name,ct,mod){
   var initWithName=Object.assign({},INIT);
   initWithName.courseName=name;
-  if(typeof contentType!=="undefined"){initWithName.contentType=contentType;initWithName.modality=modalityVal;}
+  if(ct){initWithName.contentType=ct;initWithName.modality=mod;}
   var ref=firebase.firestore().collection("cdm_data").doc(authUser.uid).collection("courses").doc();
   ref.set({cdmData:JSON.stringify(initWithName),courseName:name,leadName:"",cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){openCourse(ref.id);}).catch(function(e){alert("Error creating course: "+e.message);});
 };
@@ -1070,7 +1070,7 @@ var doCreateNewVersion=function(existingId,name){
 };
 
 var doCreateSeparate=function(name){
-  doCreateFresh(name+" (New)");
+  doCreateFresh(name+" (New)",dupInfo?dupInfo.contentType:null,dupInfo?dupInfo.modalityVal:null);
   setDupInfo(null);
 };
 var goToDashboard=function(){setShowDashboard(true);setStep(0);setCurrentCourseId(null);setDataLoaded(false);setData(INIT);};
