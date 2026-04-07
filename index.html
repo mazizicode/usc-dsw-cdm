@@ -190,9 +190,9 @@ const STEPS=[
 {id:4,label:"CSWE Mapping",icon:"\u{1F3AF}"},
 {id:5,label:"CLOs",icon:"\u{1F4CA}"},
 {id:6,label:"Modules",icon:"\u{1F4DA}"},
-{id:7,label:"Review & Export",icon:"\u{1F4C4}"},
-{id:8,label:"Async Design",icon:"\u{1F4CB}"},
-{id:9,label:"Comments",icon:"\u{1F4AC}"},
+{id:7,label:"Async Design",icon:"\u{1F4CB}"},
+{id:8,label:"Comments",icon:"\u{1F4AC}"},
+{id:9,label:"Review & Export",icon:"\u{1F4C4}"},
 ];
 
 const emptyObj=()=>({text:"",materials:"",syncAct:"",asyncAct:"",assessment:"",clos:"",ces:"",strategies:"",adei:""});
@@ -411,7 +411,7 @@ function CourseInfo({data,set}){
 const s=(k,v)=>set(d=>({...d,[k]:v}));
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"General Course Information"),
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.contentType==="async"?"#FEF3C7":data.contentType==="sync"?"#DBEAFE":"#F0FDF4",color:data.contentType==="async"?"#92400E":data.contentType==="sync"?"#1E40AF":"#166534"}},data.contentType==="async"?"Asynchronous Only":data.contentType==="sync"?"Synchronous Only":"Async & Sync")),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.contentType==="async"?"#FEF3C7":data.contentType==="sync"?"#DBEAFE":"#F0FDF4",color:data.contentType==="async"?"#92400E":data.contentType==="sync"?"#1E40AF":"#166534"}},data.contentType==="async"?"Asynchronous":data.contentType==="sync"?"Fully Online":"Async & Sync")),
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement(F,{label:"Course Number / Name",value:data.courseName,onChange:v=>s("courseName",v),placeholder:"SOWK-XXX Course Title"}),
 React.createElement(F,{label:"Development Started",value:data.devStarted,onChange:v=>s("devStarted",v),placeholder:"August 2025"}),
@@ -428,7 +428,7 @@ React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement("div",{className:"field"},React.createElement("label",null,"Modality"),
 React.createElement("div",{style:{display:"flex",gap:16,marginTop:6}},
 ["async_sync","async_only"].map(v=>React.createElement("label",{key:v,style:{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:13}},
-React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?"Async & Sync":"Async Only")))),
+React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?"Asynchronous and Synchronous":"Asynchronous")))),
 React.createElement(F,{label:"Sync Min / Module",value:data.syncMin,onChange:v=>s("syncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Async Min / Module",value:data.asyncMin,onChange:v=>s("asyncMin",v),placeholder:"75"})),
 React.createElement(A,{label:"Course Description (do not modify)",value:data.courseDesc,onChange:v=>s("courseDesc",v),placeholder:"Paste the official course description here.",rows:5}));}
@@ -540,7 +540,7 @@ React.createElement("button",{onClick:addMod,className:"btn-s",style:{width:"aut
 ),
 React.createElement("div",{className:"card card-accent"},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:8,background:data.contentType==="async"?"#FEF3C7":data.contentType==="sync"?"#DBEAFE":"#F0FDF4",color:data.contentType==="async"?"#92400E":data.contentType==="sync"?"#1E40AF":"#166534"}},data.contentType==="async"?"ASYNC ONLY":data.contentType==="sync"?"SYNC ONLY":"ASYNC & SYNC")),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:8,background:data.contentType==="async"?"#FEF3C7":data.contentType==="sync"?"#DBEAFE":"#F0FDF4",color:data.contentType==="async"?"#92400E":data.contentType==="sync"?"#1E40AF":"#166534"}},data.contentType==="async"?"ASYNCHRONOUS":data.contentType==="sync"?"FULLY ONLINE":"ASYNC & SYNC")),
 data.modules.length>1&&React.createElement("button",{onClick:()=>removeMod(active),style:{fontSize:13,padding:"6px 14px",borderRadius:20,background:"#fef2f2",color:"#e55",border:"none",cursor:"pointer"}},"Remove Module")),
 React.createElement("div",{className:"g4"},
 React.createElement(F,{label:"Module Title",value:mod.title,onChange:v=>setM("title",v),placeholder:"Foundations of..."}),
@@ -768,8 +768,11 @@ function AdminCDMViewer(props){
 function AsyncDesignStep(props){
   var data=props.data;var set=props.set;
   var _a=useState(0),activeMod=_a[0],setActiveMod=_a[1];
+  var _g=useState({}),showGuide=_g[0],setShowGuide=_g[1];
   
   var hasAsync=data.contentType!=="sync";
+  
+  var toggleGuide=function(key){setShowGuide(function(prev){var n=Object.assign({},prev);n[key]=!n[key];return n;});};
   
   var setAsync=function(modIdx,section,key,val){
     set(function(d){
@@ -789,14 +792,27 @@ function AsyncDesignStep(props){
     return mod.asyncContent[section][key]||"";
   };
   
+  function guideBtn(key,label){
+    return React.createElement("button",{onClick:function(){toggleGuide(key);},style:{fontSize:12,color:"#990000",background:"none",border:"1px solid #e8e0d0",borderRadius:8,padding:"4px 12px",cursor:"pointer",fontWeight:600,marginBottom:8}},showGuide[key]?String.fromCharCode(9650)+" Hide Guide":String.fromCharCode(9660)+" "+label);
+  }
+  
+  function guideBox(key,items){
+    if(!showGuide[key])return null;
+    return React.createElement("div",{style:{background:"#f9f6f2",border:"1px solid #e8e0d0",borderRadius:10,padding:"12px 16px",marginBottom:12,fontSize:13,color:"#555",lineHeight:"1.7"}},
+      items.map(function(item,i){
+        if(item.heading)return React.createElement("div",{key:i,style:{fontWeight:700,color:"#990000",marginTop:i>0?8:0,marginBottom:4}},item.heading);
+        if(item.example)return React.createElement("div",{key:i,style:{fontStyle:"italic",color:"#888",marginLeft:12,marginBottom:4}},String.fromCharCode(8594)+" Example: "+item.example);
+        return React.createElement("div",{key:i,style:{marginBottom:3}},String.fromCharCode(8226)+"  "+item);
+      }));
+  }
+  
   if(!hasAsync){
     return React.createElement("div",{className:"content",style:{paddingTop:20}},
       React.createElement("div",{className:"stitle"},"Asynchronous Content Design"),
       React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
-        React.createElement("div",{style:{fontSize:40,marginBottom:12}},"\u{1F6AB}"),
-        React.createElement("p",{style:{fontSize:16}},"This course is set to Synchronous Only."),
+        React.createElement("p",{style:{fontSize:16}},"This course is set to Fully Online."),
         React.createElement("p",{style:{fontSize:14}},"The async content design step is only available for courses with asynchronous content."),
-        React.createElement("p",{style:{fontSize:13,marginTop:12,color:"#ccc"}},"To change this, create a new CDM and select Async or Both as the content type.")));
+        React.createElement("p",{style:{fontSize:13,marginTop:12,color:"#ccc"}},"To change this, create a new CDM and select Asynchronous or Asynchronous and Synchronous as the content type.")));
   }
   
   var mod=data.modules[activeMod];
@@ -805,51 +821,134 @@ function AsyncDesignStep(props){
   return React.createElement("div",{className:"content",style:{paddingTop:20}},
     React.createElement("div",{className:"stitle"},"Asynchronous Content Design"),
     React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:8}},"Design the 5-step async learning experience for each module. This follows the Canvas module structure."),
-React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:12,padding:"10px 16px",marginBottom:8,fontSize:13,color:"#92400E"}},
-React.createElement("strong",null,"Purpose of this tab: "),
-"Plan what students will see and do inside each Canvas module. This is the detailed content layer \u2014 the student-facing experience. The ",React.createElement("strong",null,"Modules")," tab handles the high-level alignment (CLOs, CSWE, assessments)."),
-    React.createElement("div",{style:{display:"inline-block",fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:"#FEF3C7",color:"#92400E",marginBottom:16}},data.contentType==="async"?"ASYNCHRONOUS ONLY":"ASYNC & SYNC COURSE"),
+    React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:12,padding:"10px 16px",marginBottom:8,fontSize:13,color:"#92400E"}},
+      React.createElement("strong",null,"Purpose of this tab: "),
+      "Plan what students will see and do inside each Canvas module. This is the detailed content layer "+String.fromCharCode(8212)+" the student-facing experience. The ",React.createElement("strong",null,"Modules")," tab handles the high-level alignment (CLOs, CSWE, assessments)."),
+    React.createElement("div",{style:{display:"inline-block",fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:"#FEF3C7",color:"#92400E",marginBottom:16}},data.contentType==="async"?"ASYNCHRONOUS":"ASYNC & SYNC COURSE"),
     React.createElement("div",{className:"mod-tabs",style:{marginBottom:16}},
       data.modules.map(function(m,i){return React.createElement("button",{key:m.id,onClick:function(){setActiveMod(i);},className:"mod-tab"+(activeMod===i?" active":"")},
         "Module "+(i+1)+(m.title?": "+m.title.slice(0,18):""));})),
     React.createElement("div",{style:{background:"#FFFBEB",border:"2px solid #FFCC00",borderRadius:16,padding:24}},
       React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#92400E",marginBottom:4}},"Module "+(activeMod+1)+": "+(mod.title||"Untitled")),
-      React.createElement("p",{style:{fontSize:14,color:"#92400E",marginBottom:20}},"Fill in each section of the 5-step async module structure below."),
+      React.createElement("p",{style:{fontSize:14,color:"#92400E",marginBottom:20}},"Fill in each section of the 5-step async module structure below. Click "+String.fromCharCode(8220)+"Show Guide"+String.fromCharCode(8221)+" in any section for tips and examples."),
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16}},
+
         React.createElement("div",{className:"card",style:{border:"2px solid #e8e0d0"}},
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:14}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:6}},
             React.createElement("span",{style:{background:"#990000",color:"#fff",fontWeight:900,fontSize:14,width:32,height:32,borderRadius:16,display:"flex",alignItems:"center",justifyContent:"center"}},"1"),
             React.createElement("h4",{style:{fontSize:18,fontWeight:700,color:"#990000"}},"Start Here: Welcome & Orientation")),
-          React.createElement(A,{label:"Welcome Message",value:getVal(activeMod,"startHere","welcome"),onChange:function(v){setAsync(activeMod,"startHere","welcome",v);},placeholder:"Welcome message for students entering this module...",rows:2}),
-          React.createElement(A,{label:"Module Learning Objectives",value:getVal(activeMod,"startHere","objectives"),onChange:function(v){setAsync(activeMod,"startHere","objectives",v);},placeholder:"List the learning objectives students will see at the start of this module...",rows:2}),
-          React.createElement(A,{label:"Required Readings & Pre-Work",value:getVal(activeMod,"startHere","readings"),onChange:function(v){setAsync(activeMod,"startHere","readings",v);},placeholder:"Textbook chapters, articles, videos to review before engaging with content..."})),
+          React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:8}},"Set the stage for the module. Help students understand what they will learn, why it matters, and what they need to do first."),
+          guideBtn("s1","What to Include"),
+          guideBox("s1",[
+            {heading:"Unit Overview Narrative"},
+            "Write a brief paragraph introducing the module topic, its relevance, and what students will gain.",
+            {example:"This unit prepares you to assess and support service members, veterans, and their families by recognizing how military culture shapes mental health, diagnosis, and treatment planning."},
+            {heading:"Module Learning Objectives"},
+            "List 3"+String.fromCharCode(8211)+"5 specific, measurable objectives using doctoral-level verbs (Analyze, Evaluate, Design, etc.).",
+            {example:"1. Explain core elements of military culture (values, hierarchy, traditions, language). 2. Analyze psychological and social effects of service (e.g., PTSD, moral injury)."},
+            {heading:"Key Topics Covered"},
+            "Bullet the main themes or concepts students will encounter.",
+            {heading:"Required Readings"},
+            "For each reading, include: Title, Author/Source, and a brief description of what it covers and why it matters.",
+            {example:"Reading: Military Cultural Competence (Author). This reading defines military cultural competence and explains core features of military culture that shape how service members experience care."}
+          ]),
+          React.createElement(A,{label:"Unit Overview & Relevance",value:getVal(activeMod,"startHere","welcome"),onChange:function(v){setAsync(activeMod,"startHere","welcome",v);},placeholder:"Write an introductory narrative: What is this module about? Why does it matter? How does it connect to the course and to students' professional practice?",rows:4}),
+          React.createElement(A,{label:"Module Learning Objectives",value:getVal(activeMod,"startHere","objectives"),onChange:function(v){setAsync(activeMod,"startHere","objectives",v);},placeholder:"1. [Action verb] + [what students will be able to do]\n2. [Action verb] + [what students will be able to do]\n3. [Action verb] + [what students will be able to do]",rows:3}),
+          React.createElement(A,{label:"Key Topics Covered",value:getVal(activeMod,"startHere","keyTopics"),onChange:function(v){setAsync(activeMod,"startHere","keyTopics",v);},placeholder:"List the main themes, concepts, or skills covered in this module...",rows:2}),
+          React.createElement(A,{label:"Readings & Resources",value:getVal(activeMod,"startHere","readings"),onChange:function(v){setAsync(activeMod,"startHere","readings",v);},placeholder:"For each reading, provide:\n- Title and Author/Source\n- Brief description of what it covers\n- Why it is relevant to this module\n\nExample:\nReading: Specialized Practice Curricular Guide for Military Social Work (CSWE)\nDescription: Outlines core competencies and culturally informed practices for serving military families.",rows:5})),
+
         React.createElement("div",{className:"card",style:{border:"2px solid #e8e0d0"}},
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:14}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:6}},
             React.createElement("span",{style:{background:"#990000",color:"#fff",fontWeight:900,fontSize:14,width:32,height:32,borderRadius:16,display:"flex",alignItems:"center",justifyContent:"center"}},"2"),
             React.createElement("h4",{style:{fontSize:18,fontWeight:700,color:"#990000"}},"Learn")),
-          React.createElement(A,{label:"Guided Reading Questions",value:getVal(activeMod,"learn","guidedQuestions"),onChange:function(v){setAsync(activeMod,"learn","guidedQuestions",v);},placeholder:"Questions that guide students through the readings...",rows:2}),
-          React.createElement(A,{label:"Mini Lecture(s)",value:getVal(activeMod,"learn","miniLectures"),onChange:function(v){setAsync(activeMod,"learn","miniLectures",v);},placeholder:"Pre-recorded lectures, voiceover presentations, video content...",rows:2}),
-          React.createElement(A,{label:"Knowledge Check(s) (Automated)",value:getVal(activeMod,"learn","knowledgeChecks"),onChange:function(v){setAsync(activeMod,"learn","knowledgeChecks",v);},placeholder:"Auto-graded quizzes, comprehension checks, formative assessments..."})),
+          React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:8}},"Deliver the core content through lectures, guided questions, and knowledge checks. This is where students engage with new material."),
+          React.createElement("div",{style:{background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:12,color:"#0369a1"}},
+            React.createElement("strong",null,"Learning Theory: "),"Pre-recorded lectures support Multimedia Learning Theory (combining visual + auditory input). Knowledge checks use Retrieval Practice "+String.fromCharCode(8212)+" one of the most effective strategies for long-term retention."),
+          guideBtn("s2","What to Include"),
+          guideBox("s2",[
+            {heading:"Pre-Recorded Lectures / Mini-Lectures"},
+            "Provide title, estimated duration, and a brief description of what each lecture covers.",
+            {example:"Mini-Lecture 1: Introduction to Military Culture (12 min) "+String.fromCharCode(8212)+" Overview of military values, hierarchy, and how they shape identity and coping."},
+            {heading:"Guided Reading Questions"},
+            "Questions that focus students' attention while reading. Help them connect concepts to practice.",
+            {example:"As you read Chapter 3, consider: How do deployment cycles affect family systems? What assessment modifications might be needed?"},
+            {heading:"Knowledge Checks (Automated Micro-Quizzes)"},
+            "Brief, low-stakes quizzes (3"+String.fromCharCode(8211)+"5 questions) to reinforce key concepts. Specify: number of questions, points, time limit, and whether multiple attempts are allowed.",
+            {example:"Knowledge Check: 3 questions, 3 points, 5-minute time limit, graded quiz, shuffle answers, no multiple attempts."}
+          ]),
+          React.createElement(A,{label:"Pre-Recorded Lectures / Mini-Lectures",value:getVal(activeMod,"learn","miniLectures"),onChange:function(v){setAsync(activeMod,"learn","miniLectures",v);},placeholder:"For each lecture, provide:\n- Title and duration\n- Brief description of content\n- Format (voiceover slides, video recording, screencast, etc.)\n\nExample:\nMini-Lecture 1: Introduction to Military Culture (12 min)\nVoiceover presentation covering military values, hierarchy, rank structure, and their impact on identity.",rows:5}),
+          React.createElement(A,{label:"Guided Reading Questions",value:getVal(activeMod,"learn","guidedQuestions"),onChange:function(v){setAsync(activeMod,"learn","guidedQuestions",v);},placeholder:"Questions that guide students through the readings and help them connect concepts to practice.\n\nExample:\n1. How does military hierarchy influence help-seeking behavior?\n2. What cultural factors should clinicians consider when assessing veterans for PTSD?",rows:4}),
+          React.createElement(A,{label:"Knowledge Checks (Automated Micro-Quizzes)",value:getVal(activeMod,"learn","knowledgeChecks"),onChange:function(v){setAsync(activeMod,"learn","knowledgeChecks",v);},placeholder:"Describe each knowledge check:\n- Title and purpose\n- Number of questions, points, time limit\n- Quiz type (graded/ungraded), multiple attempts (yes/no)\n- Topics covered\n\nExample:\nKnowledge Check - Micro Quiz: 3 questions, 3 points, 5-min time limit, graded, no multiple attempts. Covers military culture essentials and psychosocial stressors.",rows:4})),
+
         React.createElement("div",{className:"card",style:{border:"2px solid #e8e0d0"}},
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:14}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:6}},
             React.createElement("span",{style:{background:"#990000",color:"#fff",fontWeight:900,fontSize:14,width:32,height:32,borderRadius:16,display:"flex",alignItems:"center",justifyContent:"center"}},"3"),
             React.createElement("h4",{style:{fontSize:18,fontWeight:700,color:"#990000"}},"Skill Builder & Applications")),
-          React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:10,fontStyle:"italic",background:"#f9f6f2",padding:"8px 12px",borderRadius:8}},"Options include but are not limited to: Instructor modeling, practice demonstration, case walkthrough, facilitated example, think-aloud, worked example, mini simulation/role play, expert application, comparative illustration"),
-          React.createElement(A,{label:"Skill Builder Activities",value:getVal(activeMod,"skillBuilder","activities"),onChange:function(v){setAsync(activeMod,"skillBuilder","activities",v);},placeholder:"Describe the skill-building activities for this module...",rows:3})),
+          React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:8}},"Students apply what they learned through hands-on activities. This bridges theory and practice."),
+          React.createElement("div",{style:{background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:12,color:"#0369a1"}},
+            React.createElement("strong",null,"Learning Theory: "),"Case studies and experiential activities align with Experiential Learning Theory (learning by doing) and promote Bloom's higher-order thinking (analysis, evaluation, synthesis)."),
+          guideBtn("s3","What to Include"),
+          guideBox("s3",[
+            {heading:"Activity Types (choose one or more)"},
+            "Instructor modeling, practice demonstration, case walkthrough, facilitated example, think-aloud, worked example, mini simulation/role play, expert application, comparative illustration, training activity with videos",
+            {heading:"For Each Activity, Provide"},
+            "Title, clear instructions, any required resources (videos, case studies, worksheets), connection to learning objectives, and expected deliverable.",
+            {example:"Training Activity: Watch three videos on dimensions of diversity (links provided). Then complete the Skill Builder Questions by applying an intersectional lens to describe one aspect relevant to your professional development as a social work practitioner."},
+            {heading:"If Using Videos"},
+            "Provide: title, URL/link, duration, and how it connects to the activity.",
+            {example:"Video: Debunking the most common myths White people tell about race (3:47 min) "+String.fromCharCode(8212)+" https://youtube.com/..."}
+          ]),
+          React.createElement(A,{label:"Skill Builder Activities",value:getVal(activeMod,"skillBuilder","activities"),onChange:function(v){setAsync(activeMod,"skillBuilder","activities",v);},placeholder:"Describe each skill-building activity:\n- Activity type and title\n- Clear instructions for students\n- Required resources (videos with URLs, case studies, worksheets)\n- Connection to module objectives\n- Expected deliverable or output\n\nExample:\nTraining Activity: Dimensions of Diversity\n1. Watch: 'Debunking myths about race' (3:47 min) - [URL]\n2. Watch: 'How to become aware of privilege' (2:39 min) - [URL]\n3. Complete Skill Builder Questions connecting videos to intercultural competence goals.",rows:7})),
+
         React.createElement("div",{className:"card",style:{border:"2px solid #e8e0d0"}},
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:14}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:6}},
             React.createElement("span",{style:{background:"#990000",color:"#fff",fontWeight:900,fontSize:14,width:32,height:32,borderRadius:16,display:"flex",alignItems:"center",justifyContent:"center"}},"4"),
             React.createElement("h4",{style:{fontSize:18,fontWeight:700,color:"#990000"}},"Reflect & Connect")),
-          React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:10,fontStyle:"italic",background:"#f9f6f2",padding:"8px 12px",borderRadius:8}},"Options include but are not limited to: Ungraded quiz prompt, peer interaction on Discussion Board, reflection journal, group activity"),
-          React.createElement(A,{label:"Reflect & Connect Activities",value:getVal(activeMod,"reflectConnect","activities"),onChange:function(v){setAsync(activeMod,"reflectConnect","activities",v);},placeholder:"Describe reflection and peer interaction activities...",rows:3})),
+          React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:8}},"Students reflect on learning and interact with peers. This deepens understanding through social learning and metacognition."),
+          React.createElement("div",{style:{background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:12,color:"#0369a1"}},
+            React.createElement("strong",null,"Learning Theory: "),"Discussion boards foster Social Constructivism and Community of Inquiry. Journal reflections support metacognition "+String.fromCharCode(8212)+" a proven driver of long-term retention and critical thinking."),
+          guideBtn("s4","What to Include"),
+          guideBox("s4",[
+            {heading:"Discussion Board"},
+            "Purpose statement, detailed prompt with numbered requirements, initial post guidelines (word count, citations, due date), reply requirements (number, expectations, due date), quality expectations.",
+            {example:"Discussion Prompt: Drawing on this week's materials, explain how an aspect of military culture influences assessment, diagnosis, or rapport-building. Address: (1) Identify one concept, (2) Explain how it shapes mental health presentations, (3) Incorporate at least one course reading."},
+            {heading:"Initial Post Requirements"},
+            "Minimum word count, citation requirements, due date, grading criteria.",
+            {example:"Initial Post: Minimum 150 words, due Wednesday 11:59 PM. Use course materials to support ideas. Cite in APA style."},
+            {heading:"Reply Requirements"},
+            "Number of replies, quality expectations, due date.",
+            {example:"Reply to 2 peers by Saturday 11:59 PM. Extend the discussion by offering alternative perspectives, connecting to additional concepts, or asking application questions."},
+            {heading:"Share Out / Skill-Builder Response"},
+            "If using a share-out format, provide the prompt, visibility settings, and reply expectations.",
+            {example:"Share Out: Apply an intersectional lens to describe one aspect of the training activity relevant to your professional development. Reply to at least one colleague reflecting on similarities or differences."}
+          ]),
+          React.createElement(A,{label:"Discussion Board / Peer Interaction",value:getVal(activeMod,"reflectConnect","activities"),onChange:function(v){setAsync(activeMod,"reflectConnect","activities",v);},placeholder:"Design your discussion or peer interaction:\n\nPurpose: [Why this discussion matters]\n\nPrompt: [Detailed discussion question with numbered requirements]\n\nInitial Post: [Word count, citations, due date]\nReplies: [Number required, expectations, due date]\nDiscussion Closes: [Date/time]\n\nQuality Expectations: [What makes a strong response]\n\nExample:\nPurpose: Apply foundational concepts of military culture to clinical practice.\nPrompt: Explain how an aspect of military culture influences assessment or rapport-building.\n1. Identify one concept from this week\n2. Explain how it shapes mental health presentations\n3. Incorporate at least one course reading\nInitial Post: 150+ words, due Wednesday 11:59 PM, APA citations\nReplies: 2 peers, due Saturday 11:59 PM",rows:8}),
+          React.createElement(A,{label:"Journal / Reflection (if applicable)",value:getVal(activeMod,"reflectConnect","journal"),onChange:function(v){setAsync(activeMod,"reflectConnect","journal",v);},placeholder:"If using a journal or reflection assignment:\n- Prompt or guiding questions\n- Expected length\n- Connection to personal experience or professional goals\n- Grading criteria\n\n(Leave blank if not using a journal for this module)",rows:3})),
+
         React.createElement("div",{className:"card",style:{border:"2px solid #e8e0d0"}},
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:14}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:6}},
             React.createElement("span",{style:{background:"#990000",color:"#fff",fontWeight:900,fontSize:14,width:32,height:32,borderRadius:16,display:"flex",alignItems:"center",justifyContent:"center"}},"5"),
             React.createElement("h4",{style:{fontSize:18,fontWeight:700,color:"#990000"}},"Module Wrap Up")),
-          React.createElement(A,{label:"Competence Assessment",value:getVal(activeMod,"wrapUp","competenceAssessment"),onChange:function(v){setAsync(activeMod,"wrapUp","competenceAssessment",v);},placeholder:"End-of-module competence assessment, self-evaluation, or summative check...",rows:2}),
-          React.createElement(A,{label:"Live Session Question(s)",value:getVal(activeMod,"wrapUp","liveSessionQuestions"),onChange:function(v){setAsync(activeMod,"wrapUp","liveSessionQuestions",v);},placeholder:"Questions students prepare for live sessions or submit for instructor review...",rows:2}))
+          React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:8}},"Close the module with a competence check and prepare students for what comes next (including live sessions if applicable)."),
+          React.createElement("div",{style:{background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:12,color:"#0369a1"}},
+            React.createElement("strong",null,"Learning Theory: "),"Competence assessments support Mastery Learning by letting students verify understanding before moving on. Preparing live session questions activates prior knowledge for deeper synchronous engagement."),
+          guideBtn("s5","What to Include"),
+          guideBox("s5",[
+            {heading:"Competence Assessment"},
+            "A self-check or summative assessment that helps students verify their understanding of the module. Can be a self-evaluation, checklist, or brief assessment.",
+            {example:"Competence Self-Assessment: Rate your confidence in each module objective on a 1"+String.fromCharCode(8211)+"5 scale. Identify areas where you need additional support."},
+            {heading:"Live Session Questions (if applicable)"},
+            "Questions or topics students should prepare for the next live session. This bridges async and sync learning.",
+            {example:"Come to the live session prepared to discuss: (1) One cultural factor that most surprised you, (2) How you would adapt your assessment approach for a veteran client."},
+            {heading:"Looking Ahead"},
+            "Brief preview of the next module to maintain momentum and show course progression."
+          ]),
+          React.createElement(A,{label:"Competence Assessment / Self-Check",value:getVal(activeMod,"wrapUp","competenceAssessment"),onChange:function(v){setAsync(activeMod,"wrapUp","competenceAssessment",v);},placeholder:"Describe the end-of-module competence check:\n- Type (self-assessment, checklist, quiz, reflection)\n- What it measures\n- How students use the results\n\nExample:\nCompetence Self-Assessment: Rate your confidence in each module objective (1-5 scale). Identify one area for further development and one concept you feel confident applying.",rows:4}),
+          React.createElement(A,{label:"Live Session Questions / Preparation (if applicable)",value:getVal(activeMod,"wrapUp","liveSessionQuestions"),onChange:function(v){setAsync(activeMod,"wrapUp","liveSessionQuestions",v);},placeholder:"Questions or topics students should prepare for the next live session:\n\nExample:\nCome prepared to discuss:\n1. One cultural factor from the readings that most surprised you\n2. How you would adapt your assessment approach for a veteran client\n3. A question you still have about military cultural competence",rows:4}),
+          React.createElement(A,{label:"Looking Ahead (optional)",value:getVal(activeMod,"wrapUp","lookingAhead"),onChange:function(v){setAsync(activeMod,"wrapUp","lookingAhead",v);},placeholder:"Brief preview of what comes next in the course to maintain momentum...\n\nExample:\nIn Module 2, we will build on your understanding of military culture by examining evidence-based interventions for combat-related trauma.",rows:2}))
       )));
 }
+
 
 function CommentsStep(props){
   var data=props.data;var courseId=props.courseId;var authUser=props.authUser;
@@ -1036,7 +1135,7 @@ var createCourse=function(){
   var name=prompt("Enter the course number and name:\n(e.g., SOWK 705 - Advanced Clinical Practice)");
   if(!name||!name.trim())return;
   var trimmed=name.trim();
-  var ctChoice=prompt("Select content delivery type:\n\n1 = Asynchronous Only\n2 = Synchronous Only\n3 = Both (Async & Sync)\n\nEnter 1, 2, or 3:");
+  var ctChoice=prompt("Select content delivery type:\n\n1 = Asynchronous\n2 = Fully Online\n3 = Asynchronous and Synchronous\n\nEnter 1, 2, or 3:");
   if(!ctChoice)return;
   var contentType=ctChoice==="1"?"async":ctChoice==="2"?"sync":"both";
   var modalityVal=ctChoice==="1"?"async_only":ctChoice==="2"?"sync_only":"async_sync";
@@ -1141,9 +1240,9 @@ step===3&&React.createElement(CourseInfo,{data,set:setData}),
 step===4&&React.createElement(CSWEMapping,{data,set:setData}),
 step===5&&React.createElement(CLOsStep,{data,set:setData}),
 step===6&&React.createElement(ModulesStep,{data,set:setData}),
-step===7&&React.createElement(ReviewStep,{data}),
-step===8&&React.createElement(AsyncDesignStep,{data:data,set:setData}),
-step===9&&React.createElement(CommentsStep,{data:data,courseId:currentCourseId,authUser:authUser})),
+step===7&&React.createElement(AsyncDesignStep,{data:data,set:setData}),
+step===8&&React.createElement(CommentsStep,{data:data,courseId:currentCourseId,authUser:authUser}),
+step===9&&React.createElement(ReviewStep,{data})),
 step>0&&React.createElement("div",{className:"bot-nav"},
 React.createElement("button",{onClick:goP,className:"btn-o"},"\u2190 Back"),
 React.createElement("span",{style:{fontSize:13,color:"#999"}},"Step "+step+" of "+(STEPS.length-1)+" | Auto-saved \u{1F4BE}"),
