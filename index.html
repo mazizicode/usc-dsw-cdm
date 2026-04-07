@@ -529,7 +529,11 @@ m[active]={...m[active],asyncContent:ac};return{...d,modules:m}});
 const mod=data.modules[active];if(!mod)return null;
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"Learning Modules"),
-React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},"Build each module with objectives, materials, activities, and assessments."),
+React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:8}},"Build each module with objectives, materials, activities, and assessments."),
+React.createElement("div",{style:{background:"#F0F9FF",border:"1px solid #BAE6FD",borderRadius:12,padding:"10px 16px",marginBottom:16,fontSize:13,color:"#0369A1"}},
+React.createElement("strong",null,"Purpose of this tab: "),
+"Map the high-level architecture of each module \u2014 what you\u2019re teaching, how it aligns to CLOs and CSWE skills, and how it\u2019s assessed. ",
+data.contentType!=="sync"?React.createElement("span",null,"For detailed async content design (the 5-step Canvas module structure), use the ",React.createElement("strong",null,"Async Design")," tab."):null),
 React.createElement("div",{className:"mod-tabs"},
 data.modules.map((m,i)=>React.createElement("button",{key:m.id,onClick:()=>setActive(i),className:"mod-tab"+(active===i?" active":"")},"Module "+(i+1)+(m.title?": "+m.title.slice(0,18):""))),
 React.createElement("button",{onClick:addMod,className:"btn-s",style:{width:"auto",padding:"8px 14px"}},"+")
@@ -552,7 +556,7 @@ React.createElement(A,{label:"Objective Statement",value:obj.text,onChange:v=>se
 React.createElement("div",{className:"g2",style:{marginTop:10}},
 React.createElement(A,{label:"Instructional Materials",value:obj.materials,onChange:v=>setO(oi,"materials",v),placeholder:"Chapter 1, Pre-recorded Lecture...",rows:2}),
 hasSync?React.createElement(A,{label:"Synchronous Activities",value:obj.syncAct,onChange:v=>setO(oi,"syncAct",v),placeholder:"Small group discussion, debate...",rows:2}):null,
-hasAsync?React.createElement(A,{label:"Asynchronous Activities (Canvas)",value:obj.asyncAct,onChange:v=>setO(oi,"asyncAct",v),placeholder:"Guided reading questions, knowledge checks...",rows:2}):null,
+data.contentType==="both"?React.createElement(A,{label:"Async Activities Summary (see Async Design tab for full details)",value:obj.asyncAct,onChange:v=>setO(oi,"asyncAct",v),placeholder:"Brief summary of async activities for this objective...",rows:2}):null,
 React.createElement(A,{label:"Assessment & Measurement",value:obj.assessment,onChange:v=>setO(oi,"assessment",v),placeholder:"Quiz, Discussion Board, Case Study...",rows:2})),
 React.createElement("div",{className:"g4",style:{marginTop:10}},
 React.createElement(F,{label:"CLOs Addressed",value:obj.clos,onChange:v=>setO(oi,"clos",v),placeholder:"CLO 1, 2"}),
@@ -800,7 +804,10 @@ function AsyncDesignStep(props){
   
   return React.createElement("div",{className:"content",style:{paddingTop:20}},
     React.createElement("div",{className:"stitle"},"Asynchronous Content Design"),
-    React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:6}},"Design the 5-step async learning experience for each module. This follows the Canvas module structure."),
+    React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:8}},"Design the 5-step async learning experience for each module. This follows the Canvas module structure."),
+React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:12,padding:"10px 16px",marginBottom:8,fontSize:13,color:"#92400E"}},
+React.createElement("strong",null,"Purpose of this tab: "),
+"Plan what students will see and do inside each Canvas module. This is the detailed content layer \u2014 the student-facing experience. The ",React.createElement("strong",null,"Modules")," tab handles the high-level alignment (CLOs, CSWE, assessments)."),
     React.createElement("div",{style:{display:"inline-block",fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:"#FEF3C7",color:"#92400E",marginBottom:16}},data.contentType==="async"?"ASYNCHRONOUS ONLY":"ASYNC & SYNC COURSE"),
     React.createElement("div",{className:"mod-tabs",style:{marginBottom:16}},
       data.modules.map(function(m,i){return React.createElement("button",{key:m.id,onClick:function(){setActiveMod(i);},className:"mod-tab"+(activeMod===i?" active":"")},
