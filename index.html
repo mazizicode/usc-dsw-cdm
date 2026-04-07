@@ -411,7 +411,7 @@ function CourseInfo({data,set}){
 const s=(k,v)=>set(d=>({...d,[k]:v}));
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"General Course Information"),
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.contentType==="async"?"#FEF3C7":data.contentType==="sync"?"#DBEAFE":"#F0FDF4",color:data.contentType==="async"?"#92400E":data.contentType==="sync"?"#1E40AF":"#166534"}},data.contentType==="async"?"Asynchronous":data.contentType==="sync"?"Fully Online":"Async & Sync")),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.contentType==="async"?"#FEF3C7":"#F0FDF4",color:data.contentType==="async"?"#92400E":"#166534"}},data.contentType==="async"?"Asynchronous Only":"Fully Online")),
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement(F,{label:"Course Number / Name",value:data.courseName,onChange:v=>s("courseName",v),placeholder:"SOWK-XXX Course Title"}),
 React.createElement(F,{label:"Development Started",value:data.devStarted,onChange:v=>s("devStarted",v),placeholder:"August 2025"}),
@@ -428,7 +428,7 @@ React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement("div",{className:"field"},React.createElement("label",null,"Modality"),
 React.createElement("div",{style:{display:"flex",gap:16,marginTop:6}},
 ["async_sync","async_only"].map(v=>React.createElement("label",{key:v,style:{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:13}},
-React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?"Asynchronous and Synchronous":"Asynchronous")))),
+React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?"Fully Online (Complete Course)":"Asynchronous Only")))),
 React.createElement(F,{label:"Sync Min / Module",value:data.syncMin,onChange:v=>s("syncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Async Min / Module",value:data.asyncMin,onChange:v=>s("asyncMin",v),placeholder:"75"})),
 React.createElement(A,{label:"Course Description (do not modify)",value:data.courseDesc,onChange:v=>s("courseDesc",v),placeholder:"Paste the official course description here.",rows:5}));}
@@ -540,7 +540,7 @@ React.createElement("button",{onClick:addMod,className:"btn-s",style:{width:"aut
 ),
 React.createElement("div",{className:"card card-accent"},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:8,background:data.contentType==="async"?"#FEF3C7":data.contentType==="sync"?"#DBEAFE":"#F0FDF4",color:data.contentType==="async"?"#92400E":data.contentType==="sync"?"#1E40AF":"#166534"}},data.contentType==="async"?"ASYNCHRONOUS":data.contentType==="sync"?"FULLY ONLINE":"ASYNC & SYNC")),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:8,background:data.contentType==="async"?"#FEF3C7":"#F0FDF4",color:data.contentType==="async"?"#92400E":"#166534"}},data.contentType==="async"?"ASYNCHRONOUS ONLY":"FULLY ONLINE")),
 data.modules.length>1&&React.createElement("button",{onClick:()=>removeMod(active),style:{fontSize:13,padding:"6px 14px",borderRadius:20,background:"#fef2f2",color:"#e55",border:"none",cursor:"pointer"}},"Remove Module")),
 React.createElement("div",{className:"g4"},
 React.createElement(F,{label:"Module Title",value:mod.title,onChange:v=>setM("title",v),placeholder:"Foundations of..."}),
@@ -810,7 +810,7 @@ function AsyncDesignStep(props){
     return React.createElement("div",{className:"content",style:{paddingTop:20}},
       React.createElement("div",{className:"stitle"},"Asynchronous Content Design"),
       React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
-        React.createElement("p",{style:{fontSize:16}},"This course is set to Fully Online."),
+        React.createElement("p",{style:{fontSize:16}},"This course does not include asynchronous components."),
         React.createElement("p",{style:{fontSize:14}},"The async content design step is only available for courses with asynchronous content."),
         React.createElement("p",{style:{fontSize:13,marginTop:12,color:"#ccc"}},"To change this, create a new CDM and select Asynchronous or Asynchronous and Synchronous as the content type.")));
   }
@@ -824,7 +824,7 @@ function AsyncDesignStep(props){
     React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:12,padding:"10px 16px",marginBottom:8,fontSize:13,color:"#92400E"}},
       React.createElement("strong",null,"Purpose of this tab: "),
       "Plan what students will see and do inside each Canvas module. This is the detailed content layer "+String.fromCharCode(8212)+" the student-facing experience. The ",React.createElement("strong",null,"Modules")," tab handles the high-level alignment (CLOs, CSWE, assessments)."),
-    React.createElement("div",{style:{display:"inline-block",fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:"#FEF3C7",color:"#92400E",marginBottom:16}},data.contentType==="async"?"ASYNCHRONOUS":"ASYNC & SYNC COURSE"),
+    React.createElement("div",{style:{display:"inline-block",fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:"#FEF3C7",color:"#92400E",marginBottom:16}},data.contentType==="async"?"ASYNCHRONOUS ONLY":"ASYNC & SYNC COURSE"),
     React.createElement("div",{className:"mod-tabs",style:{marginBottom:16}},
       data.modules.map(function(m,i){return React.createElement("button",{key:m.id,onClick:function(){setActiveMod(i);},className:"mod-tab"+(activeMod===i?" active":"")},
         "Module "+(i+1)+(m.title?": "+m.title.slice(0,18):""));})),
@@ -1135,10 +1135,10 @@ var createCourse=function(){
   var name=prompt("Enter the course number and name:\n(e.g., SOWK 705 - Advanced Clinical Practice)");
   if(!name||!name.trim())return;
   var trimmed=name.trim();
-  var ctChoice=prompt("Select content delivery type:\n\n1 = Asynchronous\n2 = Fully Online\n3 = Asynchronous and Synchronous\n\nEnter 1, 2, or 3:");
+  var ctChoice=prompt("Select content delivery type:\n\n1 = Asynchronous Only (Canvas async components only)\n2 = Fully Online (Complete Course Design)\n\nEnter 1 or 2:");
   if(!ctChoice)return;
-  var contentType=ctChoice==="1"?"async":ctChoice==="2"?"sync":"both";
-  var modalityVal=ctChoice==="1"?"async_only":ctChoice==="2"?"sync_only":"async_sync";
+  var contentType=ctChoice==="1"?"async":"both";
+  var modalityVal=ctChoice==="1"?"async_only":"async_sync";
   loadCourseList(authUser.uid,function(courses){
     var match=null;
     for(var i=0;i<courses.length;i++){
