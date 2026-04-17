@@ -639,7 +639,7 @@ React.createElement("thead",null,
 React.createElement("tr",null,
 React.createElement("th",{style:{padding:"8px",textAlign:"left",borderBottom:"2px solid #990000",fontWeight:700,color:"#990000"}},"Module"),
 (data.program==="msw"?MSW_COMPS:CSWE_SKILLS).map(function(comp){
-return React.createElement("th",{key:comp.id,style:{padding:"6px 4px",textAlign:"center",borderBottom:"2px solid #990000",fontSize:11,fontWeight:600,color:"#990000",minWidth:50}},(data.program==="msw"?"C":"CSWE ")+comp.id);
+return React.createElement("th",{key:comp.id,style:{padding:"6px 4px",textAlign:"center",borderBottom:"2px solid #990000",fontSize:12,fontWeight:600,color:"#990000",minWidth:50}},(data.program==="msw"?"C":"CSWE ")+comp.id);
 }))),
 React.createElement("tbody",null,
 data.modules.map(function(mod,mi){
@@ -810,9 +810,9 @@ faculty.map(function(f){
 return f.courses.map(function(fc,fi){
 return React.createElement("tr",{key:f.uid+fi,style:{borderBottom:"1px solid #eee"}},
 React.createElement("td",{style:{padding:"8px"}},fi===0?f.name:""),
-React.createElement("td",{style:{padding:"8px",textAlign:"center"}},React.createElement("span",{style:{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:8,background:fc.program==="msw"?"#DBEAFE":"#F0FDF4",color:fc.program==="msw"?"#1E40AF":"#166534"}},fc.program==="msw"?"MSW":"DSW")),
+React.createElement("td",{style:{padding:"8px",textAlign:"center"}},React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:fc.program==="msw"?"#DBEAFE":"#F0FDF4",color:fc.program==="msw"?"#1E40AF":"#166534"}},fc.program==="msw"?"MSW":"DSW")),
 React.createElement("td",{style:{padding:"8px",textAlign:"center",fontWeight:600}},fc.name),
-React.createElement("td",{style:{padding:"8px",textAlign:"center"}},React.createElement("span",{style:{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:8,background:STATUS_COLORS[fc.cdmStatus]||"#888",color:"#fff"}},fc.cdmStatus||"Draft")),
+React.createElement("td",{style:{padding:"8px",textAlign:"center"}},React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:STATUS_COLORS[fc.cdmStatus]||"#888",color:"#fff"}},fc.cdmStatus||"Draft")),
 React.createElement("td",{style:{padding:"8px",textAlign:"center",fontSize:12,color:"#888"}},fc.lastUpdated?new Date(fc.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric"}):""));
 });
 }))))):null,
@@ -934,7 +934,7 @@ function WorkflowPanel(props){
         var isPast=i<currentIdx;
         return React.createElement("div",{key:s,style:{flex:1,minWidth:80,textAlign:"center"}},
           React.createElement("div",{style:{height:6,borderRadius:3,background:isPast?"#22c55e":isActive?"#990000":"#e5e5e5",marginBottom:4}}),
-          React.createElement("div",{style:{fontSize:10,fontWeight:isActive?700:400,color:isActive?"#990000":isPast?"#22c55e":"#999"}},s));
+          React.createElement("div",{style:{fontSize:12,fontWeight:isActive?700:400,color:isActive?"#990000":isPast?"#22c55e":"#999"}},s));
       })),
     amAdmin?React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
       currentIdx<CDM_STATUSES.length-1?React.createElement("button",{onClick:function(){changeStatus(CDM_STATUSES[currentIdx+1]);},style:{fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10,border:"none",background:"#990000",color:"#fff",cursor:"pointer"}},"Advance to: "+CDM_STATUSES[currentIdx+1]):null,
