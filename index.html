@@ -630,6 +630,28 @@ const resetAll=()=>{if(confirm("Delete this course CDM? This cannot be undone.")
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement(WorkflowPanel,{data:data,set:set||null,authUser:typeof authUser!=="undefined"?authUser:null}),
 React.createElement("div",{className:"stitle"},"Review & Export"),
+React.createElement("div",{style:{background:"#fff",border:"2px solid #e8e0d0",borderRadius:16,padding:20,marginBottom:20}},
+React.createElement("h3",{style:{fontSize:18,fontWeight:700,color:"#990000",marginBottom:12}},"Competency Coverage Map"),
+React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:12}},"Green = addressed in module objectives, Gray = not addressed. Verify all competencies are covered."),
+React.createElement("div",{style:{overflowX:"auto"}},
+React.createElement("table",{style:{width:"100%",borderCollapse:"collapse",fontSize:12}},
+React.createElement("thead",null,
+React.createElement("tr",null,
+React.createElement("th",{style:{padding:"8px",textAlign:"left",borderBottom:"2px solid #990000",fontWeight:700,color:"#990000"}},"Module"),
+(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).map(function(comp){
+return React.createElement("th",{key:comp.id,style:{padding:"6px 4px",textAlign:"center",borderBottom:"2px solid #990000",fontSize:11,fontWeight:600,color:"#990000",minWidth:50}},(data.program==="msw"?"C":"CSWE ")+comp.id);
+}))),
+React.createElement("tbody",null,
+data.modules.map(function(mod,mi){
+return React.createElement("tr",{key:mi},
+React.createElement("td",{style:{padding:"8px",fontWeight:600,fontSize:12,borderBottom:"1px solid #eee"}},mod.title||"Module "+(mi+1)),
+(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).map(function(comp){
+var covered=false;
+mod.objectives.forEach(function(obj){if(obj.ces&&obj.ces.includes(String(comp.id)))covered=true;});
+return React.createElement("td",{key:comp.id,style:{padding:"6px",textAlign:"center",borderBottom:"1px solid #eee"}},
+React.createElement("div",{style:{width:24,height:24,borderRadius:12,background:covered?"#22c55e":"#e5e5e5",margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#fff",fontWeight:700}},covered?String.fromCharCode(10003):""));
+}));
+}))))),
 React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},"Review completion status and generate a PDF report."),
 React.createElement("div",{className:"card",style:{marginBottom:16}},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
@@ -804,6 +826,18 @@ function AdminCDMViewer(props){
 
 var CDM_STATUSES=["Draft","Submitted","Approved","In Build","Build Review","Ready for Launch","Launched"];
 var STATUS_COLORS={"Draft":"#888","Submitted":"#92400E","Approved":"#0369A1","In Build":"#7C3AED","Build Review":"#DB2777","Ready for Launch":"#059669","Launched":"#166534"};
+var ASYNC_TEMPLATES={
+welcome:"Welcome to Module [X: Module Title]. In this module, you will explore [brief summary of focus]. You will complete readings, mini-lectures, guided exercises, and reflective activities designed to help you [connect to course outcomes/professional practice]. Key activities this week include [list readings, discussion boards, assignments, quizzes].",
+objectives:"By the end of this module, you will be able to:\n1. [module objective 1]\n2. [module objective 2]\n3. [module objective 3]",
+readings:"(Note: Reading does not count towards async time) Please see the course syllabus for a list of this unit\u2019s required readings, which are available through ARES (link to ARES). Faculty can choose to add required & additional readings to the files section of the course.",
+guidedQuestions:"Purpose: The purpose of guided reading questions is to help you actively engage with this week\u2019s readings, identify core concepts, and prepare to apply them in class discussions and assignments.\n\nInstructions:\n\u2022 Review the assigned readings for this module.\n\u2022 As you read, take notes guided by the questions below.\n\u2022 Post a brief response (XX\u2013XX words) addressing at least two of the guided reading questions.\n\u2022 Respond to at least one peer\u2019s post, building on their ideas or offering a different perspective.\n\n[guided reading questions]",
+knowledgeChecks:"Purpose: This knowledge check is designed to help you assess your understanding of the module content. It is a low-stakes activity meant to reinforce your learning, not to evaluate you.\n\nInstructions:\n\u2022 Complete all assigned readings and media before beginning.\n\u2022 Answer each question to the best of your ability. You will receive immediate feedback.\n\u2022 This activity is ungraded/low-stakes (worth ___ points).\n\u2022 If you miss a question, review the related material and try again.\n\n[draft questions]",
+miniLectures:"Please watch the mini-lecture below before completing the activities in this module.\n\nInstructions:\n\u2022 Watch the mini-lecture (XX minutes).\n\u2022 Take notes using the Guided Reading Questions provided.\n\u2022 Complete the Knowledge Check quiz to test your understanding.\n\u2022 Be prepared to use this material in the discussion/live session.",
+discussion:"Post an initial reflection (XX\u2013XX words) addressing the prompt below. Be specific and connect your ideas to the readings, lectures, or assignments.\n\u2022 Respond to at least XX peers. Your replies should build on their ideas, offer alternative perspectives, or ask clarifying questions.\n\u2022 Maintain professional, respectful, and inclusive communication at all times.\n\u2022 Submit your posts by the due date to ensure timely peer interaction.\n\n[Discussion Prompt]",
+competence:"Review the module learning objectives and think about how well you can meet each one.\n\nFor each statement below, rate your current competence using a scale from 0\u201310, where:\n0 = Not at all competent / cannot perform\n5 = Moderately competent / can perform with support\n10 = Fully competent / can perform independently and confidently\n\n[Statements]\n\nBe honest in your self-assessment; this is a reflective exercise, not a graded test.",
+liveSession:"Review the module content before the live session.\n\u2022 Post at least one question or topic you would like discussed in the upcoming live session.\n\u2022 Read peers\u2019 posts and upvote, comment, or add supporting details to questions you also find relevant.\n\u2022 Keep your posts clear, concise, and professional.\n\n[Discussion prompt]"
+};
+
 
 function WorkflowPanel(props){
   var data=props.data;var set=props.set;var authUser=props.authUser;
@@ -854,6 +888,13 @@ function AsyncDesignStep(props){
   var _g=useState({}),showGuide=_g[0],setShowGuide=_g[1];
   
   var hasAsync=data.contentType!=="online";
+  
+  function templateBtn(section,key,templateKey){
+    if(getVal(activeMod,section,key))return null;
+    return React.createElement("button",{onClick:function(){setAsync(activeMod,section,key,ASYNC_TEMPLATES[templateKey]);},
+      style:{fontSize:12,color:"#0369A1",background:"#F0F9FF",border:"1px solid #BAE6FD",borderRadius:8,padding:"3px 10px",cursor:"pointer",marginBottom:4,display:"block"}},
+      String.fromCharCode(128203)+" Use Template Language");
+  }
   
   var toggleGuide=function(key){setShowGuide(function(prev){var n=Object.assign({},prev);n[key]=!n[key];return n;});};
   
@@ -935,9 +976,13 @@ function AsyncDesignStep(props){
             "For each reading, include: Title, Author/Source, and a brief description of what it covers and why it matters.",
             {example:"Reading: Military Cultural Competence (Author). This reading defines military cultural competence and explains core features of military culture that shape how service members experience care."}
           ]),
+          templateBtn("startHere","welcome","welcome"),
           React.createElement(A,{label:"Unit Overview & Relevance",value:getVal(activeMod,"startHere","welcome"),onChange:function(v){setAsync(activeMod,"startHere","welcome",v);},placeholder:"Write an introductory narrative: What is this module about? Why does it matter? How does it connect to the course and to students' professional practice?",rows:4}),
+          templateBtn("startHere","objectives","objectives"),
+          mod.objectives&&mod.objectives.some(function(o){return o.text;})?React.createElement("div",{style:{background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:8,padding:"8px 12px",marginBottom:8,fontSize:12,color:"#0369A1"}},React.createElement("strong",null,"From Modules tab: "),mod.objectives.filter(function(o){return o.text;}).map(function(o,i){return (i+1)+". "+o.text;}).join(" | ")):null,
           React.createElement(A,{label:"Module Learning Objectives",value:getVal(activeMod,"startHere","objectives"),onChange:function(v){setAsync(activeMod,"startHere","objectives",v);},placeholder:"1. [Action verb] + [what students will be able to do]\n2. [Action verb] + [what students will be able to do]\n3. [Action verb] + [what students will be able to do]",rows:3}),
           React.createElement(A,{label:"Key Topics Covered",value:getVal(activeMod,"startHere","keyTopics"),onChange:function(v){setAsync(activeMod,"startHere","keyTopics",v);},placeholder:"List the main themes, concepts, or skills covered in this module...",rows:2}),
+          templateBtn("startHere","readings","readings"),
           React.createElement(A,{label:"Readings & Resources",value:getVal(activeMod,"startHere","readings"),onChange:function(v){setAsync(activeMod,"startHere","readings",v);},placeholder:"For each reading, provide:\n- Title and Author/Source\n- Brief description of what it covers\n- Why it is relevant to this module\n\nExample:\nReading: Specialized Practice Curricular Guide for Military Social Work (CSWE)\nDescription: Outlines core competencies and culturally informed practices for serving military families.",rows:5})),
 
         React.createElement("div",{className:"card",style:{border:"2px solid #e8e0d0"}},
@@ -959,8 +1004,11 @@ function AsyncDesignStep(props){
             "Brief, low-stakes quizzes (3"+String.fromCharCode(8211)+"5 questions) to reinforce key concepts. Specify: number of questions, points, time limit, and whether multiple attempts are allowed.",
             {example:"Knowledge Check: 3 questions, 3 points, 5-minute time limit, graded quiz, shuffle answers, no multiple attempts."}
           ]),
+          templateBtn("learn","miniLectures","miniLectures"),
           React.createElement(A,{label:"Pre-Recorded Lectures / Mini-Lectures",value:getVal(activeMod,"learn","miniLectures"),onChange:function(v){setAsync(activeMod,"learn","miniLectures",v);},placeholder:"For each lecture, provide:\n- Title and duration\n- Brief description of content\n- Format (voiceover slides, video recording, screencast, etc.)\n\nExample:\nMini-Lecture 1: Introduction to Military Culture (12 min)\nVoiceover presentation covering military values, hierarchy, rank structure, and their impact on identity.",rows:5}),
+          templateBtn("learn","guidedQuestions","guidedQuestions"),
           React.createElement(A,{label:"Guided Reading Questions",value:getVal(activeMod,"learn","guidedQuestions"),onChange:function(v){setAsync(activeMod,"learn","guidedQuestions",v);},placeholder:"Questions that guide students through the readings and help them connect concepts to practice.\n\nExample:\n1. How does military hierarchy influence help-seeking behavior?\n2. What cultural factors should clinicians consider when assessing veterans for PTSD?",rows:4}),
+          templateBtn("learn","knowledgeChecks","knowledgeChecks"),
           React.createElement(A,{label:"Knowledge Checks (Automated Micro-Quizzes)",value:getVal(activeMod,"learn","knowledgeChecks"),onChange:function(v){setAsync(activeMod,"learn","knowledgeChecks",v);},placeholder:"Describe each knowledge check:\n- Title and purpose\n- Number of questions, points, time limit\n- Quiz type (graded/ungraded), multiple attempts (yes/no)\n- Topics covered\n\nExample:\nKnowledge Check - Micro Quiz: 3 questions, 3 points, 5-min time limit, graded, no multiple attempts. Covers military culture essentials and psychosocial stressors.",rows:4})),
 
         React.createElement("div",{className:"card",style:{border:"2px solid #e8e0d0"}},
@@ -1005,6 +1053,7 @@ function AsyncDesignStep(props){
             "If using a share-out format, provide the prompt, visibility settings, and reply expectations.",
             {example:"Share Out: Apply an intersectional lens to describe one aspect of the training activity relevant to your professional development. Reply to at least one colleague reflecting on similarities or differences."}
           ]),
+          templateBtn("reflectConnect","activities","discussion"),
           React.createElement(A,{label:"Discussion Board / Peer Interaction",value:getVal(activeMod,"reflectConnect","activities"),onChange:function(v){setAsync(activeMod,"reflectConnect","activities",v);},placeholder:"Design your discussion or peer interaction:\n\nPurpose: [Why this discussion matters]\n\nPrompt: [Detailed discussion question with numbered requirements]\n\nInitial Post: [Word count, citations, due date]\nReplies: [Number required, expectations, due date]\nDiscussion Closes: [Date/time]\n\nQuality Expectations: [What makes a strong response]\n\nExample:\nPurpose: Apply foundational concepts of military culture to clinical practice.\nPrompt: Explain how an aspect of military culture influences assessment or rapport-building.\n1. Identify one concept from this week\n2. Explain how it shapes mental health presentations\n3. Incorporate at least one course reading\nInitial Post: 150+ words, due Wednesday 11:59 PM, APA citations\nReplies: 2 peers, due Saturday 11:59 PM",rows:8}),
           React.createElement(A,{label:"Journal / Reflection (if applicable)",value:getVal(activeMod,"reflectConnect","journal"),onChange:function(v){setAsync(activeMod,"reflectConnect","journal",v);},placeholder:"If using a journal or reflection assignment:\n- Prompt or guiding questions\n- Expected length\n- Connection to personal experience or professional goals\n- Grading criteria\n\n(Leave blank if not using a journal for this module)",rows:3})),
 
@@ -1026,7 +1075,9 @@ function AsyncDesignStep(props){
             {heading:"Looking Ahead"},
             "Brief preview of the next module to maintain momentum and show course progression."
           ]),
+          templateBtn("wrapUp","competenceAssessment","competence"),
           React.createElement(A,{label:"Competence Assessment / Self-Check",value:getVal(activeMod,"wrapUp","competenceAssessment"),onChange:function(v){setAsync(activeMod,"wrapUp","competenceAssessment",v);},placeholder:"Describe the end-of-module competence check:\n- Type (self-assessment, checklist, quiz, reflection)\n- What it measures\n- How students use the results\n\nExample:\nCompetence Self-Assessment: Rate your confidence in each module objective (1-5 scale). Identify one area for further development and one concept you feel confident applying.",rows:4}),
+          templateBtn("wrapUp","liveSessionQuestions","liveSession"),
           React.createElement(A,{label:"Live Session Questions / Preparation (if applicable)",value:getVal(activeMod,"wrapUp","liveSessionQuestions"),onChange:function(v){setAsync(activeMod,"wrapUp","liveSessionQuestions",v);},placeholder:"Questions or topics students should prepare for the next live session:\n\nExample:\nCome prepared to discuss:\n1. One cultural factor from the readings that most surprised you\n2. How you would adapt your assessment approach for a veteran client\n3. A question you still have about military cultural competence",rows:4}),
           React.createElement(A,{label:"Looking Ahead (optional)",value:getVal(activeMod,"wrapUp","lookingAhead"),onChange:function(v){setAsync(activeMod,"wrapUp","lookingAhead",v);},placeholder:"Brief preview of what comes next in the course to maintain momentum...\n\nExample:\nIn Module 2, we will build on your understanding of military culture by examining evidence-based interventions for combat-related trauma.",rows:2}))
       )));
