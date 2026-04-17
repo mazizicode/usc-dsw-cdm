@@ -347,7 +347,7 @@ React.createElement("p",{style:{fontSize:15,fontWeight:500,marginBottom:2}},"Doc
 React.createElement("p",{style:{fontSize:14,color:"#999",marginBottom:22,fontStyle:"italic"}},"Aligned with CSWE 2025 Accreditation Standards for Practice Doctorate Programs"),
 React.createElement("div",{className:"card",style:{textAlign:"left",marginBottom:22}},
 React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:C.cardinal,marginBottom:10}},"\u{1F4D0} What is the CDM?"),
-React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The Course Design Map establishes a foundational blueprint for your DSW course. It organizes content into structured learning modules aligned with Course Learning Objectives and the ",React.createElement("strong",null,"CSWE 2025 Core Expertise and Skills")," for Practice Doctorate Programs. Using backward design principles, it ensures every element connects intentionally toward practitioner-scholar success."),
+React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The Course Design Map establishes a foundational blueprint for your DSW course. It organizes content into structured learning modules aligned with Course Learning Objectives and the ",React.createElement("strong",null,"CSWE 2025 Core Expertise and Skills")," for Practice Doctorate Programs. Using backward design principles, it ensures every element connects intentionally toward student success."),
 React.createElement("div",{className:"g3",style:{marginTop:16}},
 React.createElement("div",{className:"card",style:{textAlign:"center",padding:"20px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:150,gap:6}},
 React.createElement("img",{src:ALIGN_IMG,alt:"Alignment",style:{width:36,height:36,objectFit:"contain"}}),
@@ -360,7 +360,7 @@ React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",text
 React.createElement("div",{className:"card",style:{textAlign:"center",padding:"20px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:150,gap:6}},
 React.createElement("img",{src:CSWE_IMG,alt:"CSWE",style:{width:52,height:30,objectFit:"contain"}}),
 React.createElement("div",{style:{fontSize:14,fontWeight:700,color:C.cardinal,marginTop:6}},"Accreditation"),
-React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",textAlign:"center"}},"Evidence for Standards D3.0.1, D5.0.1"))
+React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",textAlign:"center"}},data.program==="dsw"?"Evidence for Standards D3.0.1, D5.0.1":"Aligned with CSWE 2022 EPAS"))
 )),
 React.createElement("div",{className:"gold-left",style:{marginBottom:22,fontSize:12}},
 React.createElement("strong",{style:{color:C.cardinal,fontSize:15}},"\u{1F4BE} Auto-Save: "),"Your progress is automatically saved. You can skip to any tab using the navigation bar above in your browser. You can close and return anytime."),
@@ -450,7 +450,7 @@ React.createElement("option",{value:""},"Select..."),
 data.program==="dsw"?React.createElement("option",{value:"Dr. Lily Ross"},"Dr. Lily Ross"):null,
 data.program==="msw"?React.createElement("option",{value:"Dr. Tyan Parker-Dominguez"},"Dr. Tyan Parker-Dominguez"):null,
 React.createElement("option",{value:"Other"},"Other"))),
-React.createElement(F,{label:"DSW Area of Focus",value:data.areaOfFocus,onChange:v=>s("areaOfFocus",v),placeholder:"Clinical Practice, Leadership..."})),
+data.program==="dsw"?React.createElement(F,{label:"DSW Area of Focus",value:data.areaOfFocus,onChange:v=>s("areaOfFocus",v),placeholder:"Clinical Practice, Leadership..."}):null),
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement("div",{className:"field"},React.createElement("label",null,"Modality"),
 React.createElement("div",{style:{display:"flex",gap:16,marginTop:6}},
@@ -527,7 +527,7 @@ data.clos.map((clo,i)=>React.createElement("div",{key:i,className:"card",style:{
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
 React.createElement("span",{className:"badge"},"CLO "+(i+1)),
 data.clos.length>1&&React.createElement("button",{onClick:()=>removeCLO(i),style:{fontSize:13,color:"#e55",background:"none",border:"none",cursor:"pointer"}},"Remove")),
-React.createElement(A,{label:"Learning Objective",value:clo.text,onChange:v=>setCLO(i,"text",v),placeholder:"Upon completion, practitioner-scholars will be able to...",rows:2}),
+React.createElement(A,{label:"Learning Objective",value:clo.text,onChange:v=>setCLO(i,"text",v),placeholder:data.program==="dsw"?"Upon completion, practitioner-scholars will be able to...":"Upon completion, students will be able to...",rows:2}),
 React.createElement("div",{className:"g4",style:{marginTop:10}},
 React.createElement(F,{label:"CSWE Aligned",value:clo.ces,onChange:v=>setCLO(i,"ces",v),placeholder:"CSWE 1, 3"}),
 React.createElement("div",{className:"field"},
@@ -580,7 +580,7 @@ mod.objectives.map((obj,oi)=>React.createElement("div",{key:oi,className:"obj-ro
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
 React.createElement("span",{className:"badge"},"Objective "+(oi+1)),
 mod.objectives.length>1&&React.createElement("button",{onClick:()=>removeO(oi),style:{fontSize:13,color:"#e55",background:"none",border:"none",cursor:"pointer"}},"Remove")),
-React.createElement(A,{label:"Objective Statement",value:obj.text,onChange:v=>setO(oi,"text",v),placeholder:"Upon completion, practitioner-scholars will be able to...",rows:2}),
+React.createElement(A,{label:"Objective Statement",value:obj.text,onChange:v=>setO(oi,"text",v),placeholder:data.program==="dsw"?"Upon completion, practitioner-scholars will be able to...":"Upon completion, students will be able to...",rows:2}),
 React.createElement("div",{className:"g2",style:{marginTop:10}},
 React.createElement(A,{label:"Instructional Materials",value:obj.materials,onChange:v=>setO(oi,"materials",v),placeholder:"Chapter 1, Pre-recorded Lecture...",rows:2}),
 hasSync?React.createElement(A,{label:"Synchronous Activities",value:obj.syncAct,onChange:v=>setO(oi,"syncAct",v),placeholder:"Small group discussion, debate...",rows:2}):null,
@@ -617,7 +617,7 @@ const mswAct=MSW_COMPS.filter(c=>data.mswComps[c.id]);
 if(mswAct.length){h+=`<h3>CSWE 2022 MSW Competencies</h3><p style="font-size:10px">`;mswAct.forEach(function(c,i){h+='<span class="badge badge-gold">C'+c.id+": "+c.name+"</span>";if(i<mswAct.length-1)h+=" &nbsp;\u2022 &nbsp;";});h+=`</p>`;}
 h+=`<h2>Course Learning Objectives</h2><table><tr><th>CLO</th><th>Objective</th><th>CSWE Aligned</th><th>ADEI</th><th>Assessment</th></tr>`;
 data.clos.forEach((c,i)=>{if(c.text)h+=`<tr><td><span class="badge">CLO ${i+1}</span></td><td>${esc(c.text)}</td><td>${esc(c.ces)}</td><td>${esc(c.adei)}</td><td>${esc(c.assess)}</td></tr>`;});
-h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | DSW Program | CDM v5.0</div></div>`;
+h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | "+(data.program==="msw"?"MSW":"DSW")+" Program | CDM v5.0</div></div>`;
 data.modules.forEach((mod,mi)=>{if(!mod.title)return;
 h+=`<div class="page"><div class="hdr"><div><strong style="color:#990000">Course Design Map</strong> \u2014 ${esc(data.courseName)}</div><div class="sub">CDM v"+(data.cdmVersion||"1.0")+"</div></div><div class="bar"></div><div class="mh"><h3>Module ${mi+1}: ${esc(mod.title)}</h3><div style="font-size:9px;color:#666;margin-top:2px"><strong>Sync:</strong> ${esc(mod.syncMin)} min | <strong>Async:</strong> ${esc(mod.asyncMin)} min | <strong>Terms:</strong> ${esc(mod.terms)}</div></div>`;
 if(mod.overview)h+=`<div class="ov"><strong>Overview:</strong> ${esc(mod.overview)}</div>`;
