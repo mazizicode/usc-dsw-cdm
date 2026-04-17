@@ -456,15 +456,15 @@ const setExplain=(id,v)=>set(d=>({...d,cesExplain:{...d.cesExplain,[id]:v}}));
 const toggleMSW=id=>set(d=>({...d,mswComps:{...d.mswComps,[id]:!d.mswComps[id]}}));
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},data.program==="msw"?"CSWE 2022 EPAS Competency Mapping":"CSWE 2025 Core Expertise & Skills Mapping"),
-React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},"Select each CSWE Core Expertise & Skill this course addresses. When you check a skill, explain how this course maps to it and list aligned CLOs. Per Accreditation Standards D3.0.1 and D5.0.1."),
+React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},data.program==="msw"?"Select each CSWE 2022 EPAS Competency this course addresses. When you check a competency, explain how this course maps to it and list aligned CLOs.":"Select each CSWE 2025 Core Expertise & Skill this course addresses. When you check a skill, explain how this course maps to it and list aligned CLOs. Per Accreditation Standards D3.0.1 and D5.0.1."),
 React.createElement("div",{style:{marginBottom:28}},
-CSWE_SKILLS.map(ces=>React.createElement("div",{key:ces.id,className:"ces-card"+(data.cesChecked[ces.id]?" ck":"")},
+(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).map(ces=>React.createElement("div",{key:ces.id,className:"ces-card"+(data.cesChecked[ces.id]?" ck":"")},
 React.createElement("div",{className:"ces-inner"},
 React.createElement("input",{type:"checkbox",checked:!!data.cesChecked[ces.id],onChange:()=>toggleCES(ces.id),style:{width:18,height:18,marginTop:2,accentColor:C.cardinal,cursor:"pointer"}}),
 React.createElement("div",{style:{flex:1}},
 React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
-React.createElement("span",{className:"badge",style:{background:data.cesChecked[ces.id]?C.cardinal:"#bbb"}},"CSWE "+ces.id),
-React.createElement("span",{style:{fontSize:12,fontWeight:700,color:C.cardinal}},ces.short)),
+React.createElement("span",{className:"badge",style:{background:data.cesChecked[ces.id]?C.cardinal:"#bbb"}},(data.program==="msw"?"C":"CSWE ")+ces.id),
+React.createElement("span",{style:{fontSize:12,fontWeight:700,color:C.cardinal}},ces.short||ces.name)),
 React.createElement("p",{style:{fontSize:12,color:"#555",lineHeight:1.5}},ces.desc),
 data.cesChecked[ces.id]&&React.createElement("div",{style:{marginTop:10,background:"#faf8f4",borderRadius:10,padding:12,border:"1px solid #e8e0d0"}},
 React.createElement("div",{className:"field"},
@@ -825,7 +825,7 @@ function AsyncDesignStep(props){
     return React.createElement("div",{className:"content",style:{paddingTop:20}},
       React.createElement("div",{className:"stitle"},"Asynchronous Content Design"),
       React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
-        React.createElement("p",{style:{fontSize:16}},"This course does not include asynchronous components."),
+        React.createElement("p",{style:{fontSize:16}},"This course is set to 100% Online. The Async Content Design tab is for courses with Canvas asynchronous components."),
         React.createElement("p",{style:{fontSize:14}},"The async content design step is only available for courses with asynchronous content."),
         React.createElement("p",{style:{fontSize:13,marginTop:12,color:"#ccc"}},"To change this, create a new CDM and select Asynchronous or Asynchronous and Synchronous as the content type.")));
   }
@@ -1157,7 +1157,7 @@ var createCourse=function(){
   if(program==="dsw"){
     contentType="both";modalityVal="async_sync";
   }else{
-    var ctChoice=prompt("Select content delivery type:\n\n1 = Async/Sync (standard MSW course)\n2 = 100% Online (e.g., Brightspace certificate course)\n3 = 100% Asynchronous (e.g., SOWK 616)\n\nEnter 1, 2, or 3:");
+    var ctChoice=prompt("Select content delivery type:\n\n1 = Async/Sync (standard MSW course)\n2 = 100% Online\n3 = 100% Asynchronous (e.g., SOWK 616)\n\nEnter 1, 2, or 3:");
     if(!ctChoice)return;
     contentType=ctChoice==="3"?"async":ctChoice==="2"?"online":"both";
     modalityVal=ctChoice==="3"?"async_only":ctChoice==="2"?"online_only":"async_sync";
