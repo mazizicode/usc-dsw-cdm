@@ -338,7 +338,7 @@ className:"step-btn "+(cur===s.id?"active":cur>s.id?"done":"pending")},
 s.icon," ",s.label,i<STEPS.length-1?" \u203A":"")));}
 
 // ==== STEP 0: Welcome ====
-function Welcome({onNext}){
+function Welcome({onNext,data}){
 return React.createElement("div",{style:{maxWidth:640,margin:"0 auto",textAlign:"center",padding:"28px 16px"}},
 React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:50,marginBottom:14}}),
 /* badge removed - name already in logo */
@@ -360,7 +360,7 @@ React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",text
 React.createElement("div",{className:"card",style:{textAlign:"center",padding:"20px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:150,gap:6}},
 React.createElement("img",{src:CSWE_IMG,alt:"CSWE",style:{width:52,height:30,objectFit:"contain"}}),
 React.createElement("div",{style:{fontSize:14,fontWeight:700,color:C.cardinal,marginTop:6}},"Accreditation"),
-React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",textAlign:"center"}},data.program==="dsw"?"Evidence for Standards D3.0.1, D5.0.1":"Aligned with CSWE 2022 EPAS"))
+React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",textAlign:"center"}},(data&&data.program==="dsw")?"Evidence for Standards D3.0.1, D5.0.1":"Aligned with CSWE 2022 EPAS"))
 )),
 React.createElement("div",{className:"gold-left",style:{marginBottom:22,fontSize:12}},
 React.createElement("strong",{style:{color:C.cardinal,fontSize:15}},"\u{1F4BE} Auto-Save: "),"Your progress is automatically saved. You can skip to any tab using the navigation bar above in your browser. You can close and return anytime."),
@@ -1379,7 +1379,7 @@ React.createElement("div",{className:"top-bar"}),
 React.createElement("div",{className:"gold-bar-top"}),
 React.createElement(Nav,{cur:step,set:setStep}),
 React.createElement("div",{style:{paddingBottom:80}},
-step===0&&React.createElement("div",null,React.createElement(Welcome,{onNext:goN}),currentCourseId&&dataLoaded?React.createElement("div",{className:"content",style:{paddingTop:0}},React.createElement(VersionPanel,{data:data,setData:setData,courseId:currentCourseId,authUser:authUser})):null),
+step===0&&React.createElement("div",null,React.createElement(Welcome,{onNext:goN,data:data}),currentCourseId&&dataLoaded?React.createElement("div",{className:"content",style:{paddingTop:0}},React.createElement(VersionPanel,{data:data,setData:setData,courseId:currentCourseId,authUser:authUser})):null),
 step===1&&React.createElement(ObjectiveStep,null),
 step===2&&React.createElement(HowToStep,null),
 step===3&&React.createElement(CourseInfo,{data,set:setData}),
