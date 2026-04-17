@@ -205,8 +205,10 @@ reflectConnect:{activities:"",type:""},
 wrapUp:{competenceAssessment:"",liveSessionQuestions:""}
 }});
 const INIT={
+program:"dsw",
 courseName:"",devStarted:"",targetDelivery:"",courseLead:"",leadEmail:"",leadPhone:"",
-instDesigner:"Mirwais Azizi",progDirector:"",areaOfFocus:"",modality:"async_sync",
+instDesigner:"Mirwais Azizi",progDirector:"",
+curriculumDirector:"",areaOfFocus:"",modality:"async_sync",
 contentType:"both",
 syncMin:"",asyncMin:"",courseDesc:"",
 cesChecked:{},cesClos:{},cesExplain:{},
@@ -257,7 +259,7 @@ function loadFacultyCourse(uid,cid,cb){
 
 function load(){return INIT;}
 function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
-function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
+function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
 function createNewCourse(uid,cb){var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(INIT),courseName:"New Course",leadName:"",cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){cb(r.id);}).catch(function(e){console.error("Create course error:",e);alert("Error creating course. Please check that Firestore rules are updated. Error: "+e.message);});}
 function deleteCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).delete().then(cb);}
 
@@ -311,7 +313,7 @@ function loadVersionData(uid,cid,versionId,cb){
   }).catch(function(){cb(null,null);});
 }
 
-function save(d,cid){var u=firebase.auth().currentUser;if(!u||!cid)return;firebase.firestore().collection("cdm_data").doc(u.uid).collection("courses").doc(cid).set({cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",cdmVersion:d.cdmVersion||"1.0",leadName:d.courseLead||"",userEmail:u.email,userName:u.displayName,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error("Save:",e);});}
+function save(d,cid){var u=firebase.auth().currentUser;if(!u||!cid)return;firebase.firestore().collection("cdm_data").doc(u.uid).collection("courses").doc(cid).set({cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",cdmVersion:d.cdmVersion||"1.0",program:d.program||"dsw",leadName:d.courseLead||"",userEmail:u.email,userName:u.displayName,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error("Save:",e);});}
 
 function F({label,value,onChange,placeholder,type="text",className=""}){
 return React.createElement("div",{className:"field "+className},
@@ -355,7 +357,7 @@ React.createElement("div",{style:{fontSize:14,fontWeight:700,color:C.cardinal,ma
 React.createElement("div",{style:{fontSize:12,color:"#888",lineHeight:"1.5",textAlign:"center"}},"Evidence for Standards D3.0.1, D5.0.1"))
 )),
 React.createElement("div",{className:"gold-left",style:{marginBottom:22,fontSize:12}},
-React.createElement("strong",{style:{color:C.cardinal,fontSize:15}},"\u{1F4BE} Auto-Save: "),"Your progress is automatically saved in your browser. You can close and return anytime."),
+React.createElement("strong",{style:{color:C.cardinal,fontSize:15}},"\u{1F4BE} Auto-Save: "),"Your progress is automatically saved. You can skip to any tab using the navigation bar above in your browser. You can close and return anytime."),
 React.createElement("button",{onClick:onNext,className:"btn-p",style:{fontSize:15,padding:"14px 40px"}},"Begin Course Design Map \u2192"));}
 
 // ==== STEP 1: Objective ====
@@ -411,7 +413,7 @@ function CourseInfo({data,set}){
 const s=(k,v)=>set(d=>({...d,[k]:v}));
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"General Course Information"),
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.contentType==="async"?"#FEF3C7":"#F0FDF4",color:data.contentType==="async"?"#92400E":"#166534"}},data.contentType==="async"?"Asynchronous Only":"Fully Online")),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.program==="msw"?"#DBEAFE":"#F0FDF4",color:data.program==="msw"?"#1E40AF":"#166534"}},(data.program==="msw"?"MSW":"DSW")+" | "+(data.contentType==="async"?"Asynchronous Only":data.contentType==="online"?"100% Online":"Fully Online"))),
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement(F,{label:"Course Number / Name",value:data.courseName,onChange:v=>s("courseName",v),placeholder:"SOWK-XXX Course Title"}),
 React.createElement(F,{label:"Development Started",value:data.devStarted,onChange:v=>s("devStarted",v),placeholder:"August 2025"}),
@@ -422,13 +424,26 @@ React.createElement(F,{label:"Email",value:data.leadEmail,onChange:v=>s("leadEma
 React.createElement(F,{label:"Phone",value:data.leadPhone,onChange:v=>s("leadPhone",v),placeholder:"(213) 493-xxxx"})),
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement(F,{label:"Instructional Designer",value:data.instDesigner,onChange:v=>s("instDesigner",v)}),
-React.createElement(F,{label:"Program Director",value:data.progDirector,onChange:v=>s("progDirector",v),placeholder:"Dr. Joe Doe"}),
+React.createElement("div",{className:"field"},
+React.createElement("label",null,"PROGRAM DIRECTOR"),
+React.createElement("select",{value:data.progDirector,onChange:function(e){s("progDirector",e.target.value);},style:{padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14,width:"100%",background:"#fff"}},
+React.createElement("option",{value:""},"Select..."),
+data.program==="dsw"?React.createElement("option",{value:"Dr. June Wiley"},"Dr. June Wiley"):null,
+data.program==="msw"?React.createElement("option",{value:"Dr. Jennifer Lewis"},"Dr. Jennifer Lewis"):null,
+React.createElement("option",{value:"Other"},"Other"))),
+React.createElement("div",{className:"field"},
+React.createElement("label",null,"CURRICULUM & ACCREDITATION DIRECTOR"),
+React.createElement("select",{value:data.curriculumDirector,onChange:function(e){set(function(d){return Object.assign({},d,{curriculumDirector:e.target.value});});},style:{padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14,width:"100%",background:"#fff"}},
+React.createElement("option",{value:""},"Select..."),
+data.program==="dsw"?React.createElement("option",{value:"Dr. Lily Ross"},"Dr. Lily Ross"):null,
+data.program==="msw"?React.createElement("option",{value:"Dr. Tyan Parker-Dominguez"},"Dr. Tyan Parker-Dominguez"):null,
+React.createElement("option",{value:"Other"},"Other"))),
 React.createElement(F,{label:"DSW Area of Focus",value:data.areaOfFocus,onChange:v=>s("areaOfFocus",v),placeholder:"Clinical Practice, Leadership..."})),
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement("div",{className:"field"},React.createElement("label",null,"Modality"),
 React.createElement("div",{style:{display:"flex",gap:16,marginTop:6}},
-["async_sync","async_only"].map(v=>React.createElement("label",{key:v,style:{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:13}},
-React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?"Fully Online (Complete Course)":"Asynchronous Only")))),
+(data.program==="msw"?["async_sync","online_only","async_only"]:["async_sync","async_only"]).map(v=>React.createElement("label",{key:v,style:{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:13}},
+React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":v==="online_only"?"online":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?(data.program==="msw"?"Async/Sync":"Fully Online"):v==="online_only"?"100% Online":"Asynchronous Only")))),
 React.createElement(F,{label:"Sync Min / Module",value:data.syncMin,onChange:v=>s("syncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Async Min / Module",value:data.asyncMin,onChange:v=>s("asyncMin",v),placeholder:"75"})),
 React.createElement(A,{label:"Course Description (do not modify)",value:data.courseDesc,onChange:v=>s("courseDesc",v),placeholder:"Paste the official course description here.",rows:5}));}
@@ -440,7 +455,7 @@ const setClo=(id,v)=>set(d=>({...d,cesClos:{...d.cesClos,[id]:v}}));
 const setExplain=(id,v)=>set(d=>({...d,cesExplain:{...d.cesExplain,[id]:v}}));
 const toggleMSW=id=>set(d=>({...d,mswComps:{...d.mswComps,[id]:!d.mswComps[id]}}));
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
-React.createElement("div",{className:"stitle"},"CSWE 2025 Core Expertise & Skills Mapping"),
+React.createElement("div",{className:"stitle"},data.program==="msw"?"CSWE 2022 EPAS Competency Mapping":"CSWE 2025 Core Expertise & Skills Mapping"),
 React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},"Select each CSWE Core Expertise & Skill this course addresses. When you check a skill, explain how this course maps to it and list aligned CLOs. Per Accreditation Standards D3.0.1 and D5.0.1."),
 React.createElement("div",{style:{marginBottom:28}},
 CSWE_SKILLS.map(ces=>React.createElement("div",{key:ces.id,className:"ces-card"+(data.cesChecked[ces.id]?" ck":"")},
@@ -515,7 +530,7 @@ React.createElement("button",{onClick:addCLO,className:"btn-s"},"+ Add CLO"));}
 // ==== STEP 6: Modules ====
 function ModulesStep({data,set}){
 const[active,setActive]=useState(0);
-const hasAsync=data.contentType!=="sync";
+const hasAsync=data.contentType!=="online";
 const hasSync=data.contentType!=="async";
 const addMod=()=>set(d=>({...d,modules:[...d.modules,emptyMod()]}));
 const removeMod=i=>{if(data.modules.length<=1)return;set(d=>({...d,modules:d.modules.filter((_,idx)=>idx!==i)}));if(active>=data.modules.length-1)setActive(Math.max(0,data.modules.length-2));};
@@ -540,7 +555,7 @@ React.createElement("button",{onClick:addMod,className:"btn-s",style:{width:"aut
 ),
 React.createElement("div",{className:"card card-accent"},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:8,background:data.contentType==="async"?"#FEF3C7":"#F0FDF4",color:data.contentType==="async"?"#92400E":"#166534"}},data.contentType==="async"?"ASYNCHRONOUS ONLY":"FULLY ONLINE")),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:8,background:data.contentType==="async"?"#FEF3C7":"#F0FDF4",color:data.contentType==="async"?"#92400E":"#166534"}},(data.program==="msw"?"MSW":"DSW")+" | "+(data.contentType==="async"?"ASYNC ONLY":"FULLY ONLINE"))),
 data.modules.length>1&&React.createElement("button",{onClick:()=>removeMod(active),style:{fontSize:13,padding:"6px 14px",borderRadius:20,background:"#fef2f2",color:"#e55",border:"none",cursor:"pointer"}},"Remove Module")),
 React.createElement("div",{className:"g4"},
 React.createElement(F,{label:"Module Title",value:mod.title,onChange:v=>setM("title",v),placeholder:"Foundations of..."}),
@@ -770,7 +785,7 @@ function AsyncDesignStep(props){
   var _a=useState(0),activeMod=_a[0],setActiveMod=_a[1];
   var _g=useState({}),showGuide=_g[0],setShowGuide=_g[1];
   
-  var hasAsync=data.contentType!=="sync";
+  var hasAsync=data.contentType!=="online";
   
   var toggleGuide=function(key){setShowGuide(function(prev){var n=Object.assign({},prev);n[key]=!n[key];return n;});};
   
@@ -1101,7 +1116,7 @@ function Dashboard(pp){
           var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"Never";
           return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
             React.createElement("div",{style:{flex:1}},
-              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":"#F0FDF4",color:c.program==="msw"?"#1E40AF":"#166534"}},c.program==="msw"?"MSW":"DSW"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
               React.createElement("div",{style:{fontSize:14,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X"),
@@ -1132,30 +1147,39 @@ var openCourse=function(cid){setCurrentCourseId(cid);setDataLoaded(false);loadCo
 var _showDup=useState(null),dupInfo=_showDup[0],setDupInfo=_showDup[1];
 
 var createCourse=function(){
-  var name=prompt("Enter the course number and name:\n(e.g., SOWK 705 - Advanced Clinical Practice)");
+  var progChoice=prompt("Select program:\n\n1 = DSW (Doctor of Social Work)\n2 = MSW (Master of Social Work)\n\nEnter 1 or 2:");
+  if(!progChoice||!["1","2"].includes(progChoice))return;
+  var program=progChoice==="1"?"dsw":"msw";
+  var name=prompt("Enter the course number and name:\n(e.g., "+(program==="dsw"?"DSW 704 - Strategic Innovations":"SOWK 705 - Advanced Clinical Practice")+")");
   if(!name||!name.trim())return;
   var trimmed=name.trim();
-  var ctChoice=prompt("Select content delivery type:\n\n1 = Asynchronous Only (Canvas async components only)\n2 = Fully Online (Complete Course Design)\n\nEnter 1 or 2:");
-  if(!ctChoice)return;
-  var contentType=ctChoice==="1"?"async":"both";
-  var modalityVal=ctChoice==="1"?"async_only":"async_sync";
+  var contentType,modalityVal;
+  if(program==="dsw"){
+    contentType="both";modalityVal="async_sync";
+  }else{
+    var ctChoice=prompt("Select content delivery type:\n\n1 = Async/Sync (standard MSW course)\n2 = 100% Online (e.g., Brightspace certificate course)\n3 = 100% Asynchronous (e.g., SOWK 616)\n\nEnter 1, 2, or 3:");
+    if(!ctChoice)return;
+    contentType=ctChoice==="3"?"async":ctChoice==="2"?"online":"both";
+    modalityVal=ctChoice==="3"?"async_only":ctChoice==="2"?"online_only":"async_sync";
+  }
   loadCourseList(authUser.uid,function(courses){
     var match=null;
     for(var i=0;i<courses.length;i++){
       if(courses[i].name.toLowerCase()===trimmed.toLowerCase()){match=courses[i];break;}
     }
     if(match){
-      setDupInfo({name:trimmed,existingId:match.id,existingName:match.name,contentType:contentType,modalityVal:modalityVal});
+      setDupInfo({name:trimmed,existingId:match.id,existingName:match.name,contentType:contentType,modalityVal:modalityVal,program:program});
     }else{
-      doCreateFresh(trimmed,contentType,modalityVal);
+      doCreateFresh(trimmed,contentType,modalityVal,program);
     }
   });
 };
 
-var doCreateFresh=function(name,ct,mod){
+var doCreateFresh=function(name,ct,mod,prog){
   var initWithName=Object.assign({},INIT);
   initWithName.courseName=name;
   if(ct){initWithName.contentType=ct;initWithName.modality=mod;}
+  if(typeof prog!=="undefined"&&prog){initWithName.program=prog;}
   var ref=firebase.firestore().collection("cdm_data").doc(authUser.uid).collection("courses").doc();
   ref.set({cdmData:JSON.stringify(initWithName),courseName:name,leadName:"",cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){openCourse(ref.id);}).catch(function(e){alert("Error creating course: "+e.message);});
 };
@@ -1176,7 +1200,7 @@ var doCreateNewVersion=function(existingId,name){
 };
 
 var doCreateSeparate=function(name){
-  doCreateFresh(name+" (New)",dupInfo?dupInfo.contentType:null,dupInfo?dupInfo.modalityVal:null);
+  doCreateFresh(name+" (New)",dupInfo?dupInfo.contentType:null,dupInfo?dupInfo.modalityVal:null,dupInfo?dupInfo.program:null);
   setDupInfo(null);
 };
 var goToDashboard=function(){setShowDashboard(true);setStep(0);setCurrentCourseId(null);setDataLoaded(false);setData(INIT);};
