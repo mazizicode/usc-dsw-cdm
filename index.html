@@ -1359,13 +1359,79 @@ function VersionPanel(props){
     ):null);
 }
 
+
+function CreateCDMFlow(props){
+  var authUser=props.authUser;var onCancel=props.onCancel;var onCreated=props.onCreated;
+  var _p=useState(null),program=_p[0],setProgram=_p[1];
+  var _ct=useState("both"),contentType=_ct[0],setContentType=_ct[1];
+  var _mod=useState("async_sync"),modality=_mod[0],setModality=_mod[1];
+  var _cn=useState(""),courseName=_cn[0],setCourseName=_cn[1];
+  var _creating=useState(false),creating=_creating[0],setCreating=_creating[1];
+
+  var doCreate=function(){
+    if(!courseName.trim()){alert("Please enter or select a course name.");return;}
+    setCreating(true);
+    var init=Object.assign({},INIT,{program:program,courseName:courseName.trim(),contentType:contentType,modality:modality});
+    createNewCourse(authUser.uid,init,function(id){setCreating(false);onCreated(id,courseName.trim());});
+  };
+
+  if(!program){
+    return React.createElement("div",{style:{maxWidth:700,margin:"0 auto",padding:"40px 16px"}},
+      React.createElement("button",{onClick:onCancel,style:{fontSize:14,color:"#990000",background:"none",border:"none",cursor:"pointer",marginBottom:20,display:"flex",alignItems:"center",gap:6}},String.fromCharCode(8592)+" Back to Dashboard"),
+      React.createElement("h1",{style:{fontSize:28,fontWeight:900,color:"#990000",marginBottom:8,textAlign:"center"}},"Create New CDM"),
+      React.createElement("p",{style:{fontSize:15,color:"#888",textAlign:"center",marginBottom:32}},"Select the program for this Course Design Map."),
+      React.createElement("div",{style:{display:"flex",gap:20,justifyContent:"center",flexWrap:"wrap"}},
+        React.createElement("div",{onClick:function(){setProgram("dsw");setContentType("both");setModality("async_sync");},style:{flex:1,maxWidth:300,minWidth:240,background:"#fff",border:"3px solid #e8e0d0",borderRadius:20,padding:"32px 24px",cursor:"pointer",textAlign:"center",transition:"all .2s"},onMouseOver:function(e){e.currentTarget.style.borderColor="#990000";e.currentTarget.style.boxShadow="0 4px 20px rgba(153,0,0,.15)";},onMouseOut:function(e){e.currentTarget.style.borderColor="#e8e0d0";e.currentTarget.style.boxShadow="none";}},
+          React.createElement("div",{style:{width:64,height:64,borderRadius:32,background:"#990000",margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,color:"#fff",fontWeight:700}},"D"),
+          React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:"#990000",marginBottom:6}},"DSW"),
+          React.createElement("p",{style:{fontSize:14,color:"#666",marginBottom:12}},"Doctor of Social Work"),
+          React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"4px 12px",borderRadius:8,background:"#F0FDF4",color:"#166534"}},"Fully Online"),
+          React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2025 Core Expertise & Skills")),
+        React.createElement("div",{onClick:function(){setProgram("msw");},style:{flex:1,maxWidth:300,minWidth:240,background:"#fff",border:"3px solid #e8e0d0",borderRadius:20,padding:"32px 24px",cursor:"pointer",textAlign:"center",transition:"all .2s"},onMouseOver:function(e){e.currentTarget.style.borderColor="#1E40AF";e.currentTarget.style.boxShadow="0 4px 20px rgba(30,64,175,.15)";},onMouseOut:function(e){e.currentTarget.style.borderColor="#e8e0d0";e.currentTarget.style.boxShadow="none";}},
+          React.createElement("div",{style:{width:64,height:64,borderRadius:32,background:"#1E40AF",margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,color:"#fff",fontWeight:700}},"M"),
+          React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:"#1E40AF",marginBottom:6}},"MSW"),
+          React.createElement("p",{style:{fontSize:14,color:"#666",marginBottom:12}},"Master of Social Work"),
+          React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"4px 12px",borderRadius:8,background:"#DBEAFE",color:"#1E40AF"}},"Multiple Modalities"),
+          React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2022 EPAS Competencies"))));
+  }
+
+  return React.createElement("div",{style:{maxWidth:600,margin:"0 auto",padding:"40px 16px"}},
+    React.createElement("button",{onClick:function(){setProgram(null);setCourseName("");},style:{fontSize:14,color:"#990000",background:"none",border:"none",cursor:"pointer",marginBottom:20,display:"flex",alignItems:"center",gap:6}},String.fromCharCode(8592)+" Back to Program Selection"),
+    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:24}},
+      React.createElement("div",{style:{width:40,height:40,borderRadius:20,background:program==="dsw"?"#990000":"#1E40AF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:"#fff"}},program==="dsw"?"D":"M"),
+      React.createElement("div",null,
+        React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:program==="dsw"?"#990000":"#1E40AF",margin:0}},program==="dsw"?"DSW":"MSW"),
+        React.createElement("p",{style:{fontSize:13,color:"#888",margin:0}},program==="dsw"?"Doctor of Social Work":"Master of Social Work"))),
+    React.createElement("div",{style:{background:"#fff",border:"2px solid #e8e0d0",borderRadius:16,padding:24}},
+      React.createElement("div",{className:"field",style:{marginBottom:16}},
+        React.createElement("label",{style:{fontSize:14,fontWeight:700,color:"#990000",marginBottom:6,display:"block"}},"Select Course from Catalog"),
+        React.createElement("select",{value:"",onChange:function(e){if(e.target.value){var entry=SOWK_CATALOG[e.target.value];if(entry)setCourseName(e.target.value+": "+entry.t);}},style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14}},
+          React.createElement("option",{value:""},"Choose a course..."),
+          React.createElement("optgroup",{label:program==="msw"?"MSW Courses (500-600 level)":"DSW Courses (700-level)"},
+          Object.keys(SOWK_CATALOG).filter(function(k){return SOWK_CATALOG[k].p===program;}).sort().map(function(k){
+            return React.createElement("option",{key:k,value:k},k+": "+SOWK_CATALOG[k].t);})))),
+      React.createElement("div",{style:{textAlign:"center",fontSize:13,color:"#999",margin:"12px 0"}},"or type a custom course name"),
+      React.createElement("div",{className:"field",style:{marginBottom:20}},
+        React.createElement("label",{style:{fontSize:14,fontWeight:700,color:"#990000",marginBottom:6,display:"block"}},"Course Name"),
+        React.createElement("input",{value:courseName,onChange:function(e){setCourseName(e.target.value);},placeholder:program==="dsw"?"e.g., SOWK 704: Complex Social Problems":"e.g., SOWK 616: Clinical Practice with Older Adults",style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14}})),
+      program==="msw"?React.createElement("div",{style:{marginBottom:20}},
+        React.createElement("label",{style:{fontSize:14,fontWeight:700,color:"#990000",marginBottom:12,display:"block"}},"Content Type"),
+        React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
+          [{v:"both",m:"async_sync",l:"Async & Sync",d:"Standard MSW course with async + live sessions"},{v:"online",m:"online_only",l:"100% Online",d:"Fully online, no in-person component"},{v:"async",m:"async_only",l:"100% Async",d:"Asynchronous only, no live sessions"}].map(function(opt){
+            return React.createElement("div",{key:opt.v,onClick:function(){setContentType(opt.v);setModality(opt.m);},style:{flex:1,minWidth:130,padding:"14px 12px",borderRadius:12,border:contentType===opt.v?"2px solid #990000":"2px solid #e8e0d0",background:contentType===opt.v?"#FEF2F2":"#fff",cursor:"pointer",textAlign:"center"}},
+              React.createElement("div",{style:{fontSize:14,fontWeight:700,color:contentType===opt.v?"#990000":"#333"}},opt.l),
+              React.createElement("div",{style:{fontSize:12,color:"#888",marginTop:4}},opt.d));}))):null,
+      React.createElement("button",{onClick:doCreate,disabled:creating||!courseName.trim(),style:{width:"100%",padding:"14px",fontSize:16,fontWeight:700,borderRadius:12,border:"none",background:courseName.trim()?"#990000":"#ccc",color:"#fff",cursor:courseName.trim()?"pointer":"default",marginTop:8}},creating?"Creating...":"Create CDM")));
+}
+
 function Dashboard(pp){
   var user=pp.user,onSel=pp.onSelect,onNew=pp.onNew,onOut=pp.onLogout;
   var _c=useState(null),courses=_c[0],setCourses=_c[1];
   var _d=useState(null),deling=_d[0],setDeling=_d[1];
+  var _sc=useState(false),showCreate=_sc[0],setShowCreate=_sc[1];
   useEffect(function(){loadCourseList(user.uid,function(c){setCourses(c);});},[]);
   var doRm=function(id){if(!confirm("Delete this course CDM? Cannot be undone."))return;setDeling(id);deleteCourse(user.uid,id,function(){loadCourseList(user.uid,function(c){setCourses(c);setDeling(null);});});};
-  return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)"}},
+  return showCreate?React.createElement(CreateCDMFlow,{authUser:user,onCancel:function(){setShowCreate(false);},onCreated:function(id,name){setShowCreate(false);loadCourseList(user.uid,function(cl){setCourses(cl);});onSel(id,name);}}):React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)"}},
     React.createElement("div",{className:"top-bar"}),React.createElement("div",{className:"gold-bar-top"}),
     React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",background:"#fff",borderBottom:"1px solid #eee"}},
       React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
@@ -1376,7 +1442,7 @@ function Dashboard(pp){
       React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:40,marginBottom:16}}),
       React.createElement("h1",{style:{fontSize:32,fontWeight:900,color:"#990000",marginBottom:8}},"My Course Design Maps"),
       React.createElement("p",{style:{fontSize:16,color:"#999",marginBottom:24}},"Select a course to continue working, or create a new CDM."),
-      React.createElement("button",{onClick:onNew,className:"btn-p",style:{width:"100%",marginBottom:12,padding:"14px",fontSize:14}},"+  Create New CDM"),
+      React.createElement("button",{onClick:function(){setShowCreate(true);},className:"btn-p",style:{width:"100%",marginBottom:12,padding:"14px",fontSize:14}},"+  Create New CDM"),
       pp.isAdmin?React.createElement("button",{onClick:pp.onAdminMode,style:{width:"100%",marginBottom:20,padding:"12px",fontSize:14,fontWeight:700,background:"#fff",border:"2px solid #990000",color:"#990000",borderRadius:14,cursor:"pointer"}},"\u{1F6E1} Open Admin Dashboard"):null,
       !courses?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20}},"Loading your courses..."):
       courses.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
