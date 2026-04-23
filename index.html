@@ -360,11 +360,11 @@ return React.createElement("div",{style:{maxWidth:640,margin:"0 auto",textAlign:
 React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:50,marginBottom:14}}),
 /* badge removed - name already in logo */
 React.createElement("h1",{style:{fontSize:34,fontWeight:900,color:C.cardinal,marginBottom:4}},"Course Design Map"),
-React.createElement("p",{style:{fontSize:15,fontWeight:500,marginBottom:2}},"Doctor of Social Work (DSW) Program"),
-React.createElement("p",{style:{fontSize:14,color:"#999",marginBottom:22,fontStyle:"italic"}},"Aligned with CSWE 2025 Accreditation Standards for Practice Doctorate Programs"),
+React.createElement("p",{style:{fontSize:15,fontWeight:500,marginBottom:2}},(data&&data.program==="msw")?"Master of Social Work (MSW) Program":"Doctor of Social Work (DSW) Program"),
+React.createElement("p",{style:{fontSize:14,color:"#999",marginBottom:22,fontStyle:"italic"}},(data&&data.program==="msw")?"Aligned with CSWE 2022 Educational Policy and Accreditation Standards":"Aligned with CSWE 2025 Accreditation Standards for Practice Doctorate Programs"),
 React.createElement("div",{className:"card",style:{textAlign:"left",marginBottom:22}},
 React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:C.cardinal,marginBottom:10}},"\u{1F4D0} What is the CDM?"),
-React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The Course Design Map establishes a foundational blueprint for your DSW course. It organizes content into structured learning modules aligned with Course Learning Objectives and the ",React.createElement("strong",null,"CSWE 2025 Core Expertise and Skills")," for Practice Doctorate Programs. Using backward design principles, it ensures every element connects intentionally toward student success."),
+React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The Course Design Map establishes a foundational blueprint for your ",((data&&data.program==="msw")?"MSW":"DSW")," course. It organizes content into structured learning modules aligned with Course Learning Objectives and the ",React.createElement("strong",null,(data&&data.program==="msw")?"CSWE 2022 EPAS":"CSWE 2025 Core Expertise and Skills")," for ",((data&&data.program==="msw")?"MSW programs":"Practice Doctorate Programs"),". Using backward design principles, it ensures every element connects intentionally toward student success."),
 React.createElement("div",{className:"g3",style:{marginTop:16}},
 React.createElement("div",{className:"card",style:{textAlign:"center",padding:"20px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:150,gap:6}},
 React.createElement("img",{src:ALIGN_IMG,alt:"Alignment",style:{width:36,height:36,objectFit:"contain"}}),
@@ -384,8 +384,23 @@ React.createElement("strong",{style:{color:C.cardinal,fontSize:15}},"\u{1F4BE} A
 React.createElement("button",{onClick:onNext,className:"btn-p",style:{fontSize:15,padding:"14px 40px"}},"Begin Course Design Map \u2192"));}
 
 // ==== STEP 1: Objective ====
-function ObjectiveStep(){
-const bullets=["Create manageable units of learning calibrated for doctoral-level practitioner-scholars",
+function ObjectiveStep(props){
+const data=(props&&props.data)||{};
+const isMSW=data.program==="msw";
+const progLabel=isMSW?"MSW":"DSW";
+const cswe=isMSW?"CSWE 2022 Educational Policy and Accreditation Standards (EPAS)":"CSWE 2025 Core Expertise and Skills for Practice Doctorate Programs";
+const learnerLabel=isMSW?"students":"doctoral-level practitioner-scholars";
+const bullets=isMSW?[
+"Create manageable units of learning calibrated for master's-level social work students",
+"Ensure alignment with the CSWE 2022 EPAS Social Work Competencies (1\u20139)",
+"Determine effective assessments aligned with learning objectives and outcomes",
+"Ensure learning builds progressively and scaffolds appropriately toward generalist and specialized practice competencies",
+"Provide clear expectations for adult learners balancing coursework and field education",
+"Design a coherent roadmap linking each module to program-level goals",
+"Evaluate alignment and continuity across the MSW curriculum sequence",
+"Support instructional designers in course development and quality assurance",
+"Document pedagogical decisions for accreditation self-study evidence (CSWE 2022 EPAS)"]:[
+"Create manageable units of learning calibrated for doctoral-level practitioner-scholars",
 "Ensure alignment with the CSWE 2025 Core Expertise and Skills (CSWE 1\u20136)",
 "Determine effective assessments aligned with learning objectives and outcomes",
 "Ensure learning builds progressively and scaffolds appropriately toward the academic product(s)",
@@ -396,17 +411,27 @@ const bullets=["Create manageable units of learning calibrated for doctoral-leve
 "Document pedagogical decisions for accreditation self-study evidence (Standards D3.0.1, D5.0.1)"];
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"Objective"),
-React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7,marginBottom:16}},"The Course Design Map (CDM) establishes a foundational blueprint for DSW courses, providing a comprehensive visual representation of all key elements in the learning environment. It organizes course content into structured learning modules (units), which are further broken down into weekly (unit) objectives, instructional materials, activities, and assessments \u2014 all aligned with Course Learning Objectives (CLOs) and the CSWE 2025 Core Expertise and Skills for Practice Doctorate Programs."),
+React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7,marginBottom:16}},"The Course Design Map (CDM) establishes a foundational blueprint for "+progLabel+" courses, providing a comprehensive visual representation of all key elements in the learning environment. It organizes course content into structured learning modules (units), which are further broken down into weekly (unit) objectives, instructional materials, activities, and assessments \u2014 all aligned with Course Learning Objectives (CLOs) and the "+cswe+"."),
 React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7,marginBottom:20}},"This CDM tool supports the course\u2019s planning, design, and iterative development, ensuring consistency, alignment, and quality throughout the instructional design process. It operationalizes backward design (Wiggins & McTighe): you start with what learners should be able to do, then map assessments that prove they can do it, and finally plan the learning activities that get them there."),
-React.createElement("div",{className:"stitle",style:{marginTop:8}},"Why Design Map Your DSW Course?"),
+React.createElement("div",{className:"stitle",style:{marginTop:8}},"Why Design Map Your "+progLabel+" Course?"),
 React.createElement("div",{className:"ssub"}),
 React.createElement("div",{style:{marginBottom:16}},bullets.map((b,i)=>React.createElement("div",{key:i,className:"bullet-item"},
 React.createElement("span",{className:"bullet-dot"},"\u2022"),React.createElement("span",null,b)))),
-React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The process of mapping a course offers a comprehensive view of the curriculum with the practitioner-scholar at its center. This often requires stepping back to evaluate the overall vision and purpose of the course within the context of the DSW program, the social work discipline, and professional relevance. Establishing a clear vision and defined outcomes is the essential first step in successful course design, preceding the planning of activities and instruction."));}
+React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The process of mapping a course offers a comprehensive view of the curriculum with the "+learnerLabel+" at its center. This often requires stepping back to evaluate the overall vision and purpose of the course within the context of the "+progLabel+" program, the social work discipline, and professional relevance. Establishing a clear vision and defined outcomes is the essential first step in successful course design, preceding the planning of activities and instruction."));}
 
 // ==== STEP 2: How-To ====
-function HowToStep(){
-const items=[
+function HowToStep(props){
+const data=(props&&props.data)||{};
+const isMSW=data.program==="msw";
+const progLabel=isMSW?"MSW":"DSW";
+const items=isMSW?[
+{l:"Module / Unit Objectives",d:"The learning objectives for each module. After students have engaged with the instructional strategies and completed the learning activities, they should be able to perform the tasks specified. Ensure objectives are measurable and observable, using action verbs aligned with Bloom\u2019s Taxonomy at the appropriate level (Apply, Analyze, Evaluate)."},
+{l:"Instructional Materials",d:"Materials that support the lessons: links to videos, textbook chapters, journal articles, website URLs, scholarly databases, and other relevant resources appropriate for master\u2019s-level study."},
+{l:"Course Activities & Learner Interaction",d:"Activities facilitated by the instructor. Divided into Synchronous (live Zoom sessions, seminars, consultations) and Asynchronous (Canvas-based modules following the 5-step structure: Start Here, Learn, Skill Builder, Reflect & Connect, Wrap Up)."},
+{l:"Assessment & Measurement",d:"Evaluations of how effectively students retain, apply, analyze, and demonstrate learning. Includes both formative (knowledge checks, reflections) and summative (papers, case analyses, presentations, practice demonstrations). Assessments are linked to CSWE 2022 EPAS Social Work Competencies."},
+{l:"Course Learning Objectives Addressed",d:"Indicate which CLOs are addressed. Weekly Learning Objectives (WLOs) and CLOs must be aligned to ensure coherence and clarity of purpose."},
+{l:"CSWE 2022 EPAS Competencies",d:"Indicate which of the nine Social Work Competencies are addressed in each module. This mapping provides accreditation evidence for the CSWE 2022 EPAS."},
+{l:"Teaching Strategies / Course Notes",d:"How you will present content to facilitate learning: voiceover lectures, case walkthroughs, think-alouds, simulations, skill demonstrations, scaffolded practice, peer work, etc."}]:[
 {l:"Module / Unit Objectives",d:"The learning objectives for each module. After students have engaged with the instructional strategies and completed the learning activities, they should be able to perform the tasks specified. Ensure objectives are measurable and observable, using action verbs aligned with doctoral-level Bloom\u2019s Taxonomy (Analyze, Evaluate, Create, Synthesize)."},
 {l:"Instructional Materials",d:"Materials that support the lessons: links to videos, textbook chapters, journal articles, website URLs, scholarly databases, and other relevant resources appropriate for doctoral-level study."},
 {l:"Course Activities & Learner Interaction",d:"Activities facilitated by the instructor. Divided into Synchronous (live Zoom sessions, seminars, consultations) and Asynchronous (Canvas-based modules following the 5-step structure: Start Here, Learn, Skill Builder, Reflect & Connect, Wrap Up)."},
@@ -414,7 +439,11 @@ const items=[
 {l:"Course Learning Objectives Addressed",d:"Indicate which CLOs are addressed. Weekly Learning Objectives (WLOs) and CLOs must be aligned to ensure coherence and clarity of purpose."},
 {l:"CSWE 2025 Core Expertise & Skills",d:"Indicate which of the six Core Expertise and Skills are addressed in each module. This mapping provides accreditation evidence for Standard D3.0.1 and Standard D5.0.1."},
 {l:"Teaching Strategies / Course Notes",d:"How you will present content to facilitate learning: voiceover lectures, case walkthroughs, think-alouds, simulations, expert applications, scaffolded practice, peer consultation, etc."}];
-const tips=["How do your teaching strategies, learning activities, and weekly resources support practitioner-scholars in meeting the module objectives?",
+const tips=isMSW?["How do your teaching strategies, learning activities, and weekly resources support students in meeting the module objectives?",
+"How do your assessments measure the effectiveness of these strategies, and do they reflect appropriate levels of practice competency?",
+"Are assessments designed to generate evidence of CSWE 2022 EPAS Competency attainment for accreditation reporting?",
+"Does each module contribute to the student\u2019s progression through the generalist or specialized practice curriculum?",
+"Your Instructional Designer is available to assist throughout this process."]:["How do your teaching strategies, learning activities, and weekly resources support practitioner-scholars in meeting the module objectives?",
 "How do your assessments measure the effectiveness of these strategies, and do they reflect doctoral-level expectations (analysis, synthesis, leadership, innovation)?",
 "Are assessments designed to generate evidence of Core Expertise and Skills attainment for accreditation reporting?",
 "Does each module contribute to the student\u2019s trajectory toward the required academic product (capstone, dissertation-in-practice, scholarly project)?",
@@ -426,7 +455,7 @@ items.map((it,i)=>React.createElement("div",{key:i,className:"how-item"},
 React.createElement("div",{className:"how-label"},it.l),
 React.createElement("div",{className:"how-desc"},it.d))),
 React.createElement("div",{className:"gold-left",style:{marginTop:20}},
-React.createElement("strong",{style:{color:C.cardinal,fontSize:13}},"\u{1F4A1} Development Tips for DSW Faculty"),
+React.createElement("strong",{style:{color:C.cardinal,fontSize:13}},"\u{1F4A1} Development Tips for "+progLabel+" Faculty"),
 React.createElement("div",{style:{marginTop:8}},tips.map((t,i)=>React.createElement("div",{key:i,className:"tip-item"},
 React.createElement("span",{className:"tip-arrow"},"\u25B8"),
 React.createElement("span",{className:"tip-text"},t))))));}
@@ -529,17 +558,17 @@ return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}},
 React.createElement("div",{className:"stitle"},"Course Learning Objectives"),
 React.createElement("button",{onClick:()=>setShowBloom(!showBloom),style:{fontSize:13,padding:"8px 16px",borderRadius:20,fontWeight:700,border:"none",cursor:"pointer",background:showBloom?C.gold:"#eee",color:showBloom?C.dark:"#888"}},showBloom?"Hide Bloom's":"Show Bloom's Verbs")),
-React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},"Use doctoral-level action verbs: Analyze, Synthesize, Evaluate, Create, Design, Critique, Lead, Innovate."),
+React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},data.program==="msw"?"Use clear action verbs aligned with your practice level: Apply, Analyze, Evaluate, Demonstrate, Integrate, Assess.":"Use doctoral-level action verbs: Analyze, Synthesize, Evaluate, Create, Design, Critique, Lead, Innovate."),
 showBloom&&React.createElement("div",{className:"card warm-bg",style:{marginBottom:18}},
 React.createElement("div",{className:"g3",style:{gap:8}},
 Object.entries(BLOOM).map(([level,verbs])=>{const pr=["Analyze","Evaluate","Create"].includes(level);
 return React.createElement("div",{key:level,className:"bloom-card"+(pr?" pri":"")},
 React.createElement("div",{style:{fontSize:13,fontWeight:800,color:pr?C.cardinal:"#888",marginBottom:3}},pr?"\u2B50 ":"",level),
 React.createElement("div",{style:{fontSize:12,color:"#666"}},verbs.join(", ")));})),
-React.createElement("p",{style:{fontSize:12,marginTop:8,fontStyle:"italic",color:"#999"}},"\u2B50 = Priority levels for doctoral-level work")),
+React.createElement("p",{style:{fontSize:12,marginTop:8,fontStyle:"italic",color:"#999"}},data.program==="msw"?"\u2B50 = Priority levels for master's-level practice":"\u2B50 = Priority levels for doctoral-level work")),
 React.createElement("div",{className:"gold-left",style:{marginBottom:16}},
 React.createElement("strong",{style:{color:C.cardinal,fontSize:15}},"\u{1F4D0} Alignment Framework"),
-React.createElement("p",{style:{fontSize:14,color:"#555",lineHeight:1.7,marginTop:6}},"Assessments should demonstrate how effectively practitioner-scholars have achieved the intended learning objectives, while instruction ensures that students are supported in reaching those outcomes. Assessments, learning objectives, instructional strategies, and Core Expertise and Skills must be closely aligned and mutually reinforcing. The weekly/unit learning modules should demonstrate clear vertical alignment (module objectives \u2192 CLOs \u2192 CSWE) and horizontal alignment (objectives \u2194 activities \u2194 assessments) throughout the course.")),
+React.createElement("p",{style:{fontSize:14,color:"#555",lineHeight:1.7,marginTop:6}},"Assessments should demonstrate how effectively "+(data.program==="msw"?"students":"practitioner-scholars")+" have achieved the intended learning objectives, while instruction ensures that students are supported in reaching those outcomes. Assessments, learning objectives, instructional strategies, and "+(data.program==="msw"?"CSWE Competencies":"Core Expertise and Skills")+" must be closely aligned and mutually reinforcing. The weekly/unit learning modules should demonstrate clear vertical alignment (module objectives \u2192 CLOs \u2192 CSWE) and horizontal alignment (objectives \u2194 activities \u2194 assessments) throughout the course.")),
 data.clos.map((clo,i)=>React.createElement("div",{key:i,className:"card",style:{marginBottom:10}},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
 React.createElement("span",{className:"badge"},"CLO "+(i+1)),
@@ -612,7 +641,7 @@ React.createElement("button",{onClick:addO,className:"btn-s",style:{marginTop:6}
 
 // ==== STEP 7: Review & Export ====
 function ReviewStep({data,set,authUser}){
-const ckCES=CSWE_SKILLS.filter(c=>data.cesChecked[c.id]);
+const ckCES=(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).filter(c=>data.cesChecked[c.id]);
 const fCLOs=data.clos.filter(c=>c.text.trim());
 const fMods=data.modules.filter(m=>m.title.trim());
 const items=[{l:"Course Information",d:!!data.courseName&&!!data.courseLead},{l:"CSWE Mapping",d:ckCES.length>0},{l:"Learning Objectives",d:fCLOs.length>0},{l:"Learning Modules",d:fMods.length>0}];
@@ -623,15 +652,15 @@ const doExport=()=>{setGen(true);const w=window.open("","_blank");if(!w){alert("
 let h=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CDM Report - ${esc(data.courseName)} v${data.cdmVersion||"1.0"}</title>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Source Sans 3',sans-serif;color:#1a1a1a;font-size:11px;line-height:1.5}@page{size:landscape;margin:.45in}.page{page-break-after:always;padding:6px}.page:last-child{page-break-after:auto}h1{font-size:22px;color:#990000;font-weight:900;margin-bottom:4px}h2{font-size:14px;color:#990000;font-weight:700;border-bottom:2px solid #990000;padding-bottom:3px;margin:14px 0 8px}h3{font-size:12px;color:#990000;font-weight:700;margin:8px 0 4px}.bar{height:2px;background:#FFCC00;margin-bottom:8px}table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10px}th{background:#990000;color:#fff;padding:5px 6px;text-align:left;font-weight:700;font-size:9px;text-transform:uppercase}td{padding:5px 6px;border:1px solid #ddd;vertical-align:top}tr:nth-child(even) td{background:#faf5ee}.badge{display:inline-block;background:#990000;color:#fff;font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:4px}.badge-gold{background:#FFCC00;color:#1a1a1a}.ig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:8px 0}.ig div{background:#faf5ee;padding:5px 8px;border-radius:5px;border:1px solid #e8e0d0}.ig label{font-size:7px;font-weight:700;color:#990000;text-transform:uppercase;display:block;margin-bottom:1px}.ig span{font-size:10px}.ft{text-align:center;font-size:7px;color:#999;padding-top:6px;border-top:1px solid #990000;margin-top:10px}.mh{background:#faf5ee;border:2px solid #990000;border-radius:6px;padding:7px 10px;margin-bottom:6px}.mh h3{margin:0;font-size:13px}.ov{background:#fff8e7;border-left:3px solid #FFCC00;padding:5px 10px;font-size:10px;margin:5px 0;border-radius:0 5px 5px 0}.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #990000;padding-bottom:5px;margin-bottom:10px}.hdr .sub{font-size:9px;color:#999;font-style:italic}</style></head><body>`;
-h+=`<div class="page"><div style="text-align:center;padding:14px 0 8px"><div style="font-size:10px;color:#999;margin-bottom:5px">USC Suzanne Dworak-Peck School of Social Work</div><h1>Course Design Map (CDM)</h1><div style="font-size:16px;font-weight:700;color:#333;margin-top:4px">${esc(data.courseName)}</div><div style="font-size:13px;color:#555">Doctor of Social Work (DSW) Program</div><div style="width:80px;height:2px;background:#FFCC00;margin:6px auto"></div></div><div class="bar"></div><h2>General Course Information</h2><div class="ig">`;
+h+=`<div class="page"><div style="text-align:center;padding:14px 0 8px"><div style="font-size:10px;color:#999;margin-bottom:5px">USC Suzanne Dworak-Peck School of Social Work</div><h1>Course Design Map (CDM)</h1><div style="font-size:16px;font-weight:700;color:#333;margin-top:4px">${esc(data.courseName)}</div><div style="font-size:13px;color:#555">${data.program==="msw"?"Master of Social Work (MSW) Program":"Doctor of Social Work (DSW) Program"}</div><div style="width:80px;height:2px;background:#FFCC00;margin:6px auto"></div></div><div class="bar"></div><h2>General Course Information</h2><div class="ig">`;
 [["Course",data.courseName],["Dev Started",data.devStarted],["Target Delivery",data.targetDelivery],["Course Lead",data.courseLead],["Email",data.leadEmail],["Phone",data.leadPhone],["Instructional Designer",data.instDesigner],["Program Director",data.progDirector],["Area of Focus",data.areaOfFocus],["Modality",data.modality==="async_sync"?"Async & Sync":"Async Only"],["Sync Min/Module",data.syncMin],["Async Min/Module",data.asyncMin]].forEach(([l,v])=>{h+=`<div><label>${l}</label><span>${esc(v)}</span></div>`;});
 h+=`</div>`;
 if(data.courseDesc)h+=`<h3>Course Description</h3><p style="font-size:10px;color:#444;margin:3px 0">${esc(data.courseDesc)}</p>`;
-h+=`<h2>CSWE 2025 Core Expertise & Skills Mapping</h2><table><tr><th>CSWE</th><th>Description</th><th>Addressed</th><th>How It Maps</th><th>CLOs</th></tr>`;
-CSWE_SKILLS.forEach(c=>{h+=`<tr><td><span class="badge">CES ${c.id}</span> ${c.short}</td><td>${c.desc}</td><td style="text-align:center;font-weight:700;color:${data.cesChecked[c.id]?"#990000":"#ccc"}">${data.cesChecked[c.id]?"\u2713":"\u2014"}</td><td>${esc(data.cesExplain[c.id])}</td><td>${esc(data.cesClos[c.id])}</td></tr>`;});
+h+=`<h2>${data.program==="msw"?"CSWE 2022 EPAS Competency Mapping":"CSWE 2025 Core Expertise & Skills Mapping"}</h2><table><tr><th>CSWE</th><th>Description</th><th>Addressed</th><th>How It Maps</th><th>CLOs</th></tr>`;
+(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).forEach(c=>{var label=data.program==="msw"?c.name:c.short;h+=`<tr><td><span class="badge">${data.program==="msw"?"C":"CES "}${c.id}</span> ${label}</td><td>${c.desc}</td><td style="text-align:center;font-weight:700;color:${data.cesChecked[c.id]?"#990000":"#ccc"}">${data.cesChecked[c.id]?"\u2713":"\u2014"}</td><td>${esc(data.cesExplain[c.id])}</td><td>${esc(data.cesClos[c.id])}</td></tr>`;});
 h+=`</table>`;
 const mswAct=MSW_COMPS.filter(c=>data.mswComps[c.id]);
-if(mswAct.length){h+=`<h3>CSWE 2022 MSW Competencies</h3><p style="font-size:10px">`;mswAct.forEach(function(c,i){h+='<span class="badge badge-gold">C'+c.id+": "+c.name+"</span>";if(i<mswAct.length-1)h+=" &nbsp;\u2022 &nbsp;";});h+=`</p>`;}
+if(data.program!=="msw"&&mswAct.length){h+=`<h3>MSW Competencies Extended</h3><p style="font-size:10px">`;mswAct.forEach(function(c,i){h+='<span class="badge badge-gold">C'+c.id+": "+c.name+"</span>";if(i<mswAct.length-1)h+=" &nbsp;\u2022 &nbsp;";});h+=`</p>`;}
 h+=`<h2>Course Learning Objectives</h2><table><tr><th>CLO</th><th>Objective</th><th>CSWE Aligned</th><th>ADEI</th><th>Assessment</th></tr>`;
 data.clos.forEach((c,i)=>{if(c.text)h+=`<tr><td><span class="badge">CLO ${i+1}</span></td><td>${esc(c.text)}</td><td>${esc(c.ces)}</td><td>${esc(c.adei)}</td><td>${esc(c.assess)}</td></tr>`;});
 h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":"DSW"} Program | CDM v${data.cdmVersion||"1.0"}</div></div>`;
@@ -640,7 +669,7 @@ h+=`<div class="page"><div class="hdr"><div><strong style="color:#990000">Course
 if(mod.overview)h+=`<div class="ov"><strong>Overview:</strong> ${esc(mod.overview)}</div>`;
 h+=`<table><tr><th>Objective</th><th>Materials</th><th>Sync</th><th>Async</th><th>Assessment</th><th>CLOs Addressed</th><th>CSWE Addressed</th><th>Strategies</th><th>ADEI</th></tr>`;
 mod.objectives.forEach((o,oi)=>{if(!o.text)return;h+=`<tr><td><span class="badge">Obj ${oi+1}</span><br>${esc(o.text)}</td><td>${esc(o.materials)}</td><td>${esc(o.syncAct)}</td><td>${esc(o.asyncAct)}</td><td>${esc(o.assessment)}</td><td>${esc(o.clos)}</td><td>${esc(o.ces)}</td><td>${esc(o.strategies)}</td><td>${esc(o.adei)}</td></tr>`;});
-h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | DSW Program | Module ${mi+1}</div></div>`;});
+h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":"DSW"} Program | Module ${mi+1}</div></div>`;});
 h+="<scr"+"ipt>window.onload=function(){setTimeout(function(){window.print()},700)}</scr"+"ipt></body></html>";
 w.document.write(h);w.document.close();setTimeout(()=>setGen(false),800);};
 const resetAll=()=>{if(confirm("Delete this course CDM? This cannot be undone.")){var u=firebase.auth().currentUser;if(u&&currentCourseId){deleteCourse(u.uid,currentCourseId,function(){goToDashboard();});}}};
@@ -696,8 +725,8 @@ function LoginScreen(){
     React.createElement("div",{style:{textAlign:"center",maxWidth:540,padding:"0 28px"}},
       React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:50,marginBottom:20}}),
       React.createElement("h1",{style:{fontSize:40,fontWeight:900,color:"#990000",marginBottom:8}},"Course Design Map"),
-      React.createElement("p",{style:{fontSize:18,color:"#333",marginBottom:6}},"Doctor of Social Work (DSW) Program"),
-      React.createElement("p",{style:{fontSize:14,color:"#999",fontStyle:"italic",marginBottom:30}},"Aligned with CSWE 2025 Accreditation Standards"),
+      React.createElement("p",{style:{fontSize:18,color:"#333",marginBottom:6}},"DSW & MSW Programs"),
+      React.createElement("p",{style:{fontSize:14,color:"#999",fontStyle:"italic",marginBottom:30}},"Aligned with CSWE Accreditation Standards"),
       React.createElement("div",{style:{height:2,background:"#FFCC00",width:80,margin:"0 auto 30px"}}),
       React.createElement("button",{onClick:doLogin,style:{display:"flex",alignItems:"center",justifyContent:"center",gap:10,margin:"0 auto",padding:"16px 48px",borderRadius:14,border:"1px solid #ddd",background:"#fff",cursor:"pointer",fontSize:17,fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",transition:"all 0.2s"}},
         React.createElement("img",{src:"https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg",alt:"G",style:{width:20,height:20}}),
@@ -747,7 +776,7 @@ function AdminDashboard(props){
         if(!faculty||faculty.length===0)return;var w=window.open("","_blank");
         var h="<html><head><title>Accreditation Report</title><style>body{font-family:Calibri,sans-serif;padding:40px;color:#333;max-width:1000px;margin:0 auto}h1{color:#990000;border-bottom:3px solid #990000;padding-bottom:8px}h2{color:#990000;margin-top:24px}table{width:100%;border-collapse:collapse;margin:12px 0}th{background:#990000;color:#fff;padding:8px;text-align:left;font-size:13px}td{padding:6px 8px;border-bottom:1px solid #eee;font-size:13px}</style></head><body>";
         h+="<h1>USC Suzanne Dworak-Peck School of Social Work</h1><h2>CDM Accreditation Report</h2>";
-        h+="<p>Generated: "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})+"</p>";
+        h+="<p>Generated: "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric",timeZone:"America/Los_Angeles"})+" (PT)</p>";
         var tc=0,dc=0,mc=0,lc=0;faculty.forEach(function(f){f.courses.forEach(function(cc){tc++;if(cc.program==="msw")mc++;else dc++;if(cc.cdmStatus==="Launched")lc++;});});
         h+="<h2>Summary</h2><table><tr><th>Metric</th><th>Count</th></tr><tr><td>Total CDMs</td><td><strong>"+tc+"</strong></td></tr><tr><td>DSW</td><td>"+dc+"</td></tr><tr><td>MSW</td><td>"+mc+"</td></tr><tr><td>Launched</td><td>"+lc+"</td></tr></table>";
         h+="<h2>All Courses</h2><table><tr><th>Faculty</th><th>Program</th><th>Course</th><th>Version</th><th>Status</th></tr>";
@@ -830,7 +859,7 @@ React.createElement("td",{style:{padding:"8px"}},fi===0?f.name:""),
 React.createElement("td",{style:{padding:"8px",textAlign:"center"}},React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:fc.program==="msw"?"#DBEAFE":"#F0FDF4",color:fc.program==="msw"?"#1E40AF":"#166534"}},fc.program==="msw"?"MSW":"DSW")),
 React.createElement("td",{style:{padding:"8px",textAlign:"center",fontWeight:600}},fc.name),
 React.createElement("td",{style:{padding:"8px",textAlign:"center"}},React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:STATUS_COLORS[fc.cdmStatus]||"#888",color:"#fff"}},fc.cdmStatus||"Draft")),
-React.createElement("td",{style:{padding:"8px",textAlign:"center",fontSize:12,color:"#888"}},fc.lastUpdated?new Date(fc.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric"}):""));
+React.createElement("td",{style:{padding:"8px",textAlign:"center",fontSize:12,color:"#888"}},fc.lastUpdated?new Date(fc.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"America/Los_Angeles"}):""));
 });
 }))))):null,
 
@@ -848,7 +877,7 @@ React.createElement("div",{className:"field",style:{marginBottom:20}},
               React.createElement("span",{style:{fontSize:13,fontWeight:600,color:"#990000"}},f.courses.length+" CDM"+(f.courses.length!==1?"s":""))),
             React.createElement("div",{style:{padding:"10px 20px"}},
               f.courses.map(function(course){
-                var upd=course.lastUpdated?new Date(course.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"Never";
+                var upd=course.lastUpdated?new Date(course.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Never";
                 return React.createElement("div",{key:course.id,style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid #f0f0f0",cursor:"pointer"},onClick:function(){onViewCourse(f.uid,course.id,course.name,f.name);}},
                   React.createElement("div",null,
                     React.createElement("div",{style:{fontSize:15,fontWeight:600,color:"#990000"}},course.name),
@@ -1038,7 +1067,7 @@ function WorkflowPanel(props){
       (data.cdmStatusHistory||[]).slice().reverse().map(function(h,i){
         return React.createElement("div",{key:i,style:{fontSize:12,color:"#666",marginBottom:4}},
           React.createElement("span",{style:{fontWeight:700,color:STATUS_COLORS[h.status]||"#888"}},h.status),
-          " "+String.fromCharCode(8212)+" "+h.changedBy+" "+String.fromCharCode(8212)+" "+(h.changedAt?new Date(h.changedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):""),
+          " "+String.fromCharCode(8212)+" "+h.changedBy+" "+String.fromCharCode(8212)+" "+(h.changedAt?new Date(h.changedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"America/Los_Angeles"}):""),
           h.note?" ("+h.note+")":"");
       })):null);
 }
@@ -1129,7 +1158,7 @@ function AsyncDesignStep(props){
             "Write a brief paragraph introducing the module topic, its relevance, and what students will gain.",
             {example:"This unit prepares you to assess and support service members, veterans, and their families by recognizing how military culture shapes mental health, diagnosis, and treatment planning."},
             {heading:"Module Learning Objectives"},
-            "List 3"+String.fromCharCode(8211)+"5 specific, measurable objectives using doctoral-level verbs (Analyze, Evaluate, Design, etc.).",
+            "List 3"+String.fromCharCode(8211)+"5 specific, measurable objectives using "+(data.program==="msw"?"clear action verbs (Apply, Analyze, Evaluate, etc.).":"doctoral-level verbs (Analyze, Evaluate, Design, etc.)."),
             {example:"1. Explain core elements of military culture (values, hierarchy, traditions, language). 2. Analyze psychological and social effects of service (e.g., PTSD, moral injury)."},
             {heading:"Key Topics Covered"},
             "Bullet the main themes or concepts students will encounter.",
@@ -1292,7 +1321,7 @@ function CommentsStep(props){
     comments.length===0?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:30}},"No comments yet. Be the first to leave a note."):
     React.createElement("div",null,
       comments.map(function(c){
-        var time=c.timestamp?new Date(c.timestamp.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"Just now";
+        var time=c.timestamp?new Date(c.timestamp.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Just now";
         return React.createElement("div",{key:c.id,className:"comment-bubble"},
           React.createElement("div",{className:"comment-section"},c.section||"General"),
           React.createElement("div",{className:"comment-meta"},
@@ -1346,7 +1375,7 @@ function VersionPanel(props){
             React.createElement("span",{style:{fontSize:13,color:"#333",marginLeft:8,fontWeight:600}},"Current Working Version")),
           React.createElement("span",{style:{fontSize:12,color:"#22c55e",fontWeight:600}},"Active")),
         versions.map(function(v){
-          var time=v.createdAt?new Date(v.createdAt.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"Unknown";
+          var time=v.createdAt?new Date(v.createdAt.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"America/Los_Angeles"}):"Unknown";
           return React.createElement("div",{key:v.id,className:"ver-card",onClick:function(){
             loadVersionData(authUser.uid,courseId,v.id,function(vData,vInfo){setViewData(vData);setViewInfo(vInfo);});
           }},
@@ -1465,7 +1494,7 @@ function Dashboard(pp){
         React.createElement("p",{style:{fontSize:16}},"No courses yet. Click Create New CDM to get started.")):
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10,textAlign:"left"}},
         courses.map(function(c){
-          var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}):"Never";
+          var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Never";
           return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
             React.createElement("div",{style:{flex:1}},
               React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":"#F0FDF4",color:c.program==="msw"?"#1E40AF":"#166534"}},c.program==="msw"?"MSW":"DSW"),React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:c.cdmStatus==="Launched"?"#166534":c.cdmStatus==="Approved"?"#0369A1":c.cdmStatus==="Submitted"?"#92400E":"#888",color:"#fff"}},c.cdmStatus||"Draft"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
@@ -1623,8 +1652,8 @@ React.createElement("div",{className:"gold-bar-top"}),
 React.createElement(Nav,{cur:step,set:setStep}),
 React.createElement("div",{style:{paddingBottom:80}},
 step===0&&React.createElement("div",null,React.createElement(Welcome,{onNext:goN,data:data}),currentCourseId&&dataLoaded?React.createElement("div",{className:"content",style:{paddingTop:0}},React.createElement(VersionPanel,{data:data,setData:setData,courseId:currentCourseId,authUser:authUser})):null),
-step===1&&React.createElement(ObjectiveStep,null),
-step===2&&React.createElement(HowToStep,null),
+step===1&&React.createElement(ObjectiveStep,{data:data}),
+step===2&&React.createElement(HowToStep,{data:data}),
 step===3&&React.createElement(CourseInfo,{data,set:setData}),
 step===4&&React.createElement(CSWEMapping,{data,set:setData}),
 step===5&&React.createElement(CLOsStep,{data,set:setData}),
