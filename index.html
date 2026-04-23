@@ -228,29 +228,46 @@ var ADMIN_EMAILS=["mirwaisa@usc.edu","singhmi@usc.edu"];
 function isAdmin(email){return ADMIN_EMAILS.indexOf(email.toLowerCase())>=0;}
 
 function loadAllFaculty(cb){
-  firebase.firestore().collection("cdm_data").get().then(function(snap){
-    var faculty=[];
-    var promises=[];
-    snap.forEach(function(userDoc){
-      var uid=userDoc.id;
-      promises.push(
-        firebase.firestore().collection("cdm_data").doc(uid).collection("courses").orderBy("lastUpdated","desc").get().then(function(coursesSnap){
-          var courses=[];
-          coursesSnap.forEach(function(cDoc){
-            var d=cDoc.data();
-            courses.push({id:cDoc.id,name:d.courseName||"Untitled",leadName:d.leadName||"",lastUpdated:d.lastUpdated,userEmail:d.userEmail||"",userName:d.userName||""});
-          });
-          if(courses.length>0){
-            faculty.push({uid:uid,email:courses[0].userEmail,name:courses[0].userName,courses:courses});
-          }
-        })
-      );
+  // Use collectionGroup so we find every "courses" subcollection across every
+  // user, even when the parent cdm_data/{uid} document was never written
+  // (that's the default with this app's schema and was why the admin dashboard
+  // appeared empty previously).
+  firebase.firestore().collectionGroup("courses").get().then(function(snap){
+    var byUid={};
+    snap.forEach(function(cDoc){
+      if(!cDoc.ref.parent||!cDoc.ref.parent.parent)return; // safety
+      var uid=cDoc.ref.parent.parent.id;
+      var d=cDoc.data();
+      if(!byUid[uid]){byUid[uid]={uid:uid,email:d.userEmail||"",name:d.userName||"",courses:[]};}
+      if(!byUid[uid].email&&d.userEmail)byUid[uid].email=d.userEmail;
+      if(!byUid[uid].name&&d.userName)byUid[uid].name=d.userName;
+      byUid[uid].courses.push({
+        id:cDoc.id,
+        name:d.courseName||"Untitled",
+        leadName:d.leadName||"",
+        lastUpdated:d.lastUpdated,
+        cdmStatus:d.cdmStatus||"Draft",
+        cdmVersion:d.cdmVersion||"1.0",
+        program:d.program||"dsw",
+        userEmail:d.userEmail||"",
+        userName:d.userName||""
+      });
     });
-    Promise.all(promises).then(function(){
-      faculty.sort(function(a,b){return(a.name||"").localeCompare(b.name||"");});
-      cb(faculty);
+    var faculty=Object.keys(byUid).map(function(k){return byUid[k];});
+    faculty.forEach(function(f){
+      f.courses.sort(function(a,b){
+        var at=(a.lastUpdated&&a.lastUpdated.toMillis)?a.lastUpdated.toMillis():0;
+        var bt=(b.lastUpdated&&b.lastUpdated.toMillis)?b.lastUpdated.toMillis():0;
+        return bt-at;
+      });
     });
-  }).catch(function(e){console.error("Admin load error:",e);cb([]);});
+    faculty.sort(function(a,b){return(a.name||"").localeCompare(b.name||"");});
+    cb(faculty);
+  }).catch(function(e){
+    console.error("Admin load error:",e);
+    alert("Could not load faculty data. If you just deployed this fix, check that your Firestore security rules allow collectionGroup reads on 'courses' for admin emails. Error: "+e.message);
+    cb([]);
+  });
 }
 
 function loadFacultyCourse(uid,cid,cb){
@@ -319,7 +336,7 @@ function loadVersionData(uid,cid,versionId,cb){
   }).catch(function(){cb(null,null);});
 }
 
-function save(d,cid){var u=firebase.auth().currentUser;if(!u||!cid)return;firebase.firestore().collection("cdm_data").doc(u.uid).collection("courses").doc(cid).set({cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",cdmVersion:d.cdmVersion||"1.0",program:d.program||"dsw",cdmStatus:d.cdmStatus||"Draft",targetDelivery:d.targetDelivery||"",leadName:d.courseLead||"",userEmail:u.email,userName:u.displayName,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error("Save:",e);});}
+function save(d,cid){var u=firebase.auth().currentUser;if(!u||!cid)return;var db=firebase.firestore();db.collection("cdm_data").doc(u.uid).collection("courses").doc(cid).set({cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",cdmVersion:d.cdmVersion||"1.0",program:d.program||"dsw",cdmStatus:d.cdmStatus||"Draft",targetDelivery:d.targetDelivery||"",leadName:d.courseLead||"",userEmail:u.email,userName:u.displayName,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error("Save:",e);});db.collection("cdm_data").doc(u.uid).set({uid:u.uid,email:u.email||"",name:u.displayName||"",lastActive:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(function(e){console.error("Profile upsert:",e);});}
 
 function F({label,value,onChange,placeholder,type="text",className=""}){
 return React.createElement("div",{className:"field "+className},
@@ -603,10 +620,10 @@ const pct=Math.round(items.filter(i=>i.d).length/items.length*100);
 const[gen,setGen]=useState(false);
 const esc=s=>(s||"\u2014").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
 const doExport=()=>{setGen(true);const w=window.open("","_blank");if(!w){alert("Please allow popups.");setGen(false);return;}
-let h=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CDM Report - "+esc(data.courseName)+" v"+(data.cdmVersion||"1.0")+"</title>
+let h=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CDM Report - ${esc(data.courseName)} v${data.cdmVersion||"1.0"}</title>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Source Sans 3',sans-serif;color:#1a1a1a;font-size:11px;line-height:1.5}@page{size:landscape;margin:.45in}.page{page-break-after:always;padding:6px}.page:last-child{page-break-after:auto}h1{font-size:22px;color:#990000;font-weight:900;margin-bottom:4px}h2{font-size:14px;color:#990000;font-weight:700;border-bottom:2px solid #990000;padding-bottom:3px;margin:14px 0 8px}h3{font-size:12px;color:#990000;font-weight:700;margin:8px 0 4px}.bar{height:2px;background:#FFCC00;margin-bottom:8px}table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10px}th{background:#990000;color:#fff;padding:5px 6px;text-align:left;font-weight:700;font-size:9px;text-transform:uppercase}td{padding:5px 6px;border:1px solid #ddd;vertical-align:top}tr:nth-child(even) td{background:#faf5ee}.badge{display:inline-block;background:#990000;color:#fff;font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:4px}.badge-gold{background:#FFCC00;color:#1a1a1a}.ig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:8px 0}.ig div{background:#faf5ee;padding:5px 8px;border-radius:5px;border:1px solid #e8e0d0}.ig label{font-size:7px;font-weight:700;color:#990000;text-transform:uppercase;display:block;margin-bottom:1px}.ig span{font-size:10px}.ft{text-align:center;font-size:7px;color:#999;padding-top:6px;border-top:1px solid #990000;margin-top:10px}.mh{background:#faf5ee;border:2px solid #990000;border-radius:6px;padding:7px 10px;margin-bottom:6px}.mh h3{margin:0;font-size:13px}.ov{background:#fff8e7;border-left:3px solid #FFCC00;padding:5px 10px;font-size:10px;margin:5px 0;border-radius:0 5px 5px 0}.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #990000;padding-bottom:5px;margin-bottom:10px}.hdr .sub{font-size:9px;color:#999;font-style:italic}</style></head><body>`;
-h+=`<div class="page"><div style="text-align:center;padding:14px 0 8px"><div style="font-size:10px;color:#999;margin-bottom:5px">USC Suzanne Dworak-Peck School of Social Work</div><h1>Course Design Map (CDM)</h1><div style="font-size:16px;font-weight:700;color:#333;margin-top:4px">"+esc(data.courseName)+"</div><div style="font-size:13px;color:#555">Doctor of Social Work (DSW) Program</div><div style="width:80px;height:2px;background:#FFCC00;margin:6px auto"></div></div><div class="bar"></div><h2>General Course Information</h2><div class="ig">`;
+h+=`<div class="page"><div style="text-align:center;padding:14px 0 8px"><div style="font-size:10px;color:#999;margin-bottom:5px">USC Suzanne Dworak-Peck School of Social Work</div><h1>Course Design Map (CDM)</h1><div style="font-size:16px;font-weight:700;color:#333;margin-top:4px">${esc(data.courseName)}</div><div style="font-size:13px;color:#555">Doctor of Social Work (DSW) Program</div><div style="width:80px;height:2px;background:#FFCC00;margin:6px auto"></div></div><div class="bar"></div><h2>General Course Information</h2><div class="ig">`;
 [["Course",data.courseName],["Dev Started",data.devStarted],["Target Delivery",data.targetDelivery],["Course Lead",data.courseLead],["Email",data.leadEmail],["Phone",data.leadPhone],["Instructional Designer",data.instDesigner],["Program Director",data.progDirector],["Area of Focus",data.areaOfFocus],["Modality",data.modality==="async_sync"?"Async & Sync":"Async Only"],["Sync Min/Module",data.syncMin],["Async Min/Module",data.asyncMin]].forEach(([l,v])=>{h+=`<div><label>${l}</label><span>${esc(v)}</span></div>`;});
 h+=`</div>`;
 if(data.courseDesc)h+=`<h3>Course Description</h3><p style="font-size:10px;color:#444;margin:3px 0">${esc(data.courseDesc)}</p>`;
@@ -617,9 +634,9 @@ const mswAct=MSW_COMPS.filter(c=>data.mswComps[c.id]);
 if(mswAct.length){h+=`<h3>CSWE 2022 MSW Competencies</h3><p style="font-size:10px">`;mswAct.forEach(function(c,i){h+='<span class="badge badge-gold">C'+c.id+": "+c.name+"</span>";if(i<mswAct.length-1)h+=" &nbsp;\u2022 &nbsp;";});h+=`</p>`;}
 h+=`<h2>Course Learning Objectives</h2><table><tr><th>CLO</th><th>Objective</th><th>CSWE Aligned</th><th>ADEI</th><th>Assessment</th></tr>`;
 data.clos.forEach((c,i)=>{if(c.text)h+=`<tr><td><span class="badge">CLO ${i+1}</span></td><td>${esc(c.text)}</td><td>${esc(c.ces)}</td><td>${esc(c.adei)}</td><td>${esc(c.assess)}</td></tr>`;});
-h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | "+(data.program==="msw"?"MSW":"DSW")+" Program | CDM v5.0</div></div>`;
+h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":"DSW"} Program | CDM v${data.cdmVersion||"1.0"}</div></div>`;
 data.modules.forEach((mod,mi)=>{if(!mod.title)return;
-h+=`<div class="page"><div class="hdr"><div><strong style="color:#990000">Course Design Map</strong> \u2014 ${esc(data.courseName)}</div><div class="sub">CDM v"+(data.cdmVersion||"1.0")+"</div></div><div class="bar"></div><div class="mh"><h3>Module ${mi+1}: ${esc(mod.title)}</h3><div style="font-size:9px;color:#666;margin-top:2px"><strong>Sync:</strong> ${esc(mod.syncMin)} min | <strong>Async:</strong> ${esc(mod.asyncMin)} min | <strong>Terms:</strong> ${esc(mod.terms)}</div></div>`;
+h+=`<div class="page"><div class="hdr"><div><strong style="color:#990000">Course Design Map</strong> \u2014 ${esc(data.courseName)}</div><div class="sub">CDM v${data.cdmVersion||"1.0"}</div></div><div class="bar"></div><div class="mh"><h3>Module ${mi+1}: ${esc(mod.title)}</h3><div style="font-size:9px;color:#666;margin-top:2px"><strong>Sync:</strong> ${esc(mod.syncMin)} min | <strong>Async:</strong> ${esc(mod.asyncMin)} min | <strong>Terms:</strong> ${esc(mod.terms)}</div></div>`;
 if(mod.overview)h+=`<div class="ov"><strong>Overview:</strong> ${esc(mod.overview)}</div>`;
 h+=`<table><tr><th>Objective</th><th>Materials</th><th>Sync</th><th>Async</th><th>Assessment</th><th>CLOs Addressed</th><th>CSWE Addressed</th><th>Strategies</th><th>ADEI</th></tr>`;
 mod.objectives.forEach((o,oi)=>{if(!o.text)return;h+=`<tr><td><span class="badge">Obj ${oi+1}</span><br>${esc(o.text)}</td><td>${esc(o.materials)}</td><td>${esc(o.syncAct)}</td><td>${esc(o.asyncAct)}</td><td>${esc(o.assessment)}</td><td>${esc(o.clos)}</td><td>${esc(o.ces)}</td><td>${esc(o.strategies)}</td><td>${esc(o.adei)}</td></tr>`;});
@@ -1470,6 +1487,16 @@ var _sd=useState(true),showDashboard=_sd[0],setShowDashboard=_sd[1];
 useEffect(function(){
   var unsub=firebase.auth().onAuthStateChanged(function(user){
     setAuthUser(user);setAuthLoading(false);
+    if(user){
+      // Write/refresh the parent cdm_data/{uid} profile doc so the admin
+      // dashboard can discover this user even before they save a course.
+      firebase.firestore().collection("cdm_data").doc(user.uid).set({
+        uid:user.uid,
+        email:user.email||"",
+        name:user.displayName||"",
+        lastActive:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true}).catch(function(e){console.error("Profile upsert:",e);});
+    }
     if(!user){setDataLoaded(false);setData(INIT);setStep(0);setCurrentCourseId(null);setShowDashboard(true);}
   });return function(){unsub();};
 },[]);
