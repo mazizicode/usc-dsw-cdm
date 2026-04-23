@@ -232,8 +232,24 @@ function loadAllFaculty(cb){
   // user, even when the parent cdm_data/{uid} document was never written
   // (that's the default with this app's schema and was why the admin dashboard
   // appeared empty previously).
-  firebase.firestore().collectionGroup("courses").get().then(function(snap){
+  var db=firebase.firestore();
+  // Kick off BOTH queries in parallel: collectionGroup for courses, and
+  // cdm_data parent collection for profile docs (email/name/lastActive).
+  // Merging the two lets us resolve faculty names for users whose courses
+  // were saved before the userEmail/userName fields were added to saves.
+  Promise.all([
+    db.collectionGroup("courses").get(),
+    db.collection("cdm_data").get().catch(function(){return {forEach:function(){}};})
+  ]).then(function(results){
+    var snap=results[0];
+    var profiles=results[1];
     var byUid={};
+    // First pass: seed from profile docs (authoritative for name/email)
+    profiles.forEach(function(pDoc){
+      var p=pDoc.data();
+      byUid[pDoc.id]={uid:pDoc.id,email:p.email||"",name:p.name||"",courses:[]};
+    });
+    // Second pass: attach courses, fill in profile info if missing
     snap.forEach(function(cDoc){
       if(!cDoc.ref.parent||!cDoc.ref.parent.parent)return; // safety
       var uid=cDoc.ref.parent.parent.id;
@@ -253,7 +269,8 @@ function loadAllFaculty(cb){
         userName:d.userName||""
       });
     });
-    var faculty=Object.keys(byUid).map(function(k){return byUid[k];});
+    // Drop profile-only entries that have no courses (users who signed in but never saved)
+    var faculty=Object.keys(byUid).map(function(k){return byUid[k];}).filter(function(f){return f.courses.length>0;});
     faculty.forEach(function(f){
       f.courses.sort(function(a,b){
         var at=(a.lastUpdated&&a.lastUpdated.toMillis)?a.lastUpdated.toMillis():0;
@@ -261,7 +278,12 @@ function loadAllFaculty(cb){
         return bt-at;
       });
     });
-    faculty.sort(function(a,b){return(a.name||"").localeCompare(b.name||"");});
+    faculty.sort(function(a,b){
+      // Put unknowns last so admin can see named faculty first
+      var an=a.name||"zzz_Unknown";
+      var bn=b.name||"zzz_Unknown";
+      return an.localeCompare(bn);
+    });
     cb(faculty);
   }).catch(function(e){
     console.error("Admin load error:",e);
@@ -769,7 +791,8 @@ function AdminDashboard(props){
         user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:32,height:32,borderRadius:16}}):null,
         React.createElement("div",null,
           React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#333"}},user.displayName||user.email),
-          React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fef2f2",padding:"2px 10px",borderRadius:10}},"ADMINISTRATOR"))),
+          React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fef2f2",padding:"2px 10px",borderRadius:10}},"ADMINISTRATOR"),
+          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.0"))),
       React.createElement("div",{style:{display:"flex",gap:12}},
         React.createElement("button",{onClick:function(){setShowAnalytics(!showAnalytics);},style:{background:showAnalytics?"#FEF2F2":"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},showAnalytics?"Back to Overview":"Analytics"),
       React.createElement("button",{onClick:function(){
@@ -872,8 +895,8 @@ React.createElement("div",{className:"field",style:{marginBottom:20}},
           return React.createElement("div",{key:f.uid,style:{background:"#fff",border:"1px solid #e8e0d0",borderRadius:14,overflow:"hidden"}},
             React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px",background:"#FAF5EE",borderBottom:"1px solid #e8e0d0"}},
               React.createElement("div",null,
-                React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#333"}},f.name||"Unknown"),
-                React.createElement("div",{style:{fontSize:13,color:"#888"}},f.email)),
+                React.createElement("div",{style:{fontSize:16,fontWeight:700,color:f.name?"#333":"#B45309"}},f.name||(f.email?f.email.split("@")[0]:"Unresolved faculty")),
+                React.createElement("div",{style:{fontSize:13,color:"#888"}},f.email||(f.name?"":"Faculty has not yet signed in since the profile fix deployed"))),
               React.createElement("span",{style:{fontSize:13,fontWeight:600,color:"#990000"}},f.courses.length+" CDM"+(f.courses.length!==1?"s":""))),
             React.createElement("div",{style:{padding:"10px 20px"}},
               f.courses.map(function(course){
