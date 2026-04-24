@@ -266,7 +266,10 @@ function loadAllFaculty(cb){
         cdmVersion:d.cdmVersion||"1.0",
         program:d.program||"dsw",
         userEmail:d.userEmail||"",
-        userName:d.userName||""
+        userName:d.userName||"",
+        archived:d.archived===true,
+        archivedAt:d.archivedAt||null,
+        archivedBy:d.archivedBy||""
       });
     });
     // Drop profile-only entries that have no courses (users who signed in but never saved)
@@ -300,13 +303,44 @@ function loadFacultyCourse(uid,cid,cb){
 }
 
 function load(){return INIT;}
-function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
+function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();if(x.archived===true)return;r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
 function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";if(!p.cdmStatus)p.cdmStatus="Draft";if(!p.cdmStatusHistory)p.cdmStatusHistory=[];if(!p.targetSemester)p.targetSemester="";cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
 function createNewCourse(uid,initData,cb){if(typeof initData==="function"){cb=initData;initData=null;}var d=initData||INIT;var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(d),courseName:d.courseName||"New Course",leadName:d.courseLead||"",program:d.program||"dsw",cdmStatus:"Draft",
 cdmStatusHistory:[],
 targetSemester:"",
 cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){cb(r.id);}).catch(function(e){console.error("Create course error:",e);alert("Error creating course. Please check that Firestore rules are updated. Error: "+e.message);});}
 function deleteCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).delete().then(cb);}
+
+// Admin delete: also cleans up the course's comments and versions subcollections.
+// Firestore does not cascade-delete, so orphaned subcollection docs would persist otherwise.
+function deleteCourseFull(uid,cid,cb){
+  var db=firebase.firestore();
+  var ref=db.collection("cdm_data").doc(uid).collection("courses").doc(cid);
+  Promise.all([
+    ref.collection("comments").get().then(function(s){var b=db.batch();s.forEach(function(d){b.delete(d.ref);});return b.commit();}).catch(function(e){console.warn("Comments cleanup:",e);}),
+    ref.collection("versions").get().then(function(s){var b=db.batch();s.forEach(function(d){b.delete(d.ref);});return b.commit();}).catch(function(e){console.warn("Versions cleanup:",e);})
+  ]).then(function(){
+    return ref.delete();
+  }).then(function(){cb(null);}).catch(function(e){console.error("Admin delete error:",e);cb(e);});
+}
+
+// Archive (soft delete) — non-destructive, can be restored
+function archiveCourse(uid,cid,adminEmail,cb){
+  firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).set({
+    archived:true,
+    archivedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    archivedBy:adminEmail||""
+  },{merge:true}).then(function(){cb(null);}).catch(function(e){console.error("Archive error:",e);cb(e);});
+}
+
+// Restore an archived course
+function restoreCourse(uid,cid,cb){
+  firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).set({
+    archived:false,
+    archivedAt:null,
+    archivedBy:null
+  },{merge:true}).then(function(){cb(null);}).catch(function(e){console.error("Restore error:",e);cb(e);});
+}
 
 function loadComments(uid,cid,cb){
   firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).collection("comments").orderBy("timestamp","desc").get().then(function(snap){
@@ -358,7 +392,7 @@ function loadVersionData(uid,cid,versionId,cb){
   }).catch(function(){cb(null,null);});
 }
 
-function save(d,cid){var u=firebase.auth().currentUser;if(!u||!cid)return;var db=firebase.firestore();db.collection("cdm_data").doc(u.uid).collection("courses").doc(cid).set({cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",cdmVersion:d.cdmVersion||"1.0",program:d.program||"dsw",cdmStatus:d.cdmStatus||"Draft",targetDelivery:d.targetDelivery||"",leadName:d.courseLead||"",userEmail:u.email,userName:u.displayName,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error("Save:",e);});db.collection("cdm_data").doc(u.uid).set({uid:u.uid,email:u.email||"",name:u.displayName||"",lastActive:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(function(e){console.error("Profile upsert:",e);});}
+function save(d,cid){var u=firebase.auth().currentUser;if(!u||!cid)return;var db=firebase.firestore();db.collection("cdm_data").doc(u.uid).collection("courses").doc(cid).set({cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",cdmVersion:d.cdmVersion||"1.0",program:d.program||"dsw",cdmStatus:d.cdmStatus||"Draft",targetDelivery:d.targetDelivery||"",leadName:d.courseLead||"",userEmail:u.email,userName:u.displayName,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(function(e){console.error("Save:",e);});db.collection("cdm_data").doc(u.uid).set({uid:u.uid,email:u.email||"",name:u.displayName||"",lastActive:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(function(e){console.error("Profile upsert:",e);});}
 
 function F({label,value,onChange,placeholder,type="text",className=""}){
 return React.createElement("div",{className:"field "+className},
@@ -777,13 +811,28 @@ function AdminDashboard(props){
   var _f=useState(null),faculty=_f[0],setFaculty=_f[1];
   var _s=useState(""),search=_s[0],setSearch=_s[1];
   var _at=useState(false),showAnalytics=_at[0],setShowAnalytics=_at[1];
+  // View tab: "active" or "archived"
+  var _vm=useState("active"),viewMode=_vm[0],setViewMode=_vm[1];
+  // Archive confirmation state: {uid, cid, courseName, facultyName, stage:1|2, typed:""}
+  var _ac=useState(null),archCtx=_ac[0],setArchCtx=_ac[1];
+  // Restore confirmation state: {uid, cid, courseName, facultyName}
+  var _rc=useState(null),restCtx=_rc[0],setRestCtx=_rc[1];
+  // Permanent-delete from archived view: {uid, cid, courseName, facultyName, stage:1|2, typed:""}
+  var _dc=useState(null),delCtx=_dc[0],setDelCtx=_dc[1];
+  var _pn=useState(false),pending=_pn[0],setPending=_pn[1];
   useEffect(function(){loadAllFaculty(function(f){setFaculty(f);});},[]);
-  var filtered=faculty?faculty.filter(function(f){
+  // Build two parallel structures: faculty-with-active-courses and faculty-with-archived-courses
+  var activeFaculty=faculty?faculty.map(function(f){return Object.assign({},f,{courses:f.courses.filter(function(c){return !c.archived;})});}).filter(function(f){return f.courses.length>0;}):null;
+  var archivedFaculty=faculty?faculty.map(function(f){return Object.assign({},f,{courses:f.courses.filter(function(c){return c.archived;})});}).filter(function(f){return f.courses.length>0;}):null;
+  var activeCount=faculty?faculty.reduce(function(s,f){return s+f.courses.filter(function(c){return !c.archived;}).length;},0):0;
+  var archivedCount=faculty?faculty.reduce(function(s,f){return s+f.courses.filter(function(c){return c.archived;}).length;},0):0;
+  var currentFaculty=viewMode==="archived"?archivedFaculty:activeFaculty;
+  var filtered=currentFaculty?currentFaculty.filter(function(f){
     var q=search.toLowerCase();
     if(!q)return true;
     return(f.name||"").toLowerCase().indexOf(q)>=0||(f.email||"").toLowerCase().indexOf(q)>=0||f.courses.some(function(c){return(c.name||"").toLowerCase().indexOf(q)>=0;});
   }):null;
-  var totalCourses=faculty?faculty.reduce(function(s,f){return s+f.courses.length;},0):0;
+  var totalCourses=activeCount; // Stats cards show active only
   return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)"}},
     React.createElement("div",{className:"top-bar"}),React.createElement("div",{className:"gold-bar-top"}),
     React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",background:"#fff",borderBottom:"2px solid #990000"}},
@@ -792,7 +841,7 @@ function AdminDashboard(props){
         React.createElement("div",null,
           React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#333"}},user.displayName||user.email),
           React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fef2f2",padding:"2px 10px",borderRadius:10}},"ADMINISTRATOR"),
-          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.0"))),
+          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.2"))),
       React.createElement("div",{style:{display:"flex",gap:12}},
         React.createElement("button",{onClick:function(){setShowAnalytics(!showAnalytics);},style:{background:showAnalytics?"#FEF2F2":"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},showAnalytics?"Back to Overview":"Analytics"),
       React.createElement("button",{onClick:function(){
@@ -800,10 +849,11 @@ function AdminDashboard(props){
         var h="<html><head><title>Accreditation Report</title><style>body{font-family:Calibri,sans-serif;padding:40px;color:#333;max-width:1000px;margin:0 auto}h1{color:#990000;border-bottom:3px solid #990000;padding-bottom:8px}h2{color:#990000;margin-top:24px}table{width:100%;border-collapse:collapse;margin:12px 0}th{background:#990000;color:#fff;padding:8px;text-align:left;font-size:13px}td{padding:6px 8px;border-bottom:1px solid #eee;font-size:13px}</style></head><body>";
         h+="<h1>USC Suzanne Dworak-Peck School of Social Work</h1><h2>CDM Accreditation Report</h2>";
         h+="<p>Generated: "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric",timeZone:"America/Los_Angeles"})+" (PT)</p>";
-        var tc=0,dc=0,mc=0,lc=0;faculty.forEach(function(f){f.courses.forEach(function(cc){tc++;if(cc.program==="msw")mc++;else dc++;if(cc.cdmStatus==="Launched")lc++;});});
-        h+="<h2>Summary</h2><table><tr><th>Metric</th><th>Count</th></tr><tr><td>Total CDMs</td><td><strong>"+tc+"</strong></td></tr><tr><td>DSW</td><td>"+dc+"</td></tr><tr><td>MSW</td><td>"+mc+"</td></tr><tr><td>Launched</td><td>"+lc+"</td></tr></table>";
-        h+="<h2>All Courses</h2><table><tr><th>Faculty</th><th>Program</th><th>Course</th><th>Version</th><th>Status</th></tr>";
-        faculty.forEach(function(f){f.courses.forEach(function(fc,fi){h+="<tr><td>"+(fi===0?f.name:"")+"</td><td>"+(fc.program==="msw"?"MSW":"DSW")+"</td><td>"+fc.name+"</td><td>v"+(fc.cdmVersion||"1.0")+"</td><td>"+(fc.cdmStatus||"Draft")+"</td></tr>";});});
+        h+="<p style='color:#888;font-size:12px'>Report excludes archived courses.</p>";
+        var tc=0,dc=0,mc=0,lc=0;faculty.forEach(function(f){f.courses.forEach(function(cc){if(cc.archived)return;tc++;if(cc.program==="msw")mc++;else dc++;if(cc.cdmStatus==="Launched")lc++;});});
+        h+="<h2>Summary</h2><table><tr><th>Metric</th><th>Count</th></tr><tr><td>Total Active CDMs</td><td><strong>"+tc+"</strong></td></tr><tr><td>DSW</td><td>"+dc+"</td></tr><tr><td>MSW</td><td>"+mc+"</td></tr><tr><td>Launched</td><td>"+lc+"</td></tr></table>";
+        h+="<h2>All Active Courses</h2><table><tr><th>Faculty</th><th>Program</th><th>Course</th><th>Version</th><th>Status</th></tr>";
+        faculty.forEach(function(f){var activeCs=f.courses.filter(function(cc){return !cc.archived;});activeCs.forEach(function(fc,fi){h+="<tr><td>"+(fi===0?f.name:"")+"</td><td>"+(fc.program==="msw"?"MSW":"DSW")+"</td><td>"+fc.name+"</td><td>v"+(fc.cdmVersion||"1.0")+"</td><td>"+(fc.cdmStatus||"Draft")+"</td></tr>";});});
         h+="</table><p style='margin-top:40px;font-size:11px;color:#888'>USC SSW CDM Platform</p></body></html>";
         w.document.write(h);w.document.close();
       },style:{background:"#ECFDF5",border:"1px solid #059669",color:"#059669",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},"Accreditation Report"),
@@ -816,19 +866,19 @@ function AdminDashboard(props){
 
       React.createElement("div",{style:{display:"flex",gap:16,marginBottom:24}},
         React.createElement("div",{style:{flex:1,background:"#fff",border:"1px solid #e8e0d0",borderRadius:14,padding:20,textAlign:"center"}},
-          React.createElement("div",{style:{fontSize:32,fontWeight:900,color:"#990000"}},faculty?faculty.length:"..."),
+          React.createElement("div",{style:{fontSize:32,fontWeight:900,color:"#990000"}},activeFaculty?activeFaculty.length:"..."),
           React.createElement("div",{style:{fontSize:14,color:"#888"}},"Faculty Members")),
         React.createElement("div",{style:{flex:1,minWidth:120,background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:14,padding:"14px 16px",textAlign:"center"}},
           React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#166534"}},totalCourses),
           React.createElement("div",{style:{fontSize:12,color:"#166534"}},"Total CDMs")),
         React.createElement("div",{style:{flex:1,minWidth:120,background:"#FFF8E7",border:"1px solid #FDE68A",borderRadius:14,padding:"14px 16px",textAlign:"center"}},
-          React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#92400E"}},faculty?faculty.reduce(function(t,f){return t+f.courses.filter(function(cc){return cc.cdmStatus==="Submitted";}).length;},0):0),
+          React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#92400E"}},faculty?faculty.reduce(function(t,f){return t+f.courses.filter(function(cc){return !cc.archived&&cc.cdmStatus==="Submitted";}).length;},0):0),
           React.createElement("div",{style:{fontSize:12,color:"#92400E"}},"Awaiting Review")),
         React.createElement("div",{style:{flex:1,minWidth:120,background:"#F0F9FF",border:"1px solid #BAE6FD",borderRadius:14,padding:"14px 16px",textAlign:"center"}},
-          React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#0369A1"}},faculty?faculty.reduce(function(t,f){return t+f.courses.filter(function(cc){return cc.cdmStatus==="In Build"||cc.cdmStatus==="Build Review";}).length;},0):0),
+          React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#0369A1"}},faculty?faculty.reduce(function(t,f){return t+f.courses.filter(function(cc){return !cc.archived&&(cc.cdmStatus==="In Build"||cc.cdmStatus==="Build Review");}).length;},0):0),
           React.createElement("div",{style:{fontSize:12,color:"#0369A1"}},"In Build")),
         React.createElement("div",{style:{flex:1,minWidth:120,background:"#ECFDF5",border:"1px solid #A7F3D0",borderRadius:14,padding:"14px 16px",textAlign:"center"}},
-          React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#059669"}},faculty?faculty.reduce(function(t,f){return t+f.courses.filter(function(cc){return cc.cdmStatus==="Launched";}).length;},0):0),
+          React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#059669"}},faculty?faculty.reduce(function(t,f){return t+f.courses.filter(function(cc){return !cc.archived&&cc.cdmStatus==="Launched";}).length;},0):0),
           React.createElement("div",{style:{fontSize:12,color:"#059669"}},"Launched"))),
       showAnalytics&&faculty?React.createElement("div",{style:{marginBottom:24}},
 React.createElement("h3",{style:{fontSize:22,fontWeight:700,color:"#990000",marginBottom:16}},"Program Analytics"),
@@ -886,14 +936,21 @@ React.createElement("td",{style:{padding:"8px",textAlign:"center",fontSize:12,co
 });
 }))))):null,
 
+React.createElement("div",{style:{display:"flex",gap:8,marginBottom:16,borderBottom:"2px solid #e8e0d0"}},
+  React.createElement("button",{onClick:function(){setViewMode("active");},style:{background:"transparent",border:"none",padding:"10px 18px",fontSize:14,fontWeight:700,color:viewMode==="active"?"#990000":"#888",borderBottom:viewMode==="active"?"3px solid #990000":"3px solid transparent",marginBottom:-2,cursor:"pointer"}},"Active ("+activeCount+")"),
+  React.createElement("button",{onClick:function(){setViewMode("archived");},style:{background:"transparent",border:"none",padding:"10px 18px",fontSize:14,fontWeight:700,color:viewMode==="archived"?"#78350F":"#888",borderBottom:viewMode==="archived"?"3px solid #D97706":"3px solid transparent",marginBottom:-2,cursor:"pointer"}},"Archived ("+archivedCount+")")),
+viewMode==="archived"?React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:13,color:"#78350F",lineHeight:1.5}},
+  React.createElement("strong",null,"\uD83D\uDCE6 Archived Courses"),
+  " \u2014 These are hidden from faculty's dashboards and excluded from reports. Use Restore to bring a course back to active, or Permanent Delete to erase it forever."):null,
+
 React.createElement("div",{className:"field",style:{marginBottom:20}},
         React.createElement("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:"Search by faculty name, email, or course...",style:{width:"100%",padding:"12px 18px",borderRadius:12,border:"1px solid #ddd",fontSize:15}})),
       !filtered?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:30,fontSize:15}},"Loading all faculty data..."):
-      filtered.length===0?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:30,fontSize:15}},search?"No results found.":"No faculty have created CDMs yet."):
+      filtered.length===0?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:30,fontSize:15}},search?"No results found.":(viewMode==="archived"?"No archived courses.":"No faculty have created CDMs yet.")):
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16}},
         filtered.map(function(f){
           return React.createElement("div",{key:f.uid,style:{background:"#fff",border:"1px solid #e8e0d0",borderRadius:14,overflow:"hidden"}},
-            React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px",background:"#FAF5EE",borderBottom:"1px solid #e8e0d0"}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px",background:viewMode==="archived"?"#FFFBEB":"#FAF5EE",borderBottom:"1px solid #e8e0d0"}},
               React.createElement("div",null,
                 React.createElement("div",{style:{fontSize:16,fontWeight:700,color:f.name?"#333":"#B45309"}},f.name||(f.email?f.email.split("@")[0]:"Unresolved faculty")),
                 React.createElement("div",{style:{fontSize:13,color:"#888"}},f.email||(f.name?"":"Faculty has not yet signed in since the profile fix deployed"))),
@@ -901,17 +958,164 @@ React.createElement("div",{className:"field",style:{marginBottom:20}},
             React.createElement("div",{style:{padding:"10px 20px"}},
               f.courses.map(function(course){
                 var upd=course.lastUpdated?new Date(course.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Never";
-                return React.createElement("div",{key:course.id,style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid #f0f0f0",cursor:"pointer"},onClick:function(){onViewCourse(f.uid,course.id,course.name,f.name);}},
-                  React.createElement("div",null,
+                var archInfo=course.archived&&course.archivedAt?new Date(course.archivedAt.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"America/Los_Angeles"}):"";
+                return React.createElement("div",{key:course.id,style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid #f0f0f0"}},
+                  React.createElement("div",{style:{cursor:"pointer",flex:1},onClick:function(){onViewCourse(f.uid,course.id,course.name,f.name);}},
                     React.createElement("div",{style:{fontSize:15,fontWeight:600,color:"#990000"}},course.name),
-                    React.createElement("div",{style:{fontSize:12,color:"#999"}},"Last edited: "+upd)),
-                  React.createElement("span",{style:{fontSize:14,color:"#990000",fontWeight:600}},"View "+String.fromCharCode(8250)));
+                    React.createElement("div",{style:{fontSize:12,color:"#999"}},"Last edited: "+upd),
+                    course.archived?React.createElement("div",{style:{fontSize:11,color:"#D97706",fontWeight:600,marginTop:2}},"Archived"+(archInfo?" "+archInfo:"")+(course.archivedBy?" by "+course.archivedBy:"")):null),
+                  React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",justifyContent:"flex-end"}},
+                    React.createElement("span",{style:{fontSize:14,color:"#990000",fontWeight:600,cursor:"pointer"},onClick:function(){onViewCourse(f.uid,course.id,course.name,f.name);}},"View "+String.fromCharCode(8250)),
+                    viewMode==="active"?React.createElement("button",{title:"Archive this course (soft delete \u2014 can be restored)",onClick:function(ev){ev.stopPropagation();setArchCtx({uid:f.uid,cid:course.id,courseName:course.name,facultyName:f.name||f.email||"Unresolved faculty",stage:1,typed:""});},style:{background:"transparent",border:"1px solid #D97706",color:"#D97706",borderRadius:8,padding:"4px 10px",fontSize:12,fontWeight:600,cursor:"pointer"}},"Archive"):null,
+                    viewMode==="archived"?React.createElement("button",{title:"Restore this course to active",onClick:function(ev){ev.stopPropagation();setRestCtx({uid:f.uid,cid:course.id,courseName:course.name,facultyName:f.name||f.email||"Unresolved faculty"});},style:{background:"transparent",border:"1px solid #059669",color:"#059669",borderRadius:8,padding:"4px 10px",fontSize:12,fontWeight:600,cursor:"pointer"}},"Restore"):null,
+                    viewMode==="archived"?React.createElement("button",{title:"Permanent delete \u2014 cannot be undone",onClick:function(ev){ev.stopPropagation();setDelCtx({uid:f.uid,cid:course.id,courseName:course.name,facultyName:f.name||f.email||"Unresolved faculty",stage:1,typed:""});},style:{background:"transparent",border:"1px solid #DC2626",color:"#DC2626",borderRadius:8,padding:"4px 10px",fontSize:12,fontWeight:600,cursor:"pointer"}},"Permanent Delete"):null));
               })));
-        }))));
+        }))),
+    // ===== Admin Archive Confirmation Modal (soft delete, can be restored) =====
+    archCtx?React.createElement("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:9999,padding:16}},
+      React.createElement("div",{style:{background:"#fff",borderRadius:16,maxWidth:520,width:"100%",padding:28,boxShadow:"0 20px 60px rgba(0,0,0,0.3)",border:"3px solid #D97706"}},
+        React.createElement("div",{style:{fontSize:22,fontWeight:900,color:"#D97706",marginBottom:4,display:"flex",alignItems:"center",gap:8}},
+          React.createElement("span",null,"\uD83D\uDCE6"),
+          React.createElement("span",null,archCtx.stage===1?"Archive Course?":"Confirm Archive")),
+        React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#92400E",textTransform:"uppercase",letterSpacing:1,marginBottom:16}},archCtx.stage===1?"Step 1 of 2":"Step 2 of 2 \u2014 Final Confirmation"),
+        archCtx.stage===1?React.createElement("div",null,
+          React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"14px 16px",marginBottom:16,fontSize:14,color:"#78350F",lineHeight:1.6}},
+            React.createElement("strong",{style:{display:"block",marginBottom:6}},"Archiving is safe and reversible."),
+            "The course will be hidden from the faculty's dashboard and from reports, but ",React.createElement("strong",null,"no data is deleted"),". You can restore it at any time from the Archived tab."),
+          React.createElement("div",{style:{background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:10,padding:"12px 16px",marginBottom:16,fontSize:14,color:"#111"}},
+            React.createElement("div",{style:{marginBottom:4,color:"#666"}},"You are about to archive:"),
+            React.createElement("div",{style:{fontWeight:700,color:"#990000",fontSize:15,marginBottom:2}},archCtx.courseName),
+            React.createElement("div",{style:{fontSize:13,color:"#555"}},"Owner: "+archCtx.facultyName)),
+          React.createElement("div",{style:{fontSize:13,color:"#555",marginBottom:8}},"To continue, type the course name exactly as shown above:"),
+          React.createElement("input",{value:archCtx.typed,onChange:function(e){setArchCtx(Object.assign({},archCtx,{typed:e.target.value}));},placeholder:"Type the course name here",autoFocus:true,style:{width:"100%",padding:"10px 14px",border:"2px solid "+(archCtx.typed===archCtx.courseName?"#059669":"#D1D5DB"),borderRadius:10,fontSize:14,marginBottom:18,outline:"none",fontFamily:"inherit"}}),
+          React.createElement("div",{style:{display:"flex",gap:10,justifyContent:"flex-end"}},
+            React.createElement("button",{onClick:function(){setArchCtx(null);},style:{background:"#fff",border:"1px solid #D1D5DB",color:"#374151",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}},"Cancel"),
+            React.createElement("button",{disabled:archCtx.typed!==archCtx.courseName,onClick:function(){setArchCtx(Object.assign({},archCtx,{stage:2}));},style:{background:archCtx.typed===archCtx.courseName?"#D97706":"#FCD34D",border:"none",color:"#fff",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:700,cursor:archCtx.typed===archCtx.courseName?"pointer":"not-allowed",opacity:archCtx.typed===archCtx.courseName?1:0.7}},"Continue to Final Step")))
+        :React.createElement("div",null,
+          React.createElement("div",{style:{background:"#FFFBEB",border:"2px solid #D97706",borderRadius:10,padding:"16px 18px",marginBottom:18,fontSize:15,color:"#78350F",lineHeight:1.6}},
+            React.createElement("strong",{style:{display:"block",fontSize:16,marginBottom:8}},"Ready to archive."),
+            React.createElement("div",{style:{marginBottom:6}},"Course: ",React.createElement("strong",null,archCtx.courseName)),
+            React.createElement("div",{style:{marginBottom:10}},"Owner: ",React.createElement("strong",null,archCtx.facultyName)),
+            React.createElement("div",null,"The course will move to the Archived tab. You can restore it anytime.")),
+          React.createElement("div",{style:{display:"flex",gap:10,justifyContent:"flex-end"}},
+            React.createElement("button",{onClick:function(){setArchCtx(null);},disabled:pending,style:{background:"#fff",border:"1px solid #D1D5DB",color:"#374151",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}},"Cancel"),
+            React.createElement("button",{onClick:function(){setArchCtx(Object.assign({},archCtx,{stage:1}));},disabled:pending,style:{background:"#fff",border:"1px solid #990000",color:"#990000",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}},String.fromCharCode(8592)+" Back"),
+            React.createElement("button",{disabled:pending,onClick:function(){
+              setPending(true);
+              archiveCourse(archCtx.uid,archCtx.cid,user.email||"",function(err){
+                setPending(false);
+                if(err){alert("Archive failed: "+err.message+"\n\nMake sure the Firestore rules allow admin update on cdm_data/{userId}/courses/{courseId}.");return;}
+                var nm=archCtx.courseName;
+                setArchCtx(null);
+                loadAllFaculty(function(f){setFaculty(f);alert("\u2713 Archived: "+nm+"\n\nThis course is now in the Archived tab and hidden from the faculty's dashboard.");});
+              });
+            },style:{background:pending?"#FCD34D":"#D97706",border:"none",color:"#fff",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:700,cursor:pending?"wait":"pointer"}},pending?"Archiving...":"Archive Course")))
+      )):null,
+
+    // ===== Admin Restore Confirmation Modal =====
+    restCtx?React.createElement("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:9999,padding:16}},
+      React.createElement("div",{style:{background:"#fff",borderRadius:16,maxWidth:480,width:"100%",padding:28,boxShadow:"0 20px 60px rgba(0,0,0,0.3)",border:"3px solid #059669"}},
+        React.createElement("div",{style:{fontSize:22,fontWeight:900,color:"#059669",marginBottom:12,display:"flex",alignItems:"center",gap:8}},
+          React.createElement("span",null,"\u21A9\uFE0F"),
+          React.createElement("span",null,"Restore Course?")),
+        React.createElement("div",{style:{background:"#ECFDF5",border:"1px solid #A7F3D0",borderRadius:10,padding:"14px 16px",marginBottom:16,fontSize:14,color:"#065F46",lineHeight:1.6}},
+          React.createElement("strong",{style:{display:"block",marginBottom:6}},"Restoring is safe."),
+          "The course will move back to Active and reappear on the faculty's dashboard. All data, comments, and version history are preserved."),
+        React.createElement("div",{style:{background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:10,padding:"12px 16px",marginBottom:18,fontSize:14,color:"#111"}},
+          React.createElement("div",{style:{fontWeight:700,color:"#990000",fontSize:15,marginBottom:2}},restCtx.courseName),
+          React.createElement("div",{style:{fontSize:13,color:"#555"}},"Owner: "+restCtx.facultyName)),
+        React.createElement("div",{style:{display:"flex",gap:10,justifyContent:"flex-end"}},
+          React.createElement("button",{onClick:function(){setRestCtx(null);},disabled:pending,style:{background:"#fff",border:"1px solid #D1D5DB",color:"#374151",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}},"Cancel"),
+          React.createElement("button",{disabled:pending,onClick:function(){
+            setPending(true);
+            restoreCourse(restCtx.uid,restCtx.cid,function(err){
+              setPending(false);
+              if(err){alert("Restore failed: "+err.message);return;}
+              var nm=restCtx.courseName;
+              setRestCtx(null);
+              loadAllFaculty(function(f){setFaculty(f);alert("\u2713 Restored: "+nm);});
+            });
+          },style:{background:pending?"#6EE7B7":"#059669",border:"none",color:"#fff",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:700,cursor:pending?"wait":"pointer"}},pending?"Restoring...":"Restore to Active"))
+      )):null,
+
+    // ===== Permanent Delete Confirmation Modal (from archived view only) =====
+    delCtx?React.createElement("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:9999,padding:16}},
+      React.createElement("div",{style:{background:"#fff",borderRadius:16,maxWidth:520,width:"100%",padding:28,boxShadow:"0 20px 60px rgba(0,0,0,0.3)",border:"3px solid #DC2626"}},
+        React.createElement("div",{style:{fontSize:22,fontWeight:900,color:"#DC2626",marginBottom:4,display:"flex",alignItems:"center",gap:8}},
+          React.createElement("span",null,"\u26A0\uFE0F"),
+          React.createElement("span",null,delCtx.stage===1?"Permanently Delete Course?":"Last Chance \u2014 Are You Absolutely Sure?")),
+        React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#991B1B",textTransform:"uppercase",letterSpacing:1,marginBottom:16}},delCtx.stage===1?"Step 1 of 2 \u2014 Final Erase":"Step 2 of 2 \u2014 Point of No Return"),
+        delCtx.stage===1?React.createElement("div",null,
+          React.createElement("div",{style:{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:10,padding:"14px 16px",marginBottom:16,fontSize:14,color:"#7F1D1D",lineHeight:1.6}},
+            React.createElement("strong",{style:{display:"block",marginBottom:6}},"This is a LAST RESORT and CANNOT be undone."),
+            "You are about to permanently erase this archived course from the database. This will delete:"),
+          React.createElement("ul",{style:{margin:"0 0 16px 20px",fontSize:14,color:"#333",lineHeight:1.8}},
+            React.createElement("li",null,"All of the faculty's work on this course (all 10 steps)"),
+            React.createElement("li",null,"Every comment ever posted on this CDM"),
+            React.createElement("li",null,"The full version history and any archived versions"),
+            React.createElement("li",null,"All status change history and timestamps")),
+          React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"12px 16px",marginBottom:16,fontSize:14,color:"#78350F",lineHeight:1.5}},
+            React.createElement("strong",null,"\uD83D\uDCA1 Tip: "),
+            "If you're not absolutely sure, cancel and leave this course archived. Archive storage is essentially free."),
+          React.createElement("div",{style:{background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:10,padding:"12px 16px",marginBottom:16,fontSize:14,color:"#111"}},
+            React.createElement("div",{style:{marginBottom:4,color:"#666"}},"You are about to permanently delete:"),
+            React.createElement("div",{style:{fontWeight:700,color:"#990000",fontSize:15,marginBottom:2}},delCtx.courseName),
+            React.createElement("div",{style:{fontSize:13,color:"#555"}},"Owner: "+delCtx.facultyName)),
+          React.createElement("div",{style:{fontSize:13,color:"#555",marginBottom:8}},"To continue, type the course name exactly as shown above:"),
+          React.createElement("input",{value:delCtx.typed,onChange:function(e){setDelCtx(Object.assign({},delCtx,{typed:e.target.value}));},placeholder:"Type the course name here",autoFocus:true,style:{width:"100%",padding:"10px 14px",border:"2px solid "+(delCtx.typed===delCtx.courseName?"#059669":"#D1D5DB"),borderRadius:10,fontSize:14,marginBottom:18,outline:"none",fontFamily:"inherit"}}),
+          React.createElement("div",{style:{display:"flex",gap:10,justifyContent:"flex-end"}},
+            React.createElement("button",{onClick:function(){setDelCtx(null);},style:{background:"#fff",border:"1px solid #D1D5DB",color:"#374151",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}},"Cancel"),
+            React.createElement("button",{disabled:delCtx.typed!==delCtx.courseName,onClick:function(){setDelCtx(Object.assign({},delCtx,{stage:2}));},style:{background:delCtx.typed===delCtx.courseName?"#DC2626":"#FCA5A5",border:"none",color:"#fff",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:700,cursor:delCtx.typed===delCtx.courseName?"pointer":"not-allowed",opacity:delCtx.typed===delCtx.courseName?1:0.7}},"Continue to Final Step")))
+        :React.createElement("div",null,
+          React.createElement("div",{style:{background:"#FEF2F2",border:"2px solid #DC2626",borderRadius:10,padding:"16px 18px",marginBottom:18,fontSize:15,color:"#7F1D1D",lineHeight:1.6}},
+            React.createElement("strong",{style:{display:"block",fontSize:16,marginBottom:8}},"You are about to permanently erase faculty work."),
+            React.createElement("div",{style:{marginBottom:6}},"Course: ",React.createElement("strong",null,delCtx.courseName)),
+            React.createElement("div",{style:{marginBottom:10}},"Owner: ",React.createElement("strong",null,delCtx.facultyName)),
+            React.createElement("div",{style:{fontWeight:700}},"Once you click \u201cYes, Delete Forever\u201d there is no going back.")),
+          React.createElement("div",{style:{display:"flex",gap:10,justifyContent:"flex-end"}},
+            React.createElement("button",{onClick:function(){setDelCtx(null);},disabled:pending,style:{background:"#fff",border:"1px solid #D1D5DB",color:"#374151",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}},"Cancel"),
+            React.createElement("button",{onClick:function(){setDelCtx(Object.assign({},delCtx,{stage:1}));},disabled:pending,style:{background:"#fff",border:"1px solid #990000",color:"#990000",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer"}},String.fromCharCode(8592)+" Back"),
+            React.createElement("button",{disabled:pending,onClick:function(){
+              setPending(true);
+              deleteCourseFull(delCtx.uid,delCtx.cid,function(err){
+                setPending(false);
+                if(err){alert("Delete failed: "+err.message+"\n\nMake sure the Firestore rules allow admin delete on cdm_data/{userId}/courses/{courseId}.");return;}
+                var removedName=delCtx.courseName;
+                setDelCtx(null);
+                loadAllFaculty(function(f){setFaculty(f);alert("\u2713 Permanently deleted: "+removedName);});
+              });
+            },style:{background:pending?"#FCA5A5":"#DC2626",border:"none",color:"#fff",padding:"10px 18px",borderRadius:10,fontSize:14,fontWeight:700,cursor:pending?"wait":"pointer"}},pending?"Deleting...":"Yes, Delete Forever")))
+      )):null);
 }
 
 function AdminCDMViewer(props){
   var cdmData=props.data;var courseName=props.courseName;var facultyName=props.facultyName;var onBack=props.onBack;var onExport=props.onExport;
+  var facultyUid=props.facultyUid;var courseId=props.courseId;var authUser=props.authUser;
+  // Admin commenting state
+  var _c=useState(null),comments=_c[0],setComments=_c[1];
+  var _t=useState(""),newText=_t[0],setNewText=_t[1];
+  var _sc=useState("General"),section=_sc[0],setSection=_sc[1];
+  var _l=useState(false),posting=_l[0],setPosting=_l[1];
+  var canComment=!!(facultyUid&&courseId&&authUser);
+  useEffect(function(){
+    if(!canComment)return;
+    loadComments(facultyUid,courseId,function(c){setComments(c);});
+  },[facultyUid,courseId]);
+  var doPost=function(){
+    if(!newText.trim()||!canComment)return;
+    setPosting(true);
+    addComment(facultyUid,courseId,{
+      text:newText.trim(),
+      section:section,
+      authorName:authUser.displayName||authUser.email,
+      authorEmail:authUser.email,
+      role:"Administrator"
+    },function(){
+      setNewText("");setPosting(false);
+      setTimeout(function(){loadComments(facultyUid,courseId,function(c){setComments(c);});},500);
+    });
+  };
+  var commentSections=["General","Course Info","CSWE Mapping","CLO 1","CLO 2","CLO 3","CLO 4","CLO 5","Module 1","Module 2","Module 3","Module 4","Module 5","Assessment","ADEI"];
   if(!cdmData)return React.createElement("div",{style:{padding:40,textAlign:"center"}},"Loading...");
   var d=cdmData;
   return React.createElement("div",{style:{minHeight:"100vh",background:"#f8f6f2"}},
@@ -923,15 +1127,15 @@ function AdminCDMViewer(props){
         React.createElement("span",{style:{color:"#990000",fontWeight:600,fontSize:14}},String.fromCharCode(8212)+" "+courseName)),
       React.createElement("button",{onClick:onExport,className:"btn-p",style:{padding:"8px 20px",fontSize:13}},"Download PDF")),
     React.createElement("div",{style:{maxWidth:1000,margin:"0 auto",padding:"24px"}},
-      React.createElement("div",{style:{background:"#fef2f2",border:"1px solid #990000",borderRadius:12,padding:"12px 18px",marginBottom:20,fontSize:14,color:"#990000",fontWeight:600}},"Admin Read-Only View — You are viewing "+facultyName+"'s CDM. Changes cannot be made from this view."),
+      React.createElement("div",{style:{background:"#fef2f2",border:"1px solid #990000",borderRadius:12,padding:"12px 18px",marginBottom:20,fontSize:14,color:"#990000",fontWeight:600}},"Admin View \u2014 You are viewing "+facultyName+"'s CDM. You can leave comments below; direct editing of this CDM is not available from this view."),
       React.createElement("div",{className:"card"},
         React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#990000",marginBottom:12}},"Course Information"),
         React.createElement("div",{className:"g3",style:{gap:12}},
-          ["Course: "+(d.courseName||"—"),"Lead: "+(d.courseLead||"—"),"Email: "+(d.leadEmail||"—"),
-           "Program Director: "+(d.progDirector||"—"),"Area of Focus: "+(d.areaOfFocus||"—"),
+          ["Course: "+(d.courseName||"\u2014"),"Lead: "+(d.courseLead||"\u2014"),"Email: "+(d.leadEmail||"\u2014"),
+           "Program Director: "+(d.progDirector||"\u2014"),"Area of Focus: "+(d.areaOfFocus||"\u2014"),
            "Modality: "+(d.modality==="async_sync"?"Async & Sync":"Async Only"),
-           "Sync Min: "+(d.syncMin||"—"),"Async Min: "+(d.asyncMin||"—"),
-           "ID: "+(d.instDesigner||"—")].map(function(txt,i){
+           "Sync Min: "+(d.syncMin||"\u2014"),"Async Min: "+(d.asyncMin||"\u2014"),
+           "ID: "+(d.instDesigner||"\u2014")].map(function(txt,i){
             return React.createElement("div",{key:i,style:{fontSize:14,color:"#555",padding:"4px 0"}},txt);
           }))),
       d.courseDesc?React.createElement("div",{className:"card"},
@@ -943,7 +1147,7 @@ function AdminCDMViewer(props){
           return React.createElement("div",{key:i,style:{padding:"10px 0",borderBottom:"1px solid #f0f0f0"}},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
               React.createElement("span",{className:"badge"},"CLO "+(i+1)),
-              React.createElement("span",{style:{fontSize:13,color:"#888"}},"CSWE: "+(cl.ces||"—")+" | ADEI: "+(cl.adei||"—"))),
+              React.createElement("span",{style:{fontSize:13,color:"#888"}},"CSWE: "+(cl.ces||"\u2014")+" | ADEI: "+(cl.adei||"\u2014"))),
             React.createElement("p",{style:{fontSize:14,color:"#333"}},cl.text));
         })),
       React.createElement("div",{className:"card"},
@@ -956,9 +1160,42 @@ function AdminCDMViewer(props){
             mod.objectives.filter(function(o){return o.text;}).map(function(obj,oi){
               return React.createElement("div",{key:oi,style:{padding:"8px 0",borderTop:"1px solid #e0d8cc",fontSize:13}},
                 React.createElement("div",{style:{fontWeight:600,color:"#333",marginBottom:4}},"Obj "+(oi+1)+": "+obj.text),
-                React.createElement("div",{style:{color:"#888"}},"CLOs: "+(obj.clos||"—")+" | CSWE: "+(obj.ces||"—")+" | ADEI: "+(obj.adei||"—")));
+                React.createElement("div",{style:{color:"#888"}},"CLOs: "+(obj.clos||"\u2014")+" | CSWE: "+(obj.ces||"\u2014")+" | ADEI: "+(obj.adei||"\u2014")));
             }));
-        }))));
+        })),
+      // ===== Admin Comment Panel =====
+      canComment?React.createElement("div",{className:"card",style:{background:"#FFFBEB",border:"2px solid #FFCC00"}},
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:6}},
+          React.createElement("span",{style:{fontSize:11,fontWeight:700,background:"#990000",color:"#fff",padding:"3px 10px",borderRadius:8,letterSpacing:0.5}},"ADMINISTRATOR"),
+          React.createElement("h3",{style:{fontSize:18,fontWeight:700,color:"#990000",margin:0}},"Leave a Comment for "+facultyName)),
+        React.createElement("p",{style:{fontSize:13,color:"#78350F",marginBottom:14,lineHeight:1.5}},"Your comments will appear in this faculty member's Comments & Feedback tab (Step 8) highlighted in USC cardinal red so they can clearly see admin feedback."),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"200px 1fr",gap:12,marginBottom:12}},
+          React.createElement("div",{className:"field"},
+            React.createElement("label",null,"Section"),
+            React.createElement("select",{value:section,onChange:function(e){setSection(e.target.value);},style:{padding:"10px 14px",borderRadius:12,border:"1px solid #ddd",fontSize:14,background:"#fff",width:"100%"}},
+              commentSections.map(function(s){return React.createElement("option",{key:s,value:s},s);}))),
+          React.createElement("div",null)),
+        React.createElement("div",{className:"field",style:{marginBottom:12}},
+          React.createElement("label",null,"Your Comment"),
+          React.createElement("textarea",{value:newText,onChange:function(e){setNewText(e.target.value);},placeholder:"Type your feedback, suggestion, or request for changes...",rows:3,style:{padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14,width:"100%",fontFamily:"inherit"}})),
+        React.createElement("button",{onClick:doPost,disabled:posting||!newText.trim(),style:{background:posting||!newText.trim()?"#E5E7EB":"#990000",color:posting||!newText.trim()?"#9CA3AF":"#fff",border:"none",padding:"10px 22px",fontSize:14,fontWeight:700,borderRadius:10,cursor:posting||!newText.trim()?"not-allowed":"pointer"}},posting?"Posting...":"Post Comment"),
+        // Existing comments
+        !comments?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20,fontSize:13}},"Loading comments..."):
+        comments.length===0?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20,fontSize:13,marginTop:16}},"No comments yet on this CDM."):
+        React.createElement("div",{style:{marginTop:20,paddingTop:16,borderTop:"1px solid #FDE68A"}},
+          React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#78350F",marginBottom:10}},"Conversation on this CDM ("+comments.length+")"),
+          comments.map(function(c){
+            var time=c.timestamp?new Date(c.timestamp.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Just now";
+            var isAdminComment=c.role==="Administrator";
+            return React.createElement("div",{key:c.id,style:{background:isAdminComment?"#FEF2F2":"#fff",border:isAdminComment?"2px solid #990000":"1px solid #e8e0d0",borderLeft:isAdminComment?"6px solid #990000":"1px solid #e8e0d0",borderRadius:10,padding:12,marginBottom:8}},
+              React.createElement("div",{style:{fontSize:11,color:"#990000",fontWeight:600,marginBottom:4}},c.section||"General"),
+              React.createElement("div",{style:{fontSize:12,color:"#888",marginBottom:6}},
+                React.createElement("strong",{style:{color:isAdminComment?"#990000":"#333"}},c.authorName||"Unknown"),
+                React.createElement("span",{style:{fontSize:10,fontWeight:700,padding:"1px 8px",borderRadius:8,marginLeft:6,background:isAdminComment?"#990000":"#f0fdf4",color:isAdminComment?"#fff":"#166534"}},c.role||"Faculty"),
+                React.createElement("span",{style:{marginLeft:8}},time)),
+              React.createElement("div",{style:{fontSize:14,color:"#333",lineHeight:1.5}},c.text));
+          }))
+      ):null));
 }
 
 
@@ -1345,11 +1582,13 @@ function CommentsStep(props){
     React.createElement("div",null,
       comments.map(function(c){
         var time=c.timestamp?new Date(c.timestamp.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Just now";
-        return React.createElement("div",{key:c.id,className:"comment-bubble"},
+        var isAdminComment=c.role==="Administrator";
+        return React.createElement("div",{key:c.id,className:"comment-bubble",style:isAdminComment?{background:"#FEF2F2",border:"2px solid #990000",borderLeft:"6px solid #990000"}:{}},
+          isAdminComment?React.createElement("div",{style:{fontSize:11,fontWeight:700,color:"#990000",marginBottom:6,letterSpacing:0.5}},"\u25C6 ADMIN FEEDBACK"):null,
           React.createElement("div",{className:"comment-section"},c.section||"General"),
           React.createElement("div",{className:"comment-meta"},
-            React.createElement("strong",null,c.authorName||"Unknown"),
-            React.createElement("span",{className:"comment-role "+(c.role==="Administrator"?"admin":"faculty")},c.role||"Faculty"),
+            React.createElement("strong",{style:isAdminComment?{color:"#990000"}:{}},c.authorName||"Unknown"),
+            React.createElement("span",{className:"comment-role "+(isAdminComment?"admin":"faculty")},c.role||"Faculty"),
             React.createElement("span",{style:{marginLeft:8}},time)),
           React.createElement("div",{className:"comment-text"},c.text));
       })));
@@ -1654,14 +1893,14 @@ if(dupInfo){return React.createElement("div",{style:{minHeight:"100vh",backgroun
 }
 if(showDashboard){
   if(isAdmin(authUser.email)&&adminMode){
-    if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,onBack:function(){setAdminViewData(null);},onExport:function(){
+    if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,facultyUid:adminViewInfo.facultyUid,courseId:adminViewInfo.courseId,authUser:authUser,onBack:function(){setAdminViewData(null);},onExport:function(){
       var tmpData=adminViewData;var oldData=data;setData(tmpData);setTimeout(function(){
         var revStep=document.querySelector('[class*="btn-p"]');
         setData(oldData);alert("To download this CDM as PDF, open the faculty member's CDM in the app and use the Review & Export step.");
       },100);
     }});}
     return React.createElement(AdminDashboard,{user:authUser,onLogout:function(){firebase.auth().signOut();},onSwitchToFaculty:function(){setAdminMode(false);},onViewCourse:function(uid,cid,cname,fname){
-      setAdminViewInfo({courseName:cname,facultyName:fname});
+      setAdminViewInfo({courseName:cname,facultyName:fname,facultyUid:uid,courseId:cid});
       loadFacultyCourse(uid,cid,function(d){setAdminViewData(d);});
     }});
   }
