@@ -173,6 +173,115 @@ const MSW_COMPS=[
 {id:9,name:"Evaluate",desc:"Evaluate practice with individuals, families, groups, organizations, and communities"},
 ];
 
+// =====================================================================
+// MSW Sub-Competencies — Source: USC SSW MSW Curricular Mapping (Apr 2026)
+// =====================================================================
+// Each sub-competency has TWO versions of its text:
+//   gen  = Generalist Practice Behavior (Year 1 courses)
+//   spec = Specialized Practice Behavior (Year 2 courses, includes ISW principles)
+// The system selects which text to show based on the course's year.
+// Faculty cannot edit this language (read-only / grayed in the UI).
+// Source typos preserved with two minor normalizations flagged in notes:
+//   - 6b Year 1: added missing "6b." prefix for consistency (Excel omits it)
+//   - 9a Year 2: normalized trailing ".." to "." (Excel had double period)
+const MSW_SUBCOMPS={
+"1a":{comp:1,gen:"1a. Make ethical decisions by applying the standards of the National Association of Social Workers Code of Ethics, relevant laws and regulations, models for ethical decision making, ethical conduct of research, and additional codes of ethics within the profession as appropriate to the context.",spec:"1a. Make ethical decisions by applying the standards of the National Association of Social Workers Code of Ethics, relevant laws, and regulations, while integrating ISW principles that emphasize social justice, human dignity, and self-determination to realize social, racial, economic, and environmental justice in their practice."},
+"1b":{comp:1,gen:"1b. Demonstrate professional behavior; appearance; and oral, written, and electronic communication.",spec:"1b. Demonstrate professional behavior, appearance, and oral, written, and electronic communication, aligning with the values of integrative social work that emphasize person-centered care, strengths-based approaches, and respect for clients\u2019 unique experiences."},
+"1c":{comp:1,gen:"1c. Use technology ethically and appropriately to facilitate practice outcomes.",spec:"1c. Use technology ethically and appropriately, incorporating ISW principles of digital justice, while ensuring it facilitates comprehensive care and equitable access to services."},
+"1d":{comp:1,gen:"1d. Use supervision and consultation to guide professional judgment and behavior.",spec:"1d. Utilize supervision and consultation to guide professional judgment and behavior, integrating ISW concepts of critical thinking, cultural humility, and anti-racist and anti-oppressive lenses to promote effective and ethical social work practice."},
+"2a":{comp:2,gen:"2a. Advocate for human rights at the individual, family, group, organizational, and community system levels.",spec:"2a. Advocate for human rights at the individual, family, group, organizational, and community system levels, while actively integrating ISW principles to address the intersecting and ongoing injustices that result in oppression and racism."},
+"2b":{comp:2,gen:"2b. Engage in practices that advance human rights to promote social, racial, economic, and environmental justice.",spec:"2b. Engage in practices that advance human rights and social, racial, economic, and environmental justice, while critically evaluating the distribution of power and privilege in society through ISW lenses."},
+"3a":{comp:3,gen:"3a. Demonstrate anti-racist and anti-oppressive social work practice at the individual, family, group, organizational, community, research, and policy levels.",spec:"3a. Demonstrate anti-racist and anti-oppressive social work practice at the individual, family, group, organizational, community, research, and policy levels, while understanding the pervasive impact of white privilege."},
+"3b":{comp:3,gen:"3b. Demonstrate cultural humility by applying critical reflection, self-awareness, and self-regulation to manage the influence of bias, power, privilege, and values in working with clients and constituencies, acknowledging them as experts of their own lived experiences.",spec:"3b. Apply ISW principles of diversity, intersectionality, and intercultural competence to shape human experiences and identity development, recognizing how cultural humility and intercultural competence influence equity and inclusion. Engage in critical self-reflection to manage the influence of bias, power, privilege, and values in working with clients and constituencies, acknowledging their expertise in their own lived experiences."},
+"4a":{comp:4,gen:"4a. Apply research findings to inform and improve practice, policy, and programs.",spec:"4a. Apply research findings to inform and improve practice, policy, and programs, integrating ISW principles of ethical, culturally informed, anti-racist, and anti-oppressive approaches in conducting research and building knowledge."},
+"4b":{comp:4,gen:"4b. Identify ethical, culturally informed, anti-racist, and anti-oppressive strategies that address inherent biases for use in quantitative and qualitative research methods to advance the purposes of social work.",spec:"4b. Identify ethical, culturally informed, anti-racist, and anti-oppressive strategies to address inherent biases in quantitative and qualitative research methods, advancing the purposes of social work."},
+"5a":{comp:5,gen:"5a. Use social justice, anti-racist, and anti-oppressive lenses to assess how social welfare policies affect the delivery of and access to social services.",spec:"5a. Use advanced social justice, anti-racist, and anti-oppressive lenses to assess how social welfare policies affect the delivery of and access to social services, integrating ISW principles of policy analysis and advocacy to advance human rights and social, racial, economic justice."},
+"5b":{comp:5,gen:"5b. Apply critical thinking to analyze, formulate, and advocate for policies that advance human rights and social, racial, economic, and environmental justice.",spec:"5b. Apply advanced critical thinking to analyze, formulate, and advocate for policies that advance human rights and social, racial, economic, and environmental justice, considering the impact of historical and current contexts of oppression and inequalities on policy formulation and implementation."},
+"6a":{comp:6,gen:"6a. Apply knowledge of human behavior and person-in-environment, as well as interprofessional conceptual frameworks, to engage with clients and constituencies.",spec:"6a. Apply advanced knowledge of human behavior and person-in-environment, as well as interprofessional conceptual frameworks, to engage with clients and constituencies, incorporating ISW concepts of person-centered, strengths-based care and intercultural competence."},
+"6b":{comp:6,gen:"6b. Use empathy, reflection, and interpersonal skills to engage in culturally responsive practice.",spec:"6b. Use advanced empathy, reflection, and interpersonal skills to engage in culturally responsive practice with clients and constituencies, integrating ISW principles of self-awareness and critical reflection."},
+"7a":{comp:7,gen:"7a. Apply theories of human behavior and person-in-environment, as well as other culturally responsive and interprofessional conceptual frameworks, when assessing clients and constituencies.",spec:"7a. Apply theories of human behavior and person-in-environment, as well as other culturally responsive and interprofessional conceptual frameworks, when assessing clients and constituencies, recognizing the impact of diverse backgrounds and intersectionality on clients\u2019 experiences."},
+"7b":{comp:7,gen:"7b. Demonstrate respect for client self-determination during the assessment process by collaborating with clients and constituencies in developing a mutually agreed-upon plan.",spec:"7b. Demonstrate respect for client self-determination during the assessment process by collaborating with clients and constituencies in developing a mutually agreed-upon plan, integrating ISW concepts of empowerment and self-determination."},
+"8a":{comp:8,gen:"8a. Engage with clients and constituencies to critically choose and implement culturally responsive, evidence-informed interventions to achieve client and constituency goals.",spec:"8a. Engage with clients and constituencies to critically choose and implement culturally responsive, evidence-informed interventions to achieve client and constituency goals, incorporating ISW principles of person-centered care, multi-systematic approach, and advocacy."},
+"8b":{comp:8,gen:"8b. Incorporate culturally responsive methods to negotiate, mediate, and advocate with and on behalf of clients and constituencies.",spec:"8b. Incorporate culturally responsive methods to negotiate, mediate, and advocate with and on behalf of clients and constituencies, utilizing ISW concepts of interprofessional collaboration and social justice advocacy."},
+"9a":{comp:9,gen:"9a. Select and use culturally responsive methods for evaluation of outcomes.",spec:"9a. Select and use culturally responsive methods for the evaluation of outcomes, integrating ISW principles of equity and inclusion to determine the effectiveness of interventions and service delivery."},
+"9b":{comp:9,gen:"9b. Critically analyze outcomes and apply evaluation findings to improve practice effectiveness with individuals, families, groups, organizations, and communities.",spec:"9b. Critically analyze outcomes and apply evaluation findings to improve practice effectiveness with individuals, families, groups, organizations, and communities, incorporating ISW concepts of evidence-based practice and continuous improvement."}
+};
+
+// =====================================================================
+// MSW Course-to-Sub-Competency Mapping
+// =====================================================================
+// Maps SOWK course numbers to their year and required sub-competencies.
+// Year 1 = Generalist, Year 2 = Specialized.
+// Per MSW program direction: every sub-competency listed for a course
+// MUST be addressed in that course (mandatory mapping).
+// Courses NOT in this map are treated as electives and use free
+// competency selection (the existing behavior for MSW courses).
+// Course number changes from prior version: SOWK 600 -> SOWK 689; SOWK 633 -> SOWK 686.
+const MSW_COURSE_MAP={
+// Year 1 (Generalist Practice Behavior)
+"SOWK 510":{year:1,subcomps:["1a","1b"]},
+"SOWK 511":{year:1,subcomps:["1c","1d"]},
+"SOWK 506":{year:1,subcomps:["7a"]},
+"SOWK 523":{year:1,subcomps:["6a","6b"]},
+"SOWK 525":{year:1,subcomps:["7b","8a","8b"]},
+"SOWK 536":{year:1,subcomps:["2a","2b","5a","5b"]},
+"SOWK 546":{year:1,subcomps:["4a","4b","9a","9b"]},
+"SOWK 630":{year:1,subcomps:["3a","3b"]},
+// Year 2 (Specialized Practice Behavior)
+"SOWK 608":{year:2,subcomps:["1a","1b","1c","1d","4a","4b","9a","9b"]},
+"SOWK 665":{year:2,subcomps:["1a","1b","1c","1d","4a","4b","9a","9b"]},
+"SOWK 643":{year:2,subcomps:["2a","2b","5a","5b","6a","6b"]},
+"SOWK 627":{year:2,subcomps:["2a","2b","5a","5b","6a","6b"]},
+"SOWK 639":{year:2,subcomps:["2a","2b","5a","5b","6a","6b"]},
+"SOWK 686":{year:2,subcomps:["2a","2b","5a","5b","6a","6b"]},
+"SOWK 614":{year:2,subcomps:["2a","2b","5a","5b","6a","6b"]},
+"SOWK 647":{year:2,subcomps:["3a","3b","7a","7b","8a","8b"]},
+"SOWK 642":{year:2,subcomps:["3a","3b","7a","7b","8a","8b"]},
+"SOWK 648":{year:2,subcomps:["3a","3b","7a","7b","8a","8b"]},
+"SOWK 689":{year:2,subcomps:["3a","3b","7a","7b","8a","8b"]},
+"SOWK 609":{year:2,subcomps:["3a","3b","7a","7b","8a","8b"]}
+};
+
+// Helper: Given a course number string (e.g. "SOWK 510"), return the
+// year and resolved sub-competency objects (with full text). Returns
+// null if the course is not in the mapping (treat as elective).
+function getMSWMapping(courseNum){
+  if(!courseNum)return null;
+  // Normalize: extract just "SOWK NNN" from inputs like "SOWK 510: Course Title"
+  var m=courseNum.match(/^(SOWK\s+\d+[a-z]?)/i);
+  var key=m?m[1].toUpperCase().replace(/\s+/g," "):courseNum;
+  var entry=MSW_COURSE_MAP[key];
+  if(!entry)return null;
+  var resolved=entry.subcomps.map(function(id){
+    var sc=MSW_SUBCOMPS[id];
+    if(!sc)return null;
+    return {id:id,comp:sc.comp,text:entry.year===2?sc.spec:sc.gen};
+  }).filter(function(x){return x;});
+  return {year:entry.year,courseKey:key,subcomps:resolved};
+}
+
+// Debug helper exposed on window for verification in browser console.
+// Run: verifyMSWMapping() in DevTools to print a table showing every
+// mapped course, its year, sub-competency count, and whether the course
+// is present in SOWK_CATALOG.
+if(typeof window!=="undefined"){
+  window.verifyMSWMapping=function(){
+    var out=[];
+    Object.keys(MSW_COURSE_MAP).forEach(function(k){
+      var m=MSW_COURSE_MAP[k];
+      var validRefs=m.subcomps.every(function(id){return MSW_SUBCOMPS[id];});
+      out.push({course:k,year:m.year,subcompCount:m.subcomps.length,subcomps:m.subcomps.join(","),inCatalog:typeof SOWK_CATALOG!=="undefined"&&!!SOWK_CATALOG[k],allRefsValid:validRefs});
+    });
+    console.table(out);
+    var missing=out.filter(function(r){return !r.inCatalog;}).map(function(r){return r.course;});
+    if(missing.length){console.warn("Courses in MSW_COURSE_MAP but missing from SOWK_CATALOG:",missing);}
+    var subcompTotal=Object.keys(MSW_SUBCOMPS).length;
+    console.log("MSW_SUBCOMPS contains "+subcompTotal+" sub-competencies (expected: 22).");
+    return out;
+  };
+}
+
+
 const BLOOM={
 "Remember":["Define","List","Recognize","Recall","Identify"],
 "Understand":["Explain","Summarize","Interpret","Classify","Compare"],
@@ -841,7 +950,7 @@ function AdminDashboard(props){
         React.createElement("div",null,
           React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#333"}},user.displayName||user.email),
           React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fef2f2",padding:"2px 10px",borderRadius:10}},"ADMINISTRATOR"),
-          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.2"))),
+          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.3"))),
       React.createElement("div",{style:{display:"flex",gap:12}},
         React.createElement("button",{onClick:function(){setShowAnalytics(!showAnalytics);},style:{background:showAnalytics?"#FEF2F2":"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},showAnalytics?"Back to Overview":"Analytics"),
       React.createElement("button",{onClick:function(){
@@ -1246,7 +1355,16 @@ var SOWK_CATALOG={
 "SOWK 589b":{t:"Applied Learning in Practicum Education",u:3,p:"msw",d:"Continuation of supervised practicum seminar and field placement developing generalist practice skills."},
 "SOWK 591":{t:"Applied Learning in Practicum Education I",u:3,p:"msw",d:"Supervised beginning generalist practicum seminar and placement to develop practice skills in working with individuals, families, groups, communities and organizations."},
 "SOWK 593":{t:"Applied Learning in Practicum Education II",u:3,p:"msw",d:"Supervised generalist practicum seminar and placement to develop practice skills. Builds on foundational practicum experience."},
-"SOWK 600":{t:"Practice with Service Members, Veterans and Families",u:3,p:"msw",d:"Practice with service members, veterans and their families, addressing military culture, deployment issues, and reintegration challenges."},
+"SOWK 689":{t:"Practice with Service Members, Veterans and Families",u:3,p:"msw",d:"Practice with service members, veterans and their families, addressing military culture, deployment issues, and reintegration challenges."},
+// =====================================================================
+// Placeholder MSW catalog entries — required by MSW_COURSE_MAP but
+// not yet in the catalog. Titles/descriptions marked as TBD pending
+// confirmation from MSW Program Director. Update before Phase 2 launch.
+// =====================================================================
+"SOWK 627":{t:"[TBD] MSW Year 2 Specialized Practice (627)",u:3,p:"msw",d:"Placeholder pending course title and description from MSW Program Director. Maps to sub-competencies 2a, 2b, 5a, 5b, 6a, 6b."},
+"SOWK 639":{t:"[TBD] MSW Year 2 Specialized Practice (639)",u:3,p:"msw",d:"Placeholder pending course title and description from MSW Program Director. Maps to sub-competencies 2a, 2b, 5a, 5b, 6a, 6b."},
+"SOWK 665":{t:"[TBD] MSW Year 2 Specialized Practice (665)",u:3,p:"msw",d:"Placeholder pending course title and description from MSW Program Director. Maps to sub-competencies 1a, 1b, 1c, 1d, 4a, 4b, 9a, 9b."},
+"SOWK 686":{t:"[TBD] MSW Year 2 Specialized Practice (686 \u2014 formerly SOWK 633)",u:3,p:"msw",d:"Placeholder pending course title and description from MSW Program Director. Maps to sub-competencies 2a, 2b, 5a, 5b, 6a, 6b."},
 "SOWK 601":{t:"Advanced Theories and Interventions with Children and Adolescents",u:3,p:"msw",d:"Advanced theories and evidence-based interventions for practice with children and adolescents across diverse settings."},
 "SOWK 602":{t:"Advanced Theories and Clinical Interventions with Families",u:3,p:"msw",d:"Advanced theories and clinical interventions for social work practice with families, including systemic and structural approaches."},
 "SOWK 603":{t:"The Transforming Power of Social Work and Sports",u:3,p:"msw",d:"Explores the intersection of social work and sports, examining how athletic programs can serve as vehicles for social change."},
