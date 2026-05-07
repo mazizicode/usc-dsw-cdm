@@ -305,7 +305,7 @@ const STEPS=[
 ];
 
 const emptyObj=()=>({text:"",materials:"",syncAct:"",asyncAct:"",assessment:"",clos:"",ces:"",strategies:"",adei:""});
-const emptyMod=()=>({id:Date.now()+Math.random(),title:"",syncMin:"",asyncMin:"",terms:"",overview:"",objectives:[emptyObj(),emptyObj(),emptyObj()],
+const emptyMod=()=>({id:Date.now()+Math.random(),title:"",syncMin:"",asyncMin:"",terms:"",overview:"",subcompTags:[],objectives:[emptyObj(),emptyObj(),emptyObj()],
 asyncContent:{
 startHere:{welcome:"",objectives:"",readings:""},
 learn:{guidedQuestions:"",knowledgeChecks:"",miniLectures:"",additionalChecks:""},
@@ -409,14 +409,14 @@ function loadAllFaculty(cb){
 
 function loadFacultyCourse(uid,cid,cb){
   firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(doc){
-    if(doc.exists){var d=doc.data().cdmData;if(d){try{var p=JSON.parse(d);if(!p.cesExplain)p.cesExplain={};if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};cb(p);}catch(e){cb(null);}}else cb(null);}
+    if(doc.exists){var d=doc.data().cdmData;if(d){try{var p=JSON.parse(d);if(!p.cesExplain)p.cesExplain={};if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];});}cb(p);}catch(e){cb(null);}}else cb(null);}
     else cb(null);
   }).catch(function(){cb(null);});
 }
 
 function load(){return INIT;}
 function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();if(x.archived===true)return;r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
-function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";if(!p.cdmStatus)p.cdmStatus="Draft";if(!p.cdmStatusHistory)p.cdmStatusHistory=[];if(!p.targetSemester)p.targetSemester="";if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
+function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";if(!p.cdmStatus)p.cdmStatus="Draft";if(!p.cdmStatusHistory)p.cdmStatusHistory=[];if(!p.targetSemester)p.targetSemester="";if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];});}cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
 function createNewCourse(uid,initData,cb){if(typeof initData==="function"){cb=initData;initData=null;}var d=initData||INIT;var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(d),courseName:d.courseName||"New Course",leadName:d.courseLead||"",program:d.program||"dsw",cdmStatus:"Draft",
 cdmStatusHistory:[],
 targetSemester:"",
@@ -814,10 +814,15 @@ const setM=(k,v)=>set(d=>{const m=[...d.modules];m[active]={...m[active],[k]:v};
 const setO=(oi,k,v)=>set(d=>{const m=[...d.modules];const o=[...m[active].objectives];o[oi]={...o[oi],[k]:v};m[active]={...m[active],objectives:o};return{...d,modules:m}});
 const addO=()=>set(d=>{const m=[...d.modules];m[active]={...m[active],objectives:[...m[active].objectives,emptyObj()]};return{...d,modules:m}});
 const removeO=oi=>set(d=>{const m=[...d.modules];m[active]={...m[active],objectives:m[active].objectives.filter((_,i)=>i!==oi)};return{...d,modules:m}});
+// Phase 2b: toggle sub-competency tag on the active module (mapped MSW only)
+const toggleSubTag=(subId)=>set(d=>{const m=[...d.modules];const cur=Array.isArray(m[active].subcompTags)?m[active].subcompTags:[];const next=cur.indexOf(subId)>=0?cur.filter(function(t){return t!==subId;}):cur.concat([subId]);m[active]={...m[active],subcompTags:next};return{...d,modules:m};});
 const setAsync=(section,key,val)=>set(d=>{const m=[...d.modules];const ac=Object.assign({},m[active].asyncContent||{});
 if(!ac[section])ac[section]={};ac[section]=Object.assign({},ac[section],{[key]:val});
 m[active]={...m[active],asyncContent:ac};return{...d,modules:m}});
 const mod=data.modules[active];if(!mod)return null;
+// Phase 2b: detect if this is a mapped MSW course so we can show sub-competency tagging
+var modMswMapping=data.program==="msw"?getMSWMapping(data.courseName):null;
+var modSubTags=Array.isArray(mod.subcompTags)?mod.subcompTags:[];
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"Learning Modules"),
 React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:8}},"Build each module with objectives, materials, activities, and assessments."),
@@ -838,7 +843,28 @@ React.createElement(F,{label:"Module Title",value:mod.title,onChange:v=>setM("ti
 React.createElement(F,{label:"Sync Minutes",value:mod.syncMin,onChange:v=>setM("syncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Async Minutes",value:mod.asyncMin,onChange:v=>setM("asyncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Essential Terms",value:mod.terms,onChange:v=>setM("terms",v),placeholder:"Trauma, Resilience..."})),
-React.createElement(A,{label:"Module Overview",value:mod.overview,onChange:v=>setM("overview",v),placeholder:"Brief narrative overview of this module\u2019s focus and connection to the course.",rows:2,className:"",style:{marginTop:10}})),
+React.createElement(A,{label:"Module Overview",value:mod.overview,onChange:v=>setM("overview",v),placeholder:"Brief narrative overview of this module\u2019s focus and connection to the course.",rows:2,className:"",style:{marginTop:10}}),
+// Phase 2b: Sub-competency tagger for mapped MSW courses
+modMswMapping?React.createElement("div",{style:{marginTop:14,padding:"12px 14px",background:"#FFFBEB",border:"1px solid #FDE68A",borderLeft:"4px solid #D97706",borderRadius:10}},
+  React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6,flexWrap:"wrap",gap:6}},
+    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+      React.createElement("span",{style:{fontSize:13,fontWeight:700,color:"#78350F"}},"\uD83C\uDFAF Sub-Competencies Addressed in This Module"),
+      React.createElement("span",{style:{fontSize:10,fontWeight:600,padding:"1px 8px",background:"#D97706",color:"#fff",borderRadius:6}},modSubTags.length+" of "+modMswMapping.subcomps.length+" tagged"))),
+  React.createElement("div",{style:{fontSize:11,color:"#78350F",marginBottom:10,lineHeight:1.5}},"Check each sub-competency this specific module addresses. Only the sub-competencies assigned to this course are shown. These tags help generate accreditation evidence (e.g., \u201CSub-competency 1a is addressed in Modules 2, 4, 7\u201D)."),
+  React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:8}},
+    modMswMapping.subcomps.map(function(sub){
+      var tagged=modSubTags.indexOf(sub.id)>=0;
+      var compInfo=MSW_COMPS.filter(function(c){return c.id===sub.comp;})[0]||{};
+      var truncText=sub.text.length>110?sub.text.substring(0,110)+"\u2026":sub.text;
+      return React.createElement("label",{key:sub.id,style:{display:"flex",gap:8,padding:"8px 10px",background:tagged?"#FEF2F2":"#fff",border:"1px solid "+(tagged?"#990000":"#e8e0d0"),borderRadius:8,cursor:"pointer",fontSize:12,alignItems:"flex-start"}},
+        React.createElement("input",{type:"checkbox",checked:tagged,onChange:function(){toggleSubTag(sub.id);},style:{marginTop:2,accentColor:"#990000",cursor:"pointer"}}),
+        React.createElement("div",{style:{flex:1}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:3}},
+            React.createElement("span",{style:{fontSize:10,fontWeight:700,padding:"1px 6px",background:tagged?"#990000":"#999",color:"#fff",borderRadius:4}},sub.id.toUpperCase()),
+            React.createElement("span",{style:{fontSize:10,color:"#666",fontWeight:600}},"C"+sub.comp+": "+(compInfo.name||""))),
+          React.createElement("div",{style:{fontSize:11,color:"#555",lineHeight:1.4}},truncText)));
+    })),
+  modSubTags.length===0?React.createElement("div",{style:{marginTop:8,fontSize:11,color:"#92400E",fontStyle:"italic"}},"\u26A0 No sub-competencies tagged for this module yet. Tag at least one if this module addresses any of the course's required sub-competencies."):null):null),
 mod.objectives.map((obj,oi)=>React.createElement("div",{key:oi,className:"obj-row"},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
 React.createElement("span",{className:"badge"},"Objective "+(oi+1)),
@@ -1004,7 +1030,7 @@ function AdminDashboard(props){
         React.createElement("div",null,
           React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#333"}},user.displayName||user.email),
           React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fef2f2",padding:"2px 10px",borderRadius:10}},"ADMINISTRATOR"),
-          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.4"))),
+          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.5"))),
       React.createElement("div",{style:{display:"flex",gap:12}},
         React.createElement("button",{onClick:function(){setShowAnalytics(!showAnalytics);},style:{background:showAnalytics?"#FEF2F2":"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},showAnalytics?"Back to Overview":"Analytics"),
       React.createElement("button",{onClick:function(){
