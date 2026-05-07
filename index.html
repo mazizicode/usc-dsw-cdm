@@ -901,9 +901,47 @@ h+=`<div class="page"><div style="text-align:center;padding:14px 0 8px"><div sty
 [["Course",data.courseName],["Dev Started",data.devStarted],["Target Delivery",data.targetDelivery],["Course Lead",data.courseLead],["Email",data.leadEmail],["Phone",data.leadPhone],["Instructional Designer",data.instDesigner],["Program Director",data.progDirector],["Area of Focus",data.areaOfFocus],["Modality",data.modality==="async_sync"?"Async & Sync":"Async Only"],["Sync Min/Module",data.syncMin],["Async Min/Module",data.asyncMin]].forEach(([l,v])=>{h+=`<div><label>${l}</label><span>${esc(v)}</span></div>`;});
 h+=`</div>`;
 if(data.courseDesc)h+=`<h3>Course Description</h3><p style="font-size:10px;color:#444;margin:3px 0">${esc(data.courseDesc)}</p>`;
-h+=`<h2>${data.program==="msw"?"CSWE 2022 EPAS Competency Mapping":"CSWE 2025 Core Expertise & Skills Mapping"}</h2><table><tr><th>CSWE</th><th>Description</th><th>Addressed</th><th>How It Maps</th><th>CLOs</th></tr>`;
-(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).forEach(c=>{var label=data.program==="msw"?c.name:c.short;h+=`<tr><td><span class="badge">${data.program==="msw"?"C":"CES "}${c.id}</span> ${label}</td><td>${c.desc}</td><td style="text-align:center;font-weight:700;color:${data.cesChecked[c.id]?"#990000":"#ccc"}">${data.cesChecked[c.id]?"\u2713":"\u2014"}</td><td>${esc(data.cesExplain[c.id])}</td><td>${esc(data.cesClos[c.id])}</td></tr>`;});
-h+=`</table>`;
+// Phase 2c: For mapped MSW courses, render Sub-Competency Mapping; otherwise render existing Competency Mapping
+var pdfMswMap=data.program==="msw"?getMSWMapping(data.courseName):null;
+if(pdfMswMap){
+  // === Sub-Competency Mapping table (mapped MSW) ===
+  var yrLabel=pdfMswMap.year===1?"Generalist Practice Behavior (Year 1)":"Specialized Practice Behavior (Year 2)";
+  h+=`<h2>CSWE 2022 EPAS Sub-Competency Mapping &mdash; ${yrLabel}</h2>`;
+  h+=`<p style="font-size:9px;color:#666;margin-bottom:6px;font-style:italic">This course is mapped to ${pdfMswMap.subcomps.length} required sub-competencies. Per accreditation, the sub-competency text is set by the MSW Program and may not be edited.</p>`;
+  h+=`<table><tr><th style="width:8%">Sub-Comp</th><th style="width:11%">Competency</th><th style="width:32%">Sub-Competency (Locked)</th><th style="width:7%">Addressed</th><th style="width:30%">How It Maps in This Course</th><th style="width:12%">Aligned CLOs</th></tr>`;
+  pdfMswMap.subcomps.forEach(function(sub){
+    var compInfo=MSW_COMPS.filter(function(c){return c.id===sub.comp;})[0]||{};
+    var addressed=!!(data.subcompChecked&&data.subcompChecked[sub.id]);
+    var explainTxt=data.subcompExplain&&data.subcompExplain[sub.id]?data.subcompExplain[sub.id]:"";
+    var closTxt=data.subcompClos&&data.subcompClos[sub.id]?data.subcompClos[sub.id]:"";
+    h+=`<tr><td><span class="badge">${sub.id.toUpperCase()}</span></td><td style="font-size:9px"><strong>C${sub.comp}</strong>: ${esc(compInfo.name||"")}</td><td style="font-size:9px;font-style:italic;color:#444">${esc(sub.text)}</td><td style="text-align:center;font-weight:700;color:${addressed?"#990000":"#ccc"};font-size:14px">${addressed?"\u2713":"\u2014"}</td><td style="font-size:9px">${esc(explainTxt)}</td><td style="font-size:9px">${esc(closTxt)}</td></tr>`;
+  });
+  h+=`</table>`;
+  // === Sub-Competency Coverage Map (cross-reference: which modules address each sub-comp?) ===
+  h+=`<h2>Sub-Competency Coverage Map</h2>`;
+  h+=`<p style="font-size:9px;color:#666;margin-bottom:6px;font-style:italic">Cross-reference showing where each required sub-competency is addressed across the course's learning modules. Generated from module-level sub-competency tags (Step 6: Modules).</p>`;
+  h+=`<table><tr><th style="width:10%">Sub-Comp</th><th style="width:38%">Sub-Competency Text</th><th style="width:16%">Addressed in Modules</th><th style="width:12%">Module Count</th><th style="width:12%">Status</th><th style="width:12%">Aligned CLOs</th></tr>`;
+  pdfMswMap.subcomps.forEach(function(sub){
+    var taggedMods=[];
+    if(Array.isArray(data.modules)){
+      data.modules.forEach(function(mod,mi){
+        if(!mod.title)return; // skip empty modules
+        if(Array.isArray(mod.subcompTags)&&mod.subcompTags.indexOf(sub.id)>=0){taggedMods.push("M"+(mi+1));}
+      });
+    }
+    var modList=taggedMods.length?taggedMods.join(", "):"<em style='color:#999'>Not tagged in any module</em>";
+    var statusColor=taggedMods.length>0?"#990000":"#999";
+    var statusLabel=taggedMods.length>0?"\u2713 Covered":"\u26A0 Gap";
+    var closTxt=data.subcompClos&&data.subcompClos[sub.id]?data.subcompClos[sub.id]:"";
+    h+=`<tr><td><span class="badge">${sub.id.toUpperCase()}</span></td><td style="font-size:9px;color:#444">${esc(sub.text.length>180?sub.text.substring(0,180)+"\u2026":sub.text)}</td><td style="font-size:9px">${modList}</td><td style="text-align:center;font-size:9px"><strong>${taggedMods.length}</strong></td><td style="font-size:9px;font-weight:700;color:${statusColor}">${statusLabel}</td><td style="font-size:9px">${esc(closTxt)}</td></tr>`;
+  });
+  h+=`</table>`;
+}else{
+  // === Existing Competency Mapping (DSW + unmapped MSW electives) ===
+  h+=`<h2>${data.program==="msw"?"CSWE 2022 EPAS Competency Mapping":"CSWE 2025 Core Expertise & Skills Mapping"}</h2><table><tr><th>CSWE</th><th>Description</th><th>Addressed</th><th>How It Maps</th><th>CLOs</th></tr>`;
+  (data.program==="msw"?MSW_COMPS:CSWE_SKILLS).forEach(c=>{var label=data.program==="msw"?c.name:c.short;h+=`<tr><td><span class="badge">${data.program==="msw"?"C":"CES "}${c.id}</span> ${label}</td><td>${c.desc}</td><td style="text-align:center;font-weight:700;color:${data.cesChecked[c.id]?"#990000":"#ccc"}">${data.cesChecked[c.id]?"\u2713":"\u2014"}</td><td>${esc(data.cesExplain[c.id])}</td><td>${esc(data.cesClos[c.id])}</td></tr>`;});
+  h+=`</table>`;
+}
 const mswAct=MSW_COMPS.filter(c=>data.mswComps[c.id]);
 if(data.program!=="msw"&&mswAct.length){h+=`<h3>MSW Competencies Extended</h3><p style="font-size:10px">`;mswAct.forEach(function(c,i){h+='<span class="badge badge-gold">C'+c.id+": "+c.name+"</span>";if(i<mswAct.length-1)h+=" &nbsp;\u2022 &nbsp;";});h+=`</p>`;}
 h+=`<h2>Course Learning Objectives</h2><table><tr><th>CLO</th><th>Objective</th><th>CSWE Aligned</th><th>ADEI</th><th>Assessment</th></tr>`;
@@ -912,6 +950,16 @@ h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${da
 data.modules.forEach((mod,mi)=>{if(!mod.title)return;
 h+=`<div class="page"><div class="hdr"><div><strong style="color:#990000">Course Design Map</strong> \u2014 ${esc(data.courseName)}</div><div class="sub">CDM v${data.cdmVersion||"1.0"}</div></div><div class="bar"></div><div class="mh"><h3>Module ${mi+1}: ${esc(mod.title)}</h3><div style="font-size:9px;color:#666;margin-top:2px"><strong>Sync:</strong> ${esc(mod.syncMin)} min | <strong>Async:</strong> ${esc(mod.asyncMin)} min | <strong>Terms:</strong> ${esc(mod.terms)}</div></div>`;
 if(mod.overview)h+=`<div class="ov"><strong>Overview:</strong> ${esc(mod.overview)}</div>`;
+// Phase 2c: Show module-level sub-competency tags for mapped MSW courses
+if(pdfMswMap){
+  var modTags=Array.isArray(mod.subcompTags)?mod.subcompTags:[];
+  if(modTags.length>0){
+    var tagBadges=modTags.map(function(tid){return '<span class="badge">'+tid.toUpperCase()+'</span>';}).join("");
+    h+=`<div style="background:#fffbeb;border-left:3px solid #D97706;padding:5px 10px;font-size:10px;margin:5px 0;border-radius:0 5px 5px 0"><strong>Sub-Competencies Addressed in This Module:</strong> ${tagBadges}</div>`;
+  }else{
+    h+=`<div style="background:#fef2f2;border-left:3px solid #999;padding:5px 10px;font-size:10px;margin:5px 0;border-radius:0 5px 5px 0;color:#666;font-style:italic">Sub-Competencies Addressed in This Module: <em>None tagged</em></div>`;
+  }
+}
 h+=`<table><tr><th>Objective</th><th>Materials</th><th>Sync</th><th>Async</th><th>Assessment</th><th>CLOs Addressed</th><th>CSWE Addressed</th><th>Strategies</th><th>ADEI</th></tr>`;
 mod.objectives.forEach((o,oi)=>{if(!o.text)return;h+=`<tr><td><span class="badge">Obj ${oi+1}</span><br>${esc(o.text)}</td><td>${esc(o.materials)}</td><td>${esc(o.syncAct)}</td><td>${esc(o.asyncAct)}</td><td>${esc(o.assessment)}</td><td>${esc(o.clos)}</td><td>${esc(o.ces)}</td><td>${esc(o.strategies)}</td><td>${esc(o.adei)}</td></tr>`;});
 h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":"DSW"} Program | Module ${mi+1}</div></div>`;});
@@ -921,6 +969,42 @@ const resetAll=()=>{if(confirm("Delete this course CDM? This cannot be undone.")
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement(WorkflowPanel,{data:data,set:set||null,authUser:typeof authUser!=="undefined"?authUser:null}),
 React.createElement("div",{className:"stitle"},"Review & Export"),
+// Phase 2c: For mapped MSW courses, show Sub-Competency Coverage Map (sub-comp x modules); otherwise show existing Competency Coverage Map
+mswMap_review?React.createElement("div",{style:{background:"#fff",border:"2px solid #e8e0d0",borderRadius:16,padding:20,marginBottom:20}},
+React.createElement("h3",{style:{fontSize:18,fontWeight:700,color:"#990000",marginBottom:8}},"Sub-Competency Coverage Map"),
+React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:12}},"Cross-reference of every required sub-competency against your modules. A green dot means the sub-competency is tagged on that module (Step 6: Modules). Use this to make sure every required sub-competency is addressed in at least one module."),
+React.createElement("div",{style:{overflowX:"auto"}},
+React.createElement("table",{style:{width:"100%",borderCollapse:"collapse",fontSize:12}},
+React.createElement("thead",null,
+React.createElement("tr",null,
+React.createElement("th",{style:{padding:"8px",textAlign:"left",borderBottom:"2px solid #990000",fontWeight:700,color:"#990000"}},"Sub-Competency"),
+data.modules.map(function(mod,mi){
+return React.createElement("th",{key:mi,style:{padding:"6px 4px",textAlign:"center",borderBottom:"2px solid #990000",fontSize:11,fontWeight:600,color:"#990000",minWidth:50}},"M"+(mi+1));
+}),
+React.createElement("th",{style:{padding:"6px 4px",textAlign:"center",borderBottom:"2px solid #990000",fontSize:11,fontWeight:700,color:"#990000",minWidth:60}},"Status"))),
+React.createElement("tbody",null,
+mswMap_review.subcomps.map(function(sub){
+var compInfo=MSW_COMPS.filter(function(c){return c.id===sub.comp;})[0]||{};
+var totalTagged=0;
+return React.createElement("tr",{key:sub.id},
+React.createElement("td",{style:{padding:"8px",fontWeight:600,fontSize:11,borderBottom:"1px solid #eee"}},
+React.createElement("span",{style:{display:"inline-block",fontSize:10,fontWeight:700,padding:"1px 6px",background:"#990000",color:"#fff",borderRadius:4,marginRight:6}},sub.id.toUpperCase()),
+React.createElement("span",{style:{fontSize:10,color:"#666"}},"C"+sub.comp+": "+(compInfo.name||""))),
+data.modules.map(function(mod,mi){
+var tagged=Array.isArray(mod.subcompTags)&&mod.subcompTags.indexOf(sub.id)>=0;
+if(tagged)totalTagged++;
+return React.createElement("td",{key:mi,style:{padding:"6px",textAlign:"center",borderBottom:"1px solid #eee"}},
+React.createElement("div",{style:{width:20,height:20,borderRadius:10,background:tagged?"#22c55e":"#e5e5e5",margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#fff",fontWeight:700}},tagged?String.fromCharCode(10003):""));
+}),
+React.createElement("td",{style:{padding:"6px",textAlign:"center",borderBottom:"1px solid #eee",fontSize:11,fontWeight:700,color:totalTagged>0?"#16a34a":"#dc2626"}},totalTagged>0?String.fromCharCode(10003)+" "+totalTagged+"x":"\u26A0 Gap"));
+}))),
+(function(){
+var coveredSubs=mswMap_review.subcomps.filter(function(s){return data.modules.some(function(m){return Array.isArray(m.subcompTags)&&m.subcompTags.indexOf(s.id)>=0;});}).length;
+var totalSubs=mswMap_review.subcomps.length;
+var gapSubs=totalSubs-coveredSubs;
+return React.createElement("div",{style:{marginTop:12,padding:"10px 14px",background:gapSubs===0?"#f0fdf4":"#fffbeb",border:"1px solid "+(gapSubs===0?"#86efac":"#fde68a"),borderRadius:10,fontSize:13,color:gapSubs===0?"#166534":"#78350F",fontWeight:600}},
+gapSubs===0?String.fromCharCode(10003)+" All "+totalSubs+" required sub-competencies are tagged in at least one module.":"\u26A0 "+gapSubs+" of "+totalSubs+" required sub-competencies are NOT yet tagged in any module. Add tags in Step 6 (Modules) to close these gaps before submitting for accreditation review.");
+})())):
 React.createElement("div",{style:{background:"#fff",border:"2px solid #e8e0d0",borderRadius:16,padding:20,marginBottom:20}},
 React.createElement("h3",{style:{fontSize:18,fontWeight:700,color:"#990000",marginBottom:12}},"Competency Coverage Map"),
 React.createElement("p",{style:{fontSize:13,color:"#888",marginBottom:12}},"Green = addressed in module objectives, Gray = not addressed. Verify all competencies are covered."),
@@ -1030,7 +1114,7 @@ function AdminDashboard(props){
         React.createElement("div",null,
           React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#333"}},user.displayName||user.email),
           React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fef2f2",padding:"2px 10px",borderRadius:10}},"ADMINISTRATOR"),
-          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.5"))),
+          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.6"))),
       React.createElement("div",{style:{display:"flex",gap:12}},
         React.createElement("button",{onClick:function(){setShowAnalytics(!showAnalytics);},style:{background:showAnalytics?"#FEF2F2":"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},showAnalytics?"Back to Overview":"Analytics"),
       React.createElement("button",{onClick:function(){
