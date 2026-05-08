@@ -306,6 +306,7 @@ const STEPS=[
 
 const emptyObj=()=>({text:"",materials:"",syncAct:"",asyncAct:"",assessment:"",clos:"",ces:"",strategies:"",adei:""});
 const emptyMod=()=>({id:Date.now()+Math.random(),title:"",syncMin:"",asyncMin:"",terms:"",overview:"",subcompTags:[],objectives:[emptyObj(),emptyObj(),emptyObj()],
+videoPlan:{lectureVideos:[],skillBuilderVideos:[]},
 asyncContent:{
 startHere:{welcome:"",objectives:"",readings:""},
 learn:{guidedQuestions:"",knowledgeChecks:"",miniLectures:"",additionalChecks:""},
@@ -409,14 +410,14 @@ function loadAllFaculty(cb){
 
 function loadFacultyCourse(uid,cid,cb){
   firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(doc){
-    if(doc.exists){var d=doc.data().cdmData;if(d){try{var p=JSON.parse(d);if(!p.cesExplain)p.cesExplain={};if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];});}cb(p);}catch(e){cb(null);}}else cb(null);}
+    if(doc.exists){var d=doc.data().cdmData;if(d){try{var p=JSON.parse(d);if(!p.cesExplain)p.cesExplain={};if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];if(!m.videoPlan||typeof m.videoPlan!=="object")m.videoPlan={lectureVideos:[],skillBuilderVideos:[]};if(!Array.isArray(m.videoPlan.lectureVideos))m.videoPlan.lectureVideos=[];if(!Array.isArray(m.videoPlan.skillBuilderVideos))m.videoPlan.skillBuilderVideos=[];});}cb(p);}catch(e){cb(null);}}else cb(null);}
     else cb(null);
   }).catch(function(){cb(null);});
 }
 
 function load(){return INIT;}
 function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();if(x.archived===true)return;r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||""});});cb(r);}).catch(function(){cb([]);});}
-function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";if(!p.cdmStatus)p.cdmStatus="Draft";if(!p.cdmStatusHistory)p.cdmStatusHistory=[];if(!p.targetSemester)p.targetSemester="";if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];});}cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
+function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";if(!p.cdmStatus)p.cdmStatus="Draft";if(!p.cdmStatusHistory)p.cdmStatusHistory=[];if(!p.targetSemester)p.targetSemester="";if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];if(!m.videoPlan||typeof m.videoPlan!=="object")m.videoPlan={lectureVideos:[],skillBuilderVideos:[]};if(!Array.isArray(m.videoPlan.lectureVideos))m.videoPlan.lectureVideos=[];if(!Array.isArray(m.videoPlan.skillBuilderVideos))m.videoPlan.skillBuilderVideos=[];});}cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
 function createNewCourse(uid,initData,cb){if(typeof initData==="function"){cb=initData;initData=null;}var d=initData||INIT;var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(d),courseName:d.courseName||"New Course",leadName:d.courseLead||"",program:d.program||"dsw",cdmStatus:"Draft",
 cdmStatusHistory:[],
 targetSemester:"",
@@ -1114,7 +1115,7 @@ function AdminDashboard(props){
         React.createElement("div",null,
           React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#333"}},user.displayName||user.email),
           React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fef2f2",padding:"2px 10px",borderRadius:10}},"ADMINISTRATOR"),
-          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.8"))),
+          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.9"))),
       React.createElement("div",{style:{display:"flex",gap:12}},
         React.createElement("button",{onClick:function(){setShowAnalytics(!showAnalytics);},style:{background:showAnalytics?"#FEF2F2":"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},showAnalytics?"Back to Overview":"Analytics"),
       React.createElement("button",{onClick:function(){
@@ -1644,7 +1645,74 @@ function AsyncDesignStep(props){
     if(!mod||!mod.asyncContent||!mod.asyncContent[section])return "";
     return mod.asyncContent[section][key]||"";
   };
-  
+
+  // ============================================================
+  // Module Video Plan helpers (per Jen Lewis's spec, May 6 meeting):
+  //   Lecture videos: max 3, max 30 min total, formats: lecture / conversation / guest speaker
+  //   Skill builder videos: at least 1 required (no upper limit; 3 recommended)
+  // Each video: {id, title, durationMin, format, status, url, description}
+  // ============================================================
+  var MAX_LECTURE_VIDEOS=3;
+  var MAX_LECTURE_TOTAL_MIN=30;
+  var VIDEO_FORMATS=["Lecture","Conversation","Guest Speaker","Other"];
+  var VIDEO_STATUSES=["Existing","Needs to be created"];
+  var emptyVideo=function(){return{id:Date.now()+Math.random(),title:"",durationMin:"",format:"Lecture",status:"Needs to be created",url:"",description:""};};
+  var ensureVP=function(modIdx){
+    var m=data.modules[modIdx];
+    if(!m)return null;
+    if(!m.videoPlan||typeof m.videoPlan!=="object")return{lectureVideos:[],skillBuilderVideos:[]};
+    return{
+      lectureVideos:Array.isArray(m.videoPlan.lectureVideos)?m.videoPlan.lectureVideos:[],
+      skillBuilderVideos:Array.isArray(m.videoPlan.skillBuilderVideos)?m.videoPlan.skillBuilderVideos:[]
+    };
+  };
+  var addVideo=function(modIdx,kind){
+    set(function(d){
+      var mods=[].concat(d.modules);
+      var m=Object.assign({},mods[modIdx]);
+      var vp=Object.assign({lectureVideos:[],skillBuilderVideos:[]},m.videoPlan||{});
+      vp.lectureVideos=Array.isArray(vp.lectureVideos)?vp.lectureVideos:[];
+      vp.skillBuilderVideos=Array.isArray(vp.skillBuilderVideos)?vp.skillBuilderVideos:[];
+      if(kind==="lecture"){
+        if(vp.lectureVideos.length>=MAX_LECTURE_VIDEOS)return d;
+        vp.lectureVideos=vp.lectureVideos.concat([emptyVideo()]);
+      }else{
+        vp.skillBuilderVideos=vp.skillBuilderVideos.concat([emptyVideo()]);
+      }
+      m.videoPlan=vp;mods[modIdx]=m;
+      return Object.assign({},d,{modules:mods});
+    });
+  };
+  var removeVideo=function(modIdx,kind,vidIdx){
+    set(function(d){
+      var mods=[].concat(d.modules);
+      var m=Object.assign({},mods[modIdx]);
+      var vp=Object.assign({lectureVideos:[],skillBuilderVideos:[]},m.videoPlan||{});
+      var key=kind==="lecture"?"lectureVideos":"skillBuilderVideos";
+      var arr=Array.isArray(vp[key])?vp[key]:[];
+      vp[key]=arr.filter(function(_,i){return i!==vidIdx;});
+      m.videoPlan=vp;mods[modIdx]=m;
+      return Object.assign({},d,{modules:mods});
+    });
+  };
+  var updateVideo=function(modIdx,kind,vidIdx,field,val){
+    set(function(d){
+      var mods=[].concat(d.modules);
+      var m=Object.assign({},mods[modIdx]);
+      var vp=Object.assign({lectureVideos:[],skillBuilderVideos:[]},m.videoPlan||{});
+      var key=kind==="lecture"?"lectureVideos":"skillBuilderVideos";
+      var arr=(Array.isArray(vp[key])?vp[key]:[]).slice();
+      if(!arr[vidIdx])return d;
+      arr[vidIdx]=Object.assign({},arr[vidIdx],{[field]:val});
+      vp[key]=arr;m.videoPlan=vp;mods[modIdx]=m;
+      return Object.assign({},d,{modules:mods});
+    });
+  };
+  var sumLectureMinutes=function(vp){
+    if(!vp||!Array.isArray(vp.lectureVideos))return 0;
+    return vp.lectureVideos.reduce(function(t,v){var n=parseFloat(v.durationMin);return t+(isNaN(n)?0:n);},0);
+  };
+
   function guideBtn(key,label){
     return React.createElement("button",{onClick:function(){toggleGuide(key);},style:{fontSize:12,color:"#990000",background:"none",border:"1px solid #e8e0d0",borderRadius:8,padding:"4px 12px",cursor:"pointer",fontWeight:600,marginBottom:8}},showGuide[key]?String.fromCharCode(9650)+" Hide Guide":String.fromCharCode(9660)+" "+label);
   }
@@ -1685,6 +1753,74 @@ function AsyncDesignStep(props){
       React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#92400E",marginBottom:4}},"Module "+(activeMod+1)+": "+(mod.title||"Untitled")),
       React.createElement("p",{style:{fontSize:14,color:"#92400E",marginBottom:20}},"Fill in each section of the 5-step async module structure below. Click "+String.fromCharCode(8220)+"Show Guide"+String.fromCharCode(8221)+" in any section for tips and examples."),
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16}},
+
+        // ===== MODULE VIDEO PLAN (per Jen Lewis spec, May 6 meeting) =====
+        (function(){
+          var vp=ensureVP(activeMod);
+          var lec=vp.lectureVideos;
+          var sb=vp.skillBuilderVideos;
+          var totalMin=sumLectureMinutes(vp);
+          var overTime=totalMin>MAX_LECTURE_TOTAL_MIN;
+          var atVideoMax=lec.length>=MAX_LECTURE_VIDEOS;
+          var sbMet=sb.length>=1;
+
+          var renderVideoCard=function(kind,v,vidIdx){
+            var label=(kind==="lecture"?"Lecture Video #":"Skill Builder Video #")+(vidIdx+1);
+            return React.createElement("div",{key:v.id||vidIdx,style:{background:"#fff",border:"1px solid #e8e0d0",borderRadius:10,padding:14,marginBottom:10}},
+              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
+                React.createElement("strong",{style:{fontSize:13,color:"#990000"}},label),
+                React.createElement("button",{onClick:function(){removeVideo(activeMod,kind,vidIdx);},style:{fontSize:12,color:"#e55",background:"none",border:"none",cursor:"pointer"}},"Remove")),
+              React.createElement("div",{className:"g3",style:{gap:10}},
+                React.createElement(F,{label:"Title",value:v.title||"",onChange:function(val){updateVideo(activeMod,kind,vidIdx,"title",val);},placeholder:"e.g., Introduction to Military Culture"}),
+                React.createElement("div",{className:"field"},
+                  React.createElement("label",null,"Duration (min)"+(kind==="lecture"?" \u2014 max 10":"")),
+                  React.createElement("input",{type:"number",min:"0",max:kind==="lecture"?"10":undefined,value:v.durationMin||"",onChange:function(e){updateVideo(activeMod,kind,vidIdx,"durationMin",e.target.value);},placeholder:"e.g., 10",style:{padding:"8px 12px",borderRadius:10,border:"1px solid #ddd",fontSize:14,width:"100%",fontFamily:"inherit"}})),
+                React.createElement("div",{className:"field"},
+                  React.createElement("label",null,"Format"),
+                  React.createElement("select",{value:v.format||"Lecture",onChange:function(e){updateVideo(activeMod,kind,vidIdx,"format",e.target.value);},style:{padding:"8px 12px",borderRadius:10,border:"1px solid #ddd",fontSize:14,width:"100%",background:"#fff"}},
+                    VIDEO_FORMATS.map(function(f){return React.createElement("option",{key:f,value:f},f);})))),
+              React.createElement("div",{className:"g2",style:{gap:10,marginTop:8}},
+                React.createElement("div",{className:"field"},
+                  React.createElement("label",null,"Status"),
+                  React.createElement("select",{value:v.status||"Needs to be created",onChange:function(e){updateVideo(activeMod,kind,vidIdx,"status",e.target.value);},style:{padding:"8px 12px",borderRadius:10,border:"1px solid #ddd",fontSize:14,width:"100%",background:"#fff"}},
+                    VIDEO_STATUSES.map(function(s){return React.createElement("option",{key:s,value:s},s);}))),
+                React.createElement(F,{label:"Link / URL (optional)",value:v.url||"",onChange:function(val){updateVideo(activeMod,kind,vidIdx,"url",val);},placeholder:"https://... (Vimeo, YouTube, Canvas, etc.)"})),
+              React.createElement(A,{label:"Brief Description",value:v.description||"",onChange:function(val){updateVideo(activeMod,kind,vidIdx,"description",val);},placeholder:"What does this video cover? Why does it matter to the module?",rows:2,style:{marginTop:8}}));
+          };
+
+          return React.createElement("div",{className:"card",style:{border:"2px solid #990000",background:"#fff"}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:6,flexWrap:"wrap"}},
+              React.createElement("span",{style:{background:"#990000",color:"#fff",fontWeight:900,fontSize:14,padding:"4px 12px",borderRadius:14}},"\uD83D\uDCF9 MODULE VIDEO PLAN"),
+              React.createElement("span",{style:{fontSize:11,fontWeight:700,color:"#666",textTransform:"uppercase",letterSpacing:0.5}},"Required for accreditation \u2022 MSW Program Standard")),
+            React.createElement("p",{style:{fontSize:13,color:"#555",marginBottom:14,lineHeight:1.5}},
+              "Plan all videos for this module here. Per the MSW Program: lecture videos are limited to ",
+              React.createElement("strong",null,"max 3 videos / 30 minutes total"),
+              " (about 10 minutes each). Each module must include ",
+              React.createElement("strong",null,"at least 1 skill builder video"),
+              ". Different formats (lecture, conversation, guest speaker) are encouraged. Skill builder videos have no minute cap."),
+
+            // ----- Lecture Videos block -----
+            React.createElement("div",{style:{background:"#FAF5EE",borderRadius:10,padding:14,marginBottom:14}},
+              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,flexWrap:"wrap",gap:6}},
+                React.createElement("h4",{style:{fontSize:15,fontWeight:700,color:"#990000"}},"Lecture Videos"),
+                React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
+                  React.createElement("span",{style:{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:8,background:atVideoMax?"#fef2f2":"#f0fdf4",color:atVideoMax?"#990000":"#166534",border:"1px solid "+(atVideoMax?"#fecaca":"#bbf7d0")}},lec.length+" of "+MAX_LECTURE_VIDEOS+" videos"),
+                  React.createElement("span",{style:{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:8,background:overTime?"#fef2f2":"#f0fdf4",color:overTime?"#990000":"#166534",border:"1px solid "+(overTime?"#fecaca":"#bbf7d0")}},totalMin+" of "+MAX_LECTURE_TOTAL_MIN+" min total"))),
+              overTime?React.createElement("div",{style:{background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:12,color:"#991B1B",fontWeight:600}},"\u26A0 Total lecture minutes ("+totalMin+") exceeds the "+MAX_LECTURE_TOTAL_MIN+"-minute cap. Please trim or split videos."):null,
+              lec.length===0?React.createElement("div",{style:{padding:14,textAlign:"center",fontSize:13,color:"#888",fontStyle:"italic"}},"No lecture videos yet. Click \u201C+ Add Lecture Video\u201D to begin."):
+                lec.map(function(v,i){return renderVideoCard("lecture",v,i);}),
+              React.createElement("button",{onClick:function(){if(!atVideoMax)addVideo(activeMod,"lecture");},disabled:atVideoMax,style:{marginTop:6,padding:"8px 16px",fontSize:13,fontWeight:600,background:atVideoMax?"#E5E7EB":"#990000",color:atVideoMax?"#9CA3AF":"#fff",border:"none",borderRadius:10,cursor:atVideoMax?"not-allowed":"pointer"}},atVideoMax?"Maximum reached (3 videos)":"+ Add Lecture Video")),
+
+            // ----- Skill Builder Videos block -----
+            React.createElement("div",{style:{background:"#FAF5EE",borderRadius:10,padding:14}},
+              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,flexWrap:"wrap",gap:6}},
+                React.createElement("h4",{style:{fontSize:15,fontWeight:700,color:"#990000"}},"Skill Builder Videos"),
+                React.createElement("span",{style:{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:8,background:sbMet?"#f0fdf4":"#FFFBEB",color:sbMet?"#166534":"#92400E",border:"1px solid "+(sbMet?"#bbf7d0":"#FDE68A")}},sb.length+" video"+(sb.length===1?"":"s")+(sbMet?" \u2713":" (min 1 required)"))),
+              !sbMet?React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:12,color:"#78350F",fontWeight:600}},"\u26A0 At least one skill builder video is required for this module."):null,
+              sb.length===0?React.createElement("div",{style:{padding:14,textAlign:"center",fontSize:13,color:"#888",fontStyle:"italic"}},"No skill builder videos yet. Click \u201C+ Add Skill Builder Video\u201D to begin."):
+                sb.map(function(v,i){return renderVideoCard("skillBuilder",v,i);}),
+              React.createElement("button",{onClick:function(){addVideo(activeMod,"skillBuilder");},style:{marginTop:6,padding:"8px 16px",fontSize:13,fontWeight:600,background:"#990000",color:"#fff",border:"none",borderRadius:10,cursor:"pointer"}},"+ Add Skill Builder Video")));
+        })(),
 
         React.createElement("div",{className:"card",style:{border:"2px solid #e8e0d0"}},
           React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:6}},
