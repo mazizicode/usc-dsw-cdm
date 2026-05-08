@@ -961,6 +961,42 @@ if(pdfMswMap){
     h+=`<div style="background:#fef2f2;border-left:3px solid #999;padding:5px 10px;font-size:10px;margin:5px 0;border-radius:0 5px 5px 0;color:#666;font-style:italic">Sub-Competencies Addressed in This Module: <em>None tagged</em></div>`;
   }
 }
+// Step 3.5: Module Video Plan in PDF (per Jen Lewis spec, May 6 meeting)
+(function(){
+  var vp=mod.videoPlan;
+  if(!vp||(typeof vp!=="object"))return;
+  var lec=Array.isArray(vp.lectureVideos)?vp.lectureVideos:[];
+  var sb=Array.isArray(vp.skillBuilderVideos)?vp.skillBuilderVideos:[];
+  if(lec.length===0&&sb.length===0)return; // skip section entirely if nothing planned
+  var totalLecMin=lec.reduce(function(t,v){var n=parseFloat(v.durationMin);return t+(isNaN(n)?0:n);},0);
+  var totalSbMin=sb.reduce(function(t,v){var n=parseFloat(v.durationMin);return t+(isNaN(n)?0:n);},0);
+  var renderRow=function(v,vi,kind){
+    var statusBadge=v.status==="Existing"?'<span style="color:#166534;font-weight:600">\u2713 Existing</span>':'<span style="color:#92400E;font-weight:600">\u26F0 Needs creation</span>';
+    var urlCell=v.url?'<a href="'+esc(v.url)+'" style="color:#990000;font-size:9px">link</a>':"\u2014";
+    return '<tr><td style="font-size:9px;text-align:center"><strong>'+(kind==="lec"?"L":"S")+(vi+1)+'</strong></td><td style="font-size:9px"><strong>'+esc(v.title||"Untitled")+'</strong></td><td style="font-size:9px;text-align:center">'+esc(v.durationMin||"\u2014")+' min</td><td style="font-size:9px">'+esc(v.format||"\u2014")+'</td><td style="font-size:9px">'+statusBadge+'</td><td style="font-size:9px;text-align:center">'+urlCell+'</td><td style="font-size:9px">'+esc(v.description||"")+'</td></tr>';
+  };
+  h+='<div style="margin:8px 0 4px 0;font-size:11px;font-weight:700;color:#990000">\uD83D\uDCF9 Module Video Plan</div>';
+  // Lecture videos
+  if(lec.length>0){
+    var overTime=totalLecMin>30;
+    var headerColor=overTime?"#991B1B":"#374151";
+    h+='<div style="font-size:10px;color:'+headerColor+';margin:4px 0;font-weight:600">Lecture Videos: '+lec.length+' of 3 \u2022 '+totalLecMin+' of 30 min total'+(overTime?' \u26A0 EXCEEDS 30-MIN CAP':'')+'</div>';
+    h+='<table style="margin-bottom:6px"><tr><th style="width:5%">#</th><th style="width:22%">Title</th><th style="width:8%">Duration</th><th style="width:14%">Format</th><th style="width:14%">Status</th><th style="width:7%">Link</th><th style="width:30%">Description</th></tr>';
+    lec.forEach(function(v,vi){h+=renderRow(v,vi,"lec");});
+    h+='</table>';
+  }else{
+    h+='<div style="background:#fef2f2;border-left:3px solid #991B1B;padding:4px 10px;font-size:9px;margin:4px 0;color:#991B1B;font-style:italic">No lecture videos planned yet for this module.</div>';
+  }
+  // Skill builder videos
+  if(sb.length>0){
+    h+='<div style="font-size:10px;color:#374151;margin:6px 0 4px 0;font-weight:600">Skill Builder Videos: '+sb.length+' video'+(sb.length===1?"":"s")+' \u2022 '+totalSbMin+' min total \u2713</div>';
+    h+='<table style="margin-bottom:6px"><tr><th style="width:5%">#</th><th style="width:22%">Title</th><th style="width:8%">Duration</th><th style="width:14%">Format</th><th style="width:14%">Status</th><th style="width:7%">Link</th><th style="width:30%">Description</th></tr>';
+    sb.forEach(function(v,vi){h+=renderRow(v,vi,"sb");});
+    h+='</table>';
+  }else{
+    h+='<div style="background:#FFFBEB;border-left:3px solid #D97706;padding:4px 10px;font-size:9px;margin:4px 0;color:#78350F;font-style:italic">\u26A0 No skill builder video planned (at least one is required per MSW Program standard).</div>';
+  }
+})();
 h+=`<table><tr><th>Objective</th><th>Materials</th><th>Sync</th><th>Async</th><th>Assessment</th><th>CLOs Addressed</th><th>CSWE Addressed</th><th>Strategies</th><th>ADEI</th></tr>`;
 mod.objectives.forEach((o,oi)=>{if(!o.text)return;h+=`<tr><td><span class="badge">Obj ${oi+1}</span><br>${esc(o.text)}</td><td>${esc(o.materials)}</td><td>${esc(o.syncAct)}</td><td>${esc(o.asyncAct)}</td><td>${esc(o.assessment)}</td><td>${esc(o.clos)}</td><td>${esc(o.ces)}</td><td>${esc(o.strategies)}</td><td>${esc(o.adei)}</td></tr>`;});
 h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":"DSW"} Program | Module ${mi+1}</div></div>`;});
@@ -1115,7 +1151,7 @@ function AdminDashboard(props){
         React.createElement("div",null,
           React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#333"}},user.displayName||user.email),
           React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fef2f2",padding:"2px 10px",borderRadius:10}},"ADMINISTRATOR"),
-          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v2.9"))),
+          React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#888",marginLeft:8}},"app v3.0"))),
       React.createElement("div",{style:{display:"flex",gap:12}},
         React.createElement("button",{onClick:function(){setShowAnalytics(!showAnalytics);},style:{background:showAnalytics?"#FEF2F2":"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},showAnalytics?"Back to Overview":"Analytics"),
       React.createElement("button",{onClick:function(){
