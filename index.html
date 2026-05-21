@@ -2216,29 +2216,29 @@ function CreateCDMFlow(props){
   };
 
   if(!program){
-    return React.createElement("div",{style:{maxWidth:700,margin:"0 auto",padding:"40px 16px"}},
+    return React.createElement("div",{style:{maxWidth:1040,margin:"0 auto",padding:"40px 16px"}},
       React.createElement("button",{onClick:onCancel,style:{fontSize:14,color:"#990000",background:"none",border:"none",cursor:"pointer",marginBottom:20,display:"flex",alignItems:"center",gap:6}},String.fromCharCode(8592)+" Back to Dashboard"),
       React.createElement("h1",{style:{fontSize:28,fontWeight:900,color:"#990000",marginBottom:8,textAlign:"center"}},"Create New CDM"),
       React.createElement("p",{style:{fontSize:15,color:"#888",textAlign:"center",marginBottom:32}},"Select the program for this Course Design Map."),
       React.createElement("div",{style:{display:"flex",gap:20,justifyContent:"center",flexWrap:"wrap"}},
-        React.createElement("div",{onClick:function(){setProgram("dsw");setContentType("both");setModality("async_sync");},style:{flex:1,maxWidth:300,minWidth:240,background:"#fff",border:"3px solid #e8e0d0",borderRadius:20,padding:"32px 24px",cursor:"pointer",textAlign:"center",transition:"all .2s"},onMouseOver:function(e){e.currentTarget.style.borderColor="#990000";e.currentTarget.style.boxShadow="0 4px 20px rgba(153,0,0,.15)";},onMouseOut:function(e){e.currentTarget.style.borderColor="#e8e0d0";e.currentTarget.style.boxShadow="none";}},
-          React.createElement("div",{style:{width:64,height:64,borderRadius:32,background:"#990000",margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,color:"#fff",fontWeight:700}},"D"),
-          React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:"#990000",marginBottom:6}},"DSW"),
-          React.createElement("p",{style:{fontSize:14,color:"#666",marginBottom:12}},"Doctor of Social Work"),
-          React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"4px 12px",borderRadius:8,background:"#F0FDF4",color:"#166534"}},"Fully Online"),
-          React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2025 Core Expertise & Skills")),
+        React.createElement("div",{onClick:function(){setProgram("bsw");setModality("on_ground");setContentType("sync");},style:{flex:1,maxWidth:300,minWidth:240,background:"#fff",border:"3px solid #e8e0d0",borderRadius:20,padding:"32px 24px",cursor:"pointer",textAlign:"center",transition:"all .2s"},onMouseOver:function(e){e.currentTarget.style.borderColor="#D97706";e.currentTarget.style.boxShadow="0 4px 20px rgba(217,119,6,.15)";},onMouseOut:function(e){e.currentTarget.style.borderColor="#e8e0d0";e.currentTarget.style.boxShadow="none";}},
+          React.createElement("div",{style:{width:64,height:64,borderRadius:32,background:"#D97706",margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,color:"#fff",fontWeight:700}},"B"),
+          React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:"#D97706",marginBottom:6}},"BSW"),
+          React.createElement("p",{style:{fontSize:14,color:"#666",marginBottom:12}},"Bachelor of Social Work"),
+          React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"4px 12px",borderRadius:8,background:"#FEF3C7",color:"#D97706"}},"On-Ground"),
+          React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2022 EPAS — Generalist Practice")),
         React.createElement("div",{onClick:function(){setProgram("msw");},style:{flex:1,maxWidth:300,minWidth:240,background:"#fff",border:"3px solid #e8e0d0",borderRadius:20,padding:"32px 24px",cursor:"pointer",textAlign:"center",transition:"all .2s"},onMouseOver:function(e){e.currentTarget.style.borderColor="#1E40AF";e.currentTarget.style.boxShadow="0 4px 20px rgba(30,64,175,.15)";},onMouseOut:function(e){e.currentTarget.style.borderColor="#e8e0d0";e.currentTarget.style.boxShadow="none";}},
           React.createElement("div",{style:{width:64,height:64,borderRadius:32,background:"#1E40AF",margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,color:"#fff",fontWeight:700}},"M"),
           React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:"#1E40AF",marginBottom:6}},"MSW"),
           React.createElement("p",{style:{fontSize:14,color:"#666",marginBottom:12}},"Master of Social Work"),
           React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"4px 12px",borderRadius:8,background:"#DBEAFE",color:"#1E40AF"}},"Multiple Modalities"),
           React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2022 EPAS Competencies")),
-        React.createElement("div",{onClick:function(){setProgram("bsw");setModality("on_ground");setContentType("sync");},style:{flex:1,maxWidth:300,minWidth:240,background:"#fff",border:"3px solid #e8e0d0",borderRadius:20,padding:"32px 24px",cursor:"pointer",textAlign:"center",transition:"all .2s"},onMouseOver:function(e){e.currentTarget.style.borderColor="#D97706";e.currentTarget.style.boxShadow="0 4px 20px rgba(217,119,6,.15)";},onMouseOut:function(e){e.currentTarget.style.borderColor="#e8e0d0";e.currentTarget.style.boxShadow="none";}},
-          React.createElement("div",{style:{width:64,height:64,borderRadius:32,background:"#D97706",margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,color:"#fff",fontWeight:700}},"B"),
-          React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:"#D97706",marginBottom:6}},"BSW"),
-          React.createElement("p",{style:{fontSize:14,color:"#666",marginBottom:12}},"Bachelor of Social Work"),
-          React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"4px 12px",borderRadius:8,background:"#FEF3C7",color:"#D97706"}},"On-Ground"),
-          React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2022 EPAS — Generalist Practice"))));
+        React.createElement("div",{onClick:function(){setProgram("dsw");setContentType("both");setModality("async_sync");},style:{flex:1,maxWidth:300,minWidth:240,background:"#fff",border:"3px solid #e8e0d0",borderRadius:20,padding:"32px 24px",cursor:"pointer",textAlign:"center",transition:"all .2s"},onMouseOver:function(e){e.currentTarget.style.borderColor="#990000";e.currentTarget.style.boxShadow="0 4px 20px rgba(153,0,0,.15)";},onMouseOut:function(e){e.currentTarget.style.borderColor="#e8e0d0";e.currentTarget.style.boxShadow="none";}},
+          React.createElement("div",{style:{width:64,height:64,borderRadius:32,background:"#990000",margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,color:"#fff",fontWeight:700}},"D"),
+          React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:"#990000",marginBottom:6}},"DSW"),
+          React.createElement("p",{style:{fontSize:14,color:"#666",marginBottom:12}},"Doctor of Social Work"),
+          React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"4px 12px",borderRadius:8,background:"#F0FDF4",color:"#166534"}},"Fully Online"),
+          React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2025 Core Expertise & Skills"))));
   }
 
   return React.createElement("div",{style:{maxWidth:600,margin:"0 auto",padding:"40px 16px"}},
@@ -2288,11 +2288,11 @@ function Dashboard(pp){
       React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:40,marginBottom:16}}),
       React.createElement("h1",{style:{fontSize:32,fontWeight:900,color:"#990000",marginBottom:8}},"My Course Design Maps"),
       React.createElement("p",{style:{fontSize:16,color:"#999",marginBottom:24}},"Select a course to continue working, or create a new CDM."),
-      React.createElement("button",{onClick:function(){setShowCreate(true);},className:"btn-p",style:{width:"100%",marginBottom:12,padding:"14px",fontSize:14}},"+  Create New CDM"),
+      React.createElement("button",{onClick:function(){setShowCreate(true);},onMouseOver:function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 28px rgba(153,0,0,.38)";},onMouseOut:function(e){e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 6px 20px rgba(153,0,0,.30)";},style:{width:"100%",marginBottom:16,padding:"22px 24px",fontSize:19,fontWeight:900,background:"linear-gradient(135deg,#B11313 0%,#990000 55%,#7d0000 100%)",color:"#fff",border:"3px solid #FFCC00",borderRadius:18,cursor:"pointer",transition:"all .2s ease",boxShadow:"0 6px 20px rgba(153,0,0,.30)",display:"flex",alignItems:"center",justifyContent:"center",gap:12,letterSpacing:".3px"}},React.createElement("span",{style:{fontSize:24,lineHeight:1}},"\uD83D\uDC49"),React.createElement("span",null,"Click Here to Create a New CDM"),React.createElement("span",{style:{fontSize:24,fontWeight:900,lineHeight:1}},"+")),
       pp.isAdmin?React.createElement("button",{onClick:pp.onAdminMode,style:{width:"100%",marginBottom:20,padding:"12px",fontSize:14,fontWeight:700,background:"#fff",border:"2px solid #990000",color:"#990000",borderRadius:14,cursor:"pointer"}},"\u{1F6E1} Open Admin Dashboard"):null,
       !courses?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20}},"Loading your courses..."):
       courses.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
-        React.createElement("p",{style:{fontSize:16}},"No courses yet. Click Create New CDM to get started.")):
+        React.createElement("p",{style:{fontSize:17,fontWeight:700,color:"#990000",marginBottom:6}},"\uD83D\uDC46 Start by clicking the red button above"),React.createElement("p",{style:{fontSize:15,color:"#999"}},"You don\u2019t have any Course Design Maps yet. Click \u201CCreate a New CDM\u201D to begin.")):
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10,textAlign:"left"}},
         courses.map(function(c){
           var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Never";
