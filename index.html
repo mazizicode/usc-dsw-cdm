@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>USC DSW Course Design Map (CDM)</title>
+<title>USC Course Design Map (CDM) — DSW | MSW | BSW</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -174,6 +174,71 @@ const MSW_COMPS=[
 ];
 
 // =====================================================================
+// BSW Competencies — CSWE 2022 EPAS Baccalaureate Level (Generalist Practice)
+// =====================================================================
+var BSW_COMPS=[
+{id:1,name:'Ethical & Professional Behavior',short:'C1',desc:'Demonstrate Ethical and Professional Behavior',
+ behaviors:[
+  {id:'1a',text:'Make ethical decisions by applying the standards of the NASW Code of Ethics, relevant laws and regulations, models for ethical decision making, ethical conduct of research, and additional codes of ethics within the profession.'},
+  {id:'1b',text:'Demonstrate professional behavior; appearance; and oral, written, and electronic communication.'},
+  {id:'1c',text:'Use technology ethically and appropriately to facilitate practice outcomes.'},
+  {id:'1d',text:'Use supervision and consultation to guide professional judgment and behavior.'}
+ ]},
+{id:2,name:'Human Rights & Justice',short:'C2',desc:'Advance Human Rights and Social, Racial, Economic, and Environmental Justice',
+ behaviors:[
+  {id:'2a',text:'Advocate for human rights at the individual, family, group, organizational, and community system levels.'},
+  {id:'2b',text:'Engage in practices that advance human rights to promote social, racial, economic, and environmental justice.'}
+ ]},
+{id:3,name:'ADEI in Practice',short:'C3',desc:'Engage Anti-Racism, Diversity, Equity, and Inclusion (ADEI) in Practice',
+ behaviors:[
+  {id:'3a',text:'Demonstrate anti-racist and anti-oppressive social work practice at the individual, family, group, organizational, community, research, and policy levels.'},
+  {id:'3b',text:'Demonstrate cultural humility by applying critical reflection, self-awareness, and self-regulation to manage the influence of bias, power, privilege, and values in working with clients and constituencies.'}
+ ]},
+{id:4,name:'Research-Informed Practice',short:'C4',desc:'Engage in Practice-Informed Research and Research-Informed Practice',
+ behaviors:[
+  {id:'4a',text:'Apply research findings to inform and improve practice, policy, and programs.'},
+  {id:'4b',text:'Identify ethical, culturally informed, anti-racist, and anti-oppressive strategies that address inherent biases for use in quantitative and qualitative research methods.'}
+ ]},
+{id:5,name:'Policy Practice',short:'C5',desc:'Engage in Policy Practice',
+ behaviors:[
+  {id:'5a',text:'Use social justice, anti-racist, and anti-oppressive lenses to assess how social welfare policies affect the delivery of and access to social services.'},
+  {id:'5b',text:'Apply critical thinking to analyze, formulate, and advocate for policies that advance human rights and social, racial, economic, and environmental justice.'}
+ ]},
+{id:6,name:'Engage',short:'C6',desc:'Engage with Individuals, Families, Groups, Organizations, and Communities',
+ behaviors:[
+  {id:'6a',text:'Apply knowledge of human behavior and person-in-environment, as well as interprofessional conceptual frameworks, to engage with clients and constituencies.'},
+  {id:'6b',text:'Use empathy, reflection, and interpersonal skills to engage in culturally responsive practice with clients and constituencies.'}
+ ]},
+{id:7,name:'Assess',short:'C7',desc:'Assess Individuals, Families, Groups, Organizations, and Communities',
+ behaviors:[
+  {id:'7a',text:'Apply theories of human behavior and person-in-environment, as well as other culturally responsive and interprofessional conceptual frameworks, when assessing clients and constituencies.'},
+  {id:'7b',text:'Demonstrate respect for client self-determination during the assessment process by collaborating with clients and constituencies in developing a mutually agreed-upon plan.'}
+ ]},
+{id:8,name:'Intervene',short:'C8',desc:'Intervene with Individuals, Families, Groups, Organizations, and Communities',
+ behaviors:[
+  {id:'8a',text:'Engage with clients and constituencies to critically choose and implement culturally responsive, evidence-informed interventions to achieve client and constituency goals.'},
+  {id:'8b',text:'Incorporate culturally responsive methods to negotiate, mediate, and advocate with and on behalf of clients and constituencies.'}
+ ]},
+{id:9,name:'Evaluate',short:'C9',desc:'Evaluate Practice with Individuals, Families, Groups, Organizations, and Communities',
+ behaviors:[
+  {id:'9a',text:'Select and use culturally responsive methods for evaluation of outcomes.'},
+  {id:'9b',text:'Critically analyze outcomes and apply evaluation findings to improve practice effectiveness with individuals, families, groups, organizations, and communities.'}
+ ]},
+];
+
+// =====================================================================
+var BSW_COMPS=[
+{id:1,name:"Ethical & Professional Behavior",short:"C1",desc:"Demonstrate Ethical and Professional Behavior",behaviors:[{id:"1a",text:"Make ethical decisions by applying the standards of the NASW Code of Ethics, relevant laws and regulations, models for ethical decision making, ethical conduct of research, and additional codes of ethics within the profession as appropriate to the context."},{id:"1b",text:"Demonstrate professional behavior; appearance; and oral, written, and electronic communication."},{id:"1c",text:"Use technology ethically and appropriately to facilitate practice outcomes."},{id:"1d",text:"Use supervision and consultation to guide professional judgment and behavior."}]},
+{id:2,name:"Human Rights & Justice",short:"C2",desc:"Advance Human Rights and Social, Racial, Economic, and Environmental Justice",behaviors:[{id:"2a",text:"Advocate for human rights at the individual, family, group, organizational, and community system levels."},{id:"2b",text:"Engage in practices that advance human rights to promote social, racial, economic, and environmental justice."}]},
+{id:3,name:"ADEI in Practice",short:"C3",desc:"Engage Anti-Racism, Diversity, Equity, and Inclusion (ADEI) in Practice",behaviors:[{id:"3a",text:"Demonstrate anti-racist and anti-oppressive social work practice at the individual, family, group, organizational, community, research, and policy levels."},{id:"3b",text:"Demonstrate cultural humility by applying critical reflection, self-awareness, and self-regulation to manage the influence of bias, power, privilege, and values in working with clients and constituencies, acknowledging them as experts of their own lived experiences."}]},
+{id:4,name:"Research-Informed Practice",short:"C4",desc:"Engage in Practice-Informed Research and Research-Informed Practice",behaviors:[{id:"4a",text:"Apply research findings to inform and improve practice, policy, and programs."},{id:"4b",text:"Identify ethical, culturally informed, anti-racist, and anti-oppressive strategies that address inherent biases for use in quantitative and qualitative research methods to advance the purposes of social work."}]},
+{id:5,name:"Policy Practice",short:"C5",desc:"Engage in Policy Practice",behaviors:[{id:"5a",text:"Use social justice, anti-racist, and anti-oppressive lenses to assess how social welfare policies affect the delivery of and access to social services."},{id:"5b",text:"Apply critical thinking to analyze, formulate, and advocate for policies that advance human rights and social, racial, economic, and environmental justice."}]},
+{id:6,name:"Engage",short:"C6",desc:"Engage with Individuals, Families, Groups, Organizations, and Communities",behaviors:[{id:"6a",text:"Apply knowledge of human behavior and person-in-environment, as well as interprofessional conceptual frameworks, to engage with clients and constituencies."},{id:"6b",text:"Use empathy, reflection, and interpersonal skills to engage in culturally responsive practice with clients and constituencies."}]},
+{id:7,name:"Assess",short:"C7",desc:"Assess Individuals, Families, Groups, Organizations, and Communities",behaviors:[{id:"7a",text:"Apply theories of human behavior and person-in-environment, as well as other culturally responsive and interprofessional conceptual frameworks, when assessing clients and constituencies."},{id:"7b",text:"Demonstrate respect for client self-determination during the assessment process by collaborating with clients and constituencies in developing a mutually agreed-upon plan."}]},
+{id:8,name:"Intervene",short:"C8",desc:"Intervene with Individuals, Families, Groups, Organizations, and Communities",behaviors:[{id:"8a",text:"Engage with clients and constituencies to critically choose and implement culturally responsive, evidence-informed interventions to achieve client and constituency goals."},{id:"8b",text:"Incorporate culturally responsive methods to negotiate, mediate, and advocate with and on behalf of clients and constituencies."}]},
+{id:9,name:"Evaluate",short:"C9",desc:"Evaluate Practice with Individuals, Families, Groups, Organizations, and Communities",behaviors:[{id:"9a",text:"Select and use culturally responsive methods for evaluation of outcomes."},{id:"9b",text:"Critically analyze outcomes and apply evaluation findings to improve practice effectiveness with individuals, families, groups, organizations, and communities."}]},
+];
+
 // MSW Sub-Competencies — Source: USC SSW MSW Curricular Mapping (Apr 2026)
 // =====================================================================
 // Each sub-competency has TWO versions of its text:
@@ -529,11 +594,11 @@ return React.createElement("div",{style:{maxWidth:640,margin:"0 auto",textAlign:
 React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:50,marginBottom:14}}),
 /* badge removed - name already in logo */
 React.createElement("h1",{style:{fontSize:34,fontWeight:900,color:C.cardinal,marginBottom:4}},"Course Design Map"),
-React.createElement("p",{style:{fontSize:15,fontWeight:500,marginBottom:2}},(data&&data.program==="msw")?"Master of Social Work (MSW) Program":"Doctor of Social Work (DSW) Program"),
+React.createElement("p",{style:{fontSize:15,fontWeight:500,marginBottom:2}},(data&&data.program==="msw")?"Master of Social Work (MSW) Program":(data&&data.program==="bsw")?"Bachelor of Social Work (BSW) Program":"Doctor of Social Work (DSW) Program"),
 React.createElement("p",{style:{fontSize:14,color:"#999",marginBottom:22,fontStyle:"italic"}},(data&&data.program==="msw")?"Aligned with CSWE 2022 Educational Policy and Accreditation Standards":"Aligned with CSWE 2025 Accreditation Standards for Practice Doctorate Programs"),
 React.createElement("div",{className:"card",style:{textAlign:"left",marginBottom:22}},
 React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:C.cardinal,marginBottom:10}},"\u{1F4D0} What is the CDM?"),
-React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The Course Design Map establishes a foundational blueprint for your ",((data&&data.program==="msw")?"MSW":"DSW")," course. It organizes content into structured learning modules aligned with Course Learning Objectives and the ",React.createElement("strong",null,(data&&data.program==="msw")?"CSWE 2022 EPAS":"CSWE 2025 Core Expertise and Skills")," for ",((data&&data.program==="msw")?"MSW programs":"Practice Doctorate Programs"),". Using backward design principles, it ensures every element connects intentionally toward student success."),
+React.createElement("p",{style:{fontSize:16,color:"#555",lineHeight:1.7}},"The Course Design Map establishes a foundational blueprint for your ",((data&&data.program==="msw")?"MSW":"DSW")," course. It organizes content into structured learning modules aligned with Course Learning Objectives and the ",React.createElement("strong",null,(data&&data.program==="msw")?"CSWE 2022 EPAS":(data&&data.program==="bsw")?"CSWE 2022 EPAS (Generalist)":"CSWE 2025 Core Expertise and Skills")," for ",((data&&data.program==="msw")?"MSW programs":(data&&data.program==="bsw")?"BSW Generalist Practice":"Practice Doctorate Programs"),". Using backward design principles, it ensures every element connects intentionally toward student success."),
 React.createElement("div",{className:"g3",style:{marginTop:16}},
 React.createElement("div",{className:"card",style:{textAlign:"center",padding:"20px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:150,gap:6}},
 React.createElement("img",{src:ALIGN_IMG,alt:"Alignment",style:{width:36,height:36,objectFit:"contain"}}),
@@ -634,7 +699,7 @@ function CourseInfo({data,set}){
 const s=(k,v)=>set(d=>({...d,[k]:v}));
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"General Course Information"),
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.program==="msw"?"#DBEAFE":"#F0FDF4",color:data.program==="msw"?"#1E40AF":"#166534"}},(data.program==="msw"?"MSW":"DSW")+" | "+(data.contentType==="async"?"Asynchronous Only":data.contentType==="online"?"100% Online":"Fully Online"))),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.program==="msw"?"#DBEAFE":data.program==="bsw"?"#FEF3C7":"#F0FDF4",color:data.program==="msw"?"#1E40AF":data.program==="bsw"?"#D97706":"#166534"}},(data.program==="msw"?"MSW":data.program==="bsw"?"BSW":"DSW")+" | "+(data.contentType==="async"?"Asynchronous Only":data.contentType==="online"?"100% Online":"Fully Online"))),
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement(F,{label:"Course Number / Name",value:data.courseName,onChange:v=>s("courseName",v),placeholder:"SOWK 616: Clinical Practice with Older Adults"}),
 React.createElement(F,{label:"Development Started",value:data.devStarted,onChange:v=>s("devStarted",v),placeholder:"August 2025"}),
@@ -669,8 +734,8 @@ data.program==="dsw"?React.createElement(F,{label:"DSW Area of Focus",value:data
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement("div",{className:"field"},React.createElement("label",null,"Modality"),
 React.createElement("div",{style:{display:"flex",gap:16,marginTop:6}},
-(data.program==="msw"?["async_sync","online_only","async_only"]:["async_sync","async_only"]).map(v=>React.createElement("label",{key:v,style:{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:13}},
-React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":v==="online_only"?"online":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?(data.program==="msw"?"Async/Sync":"Fully Online"):v==="online_only"?"100% Online":"Asynchronous Only")))),
+(data.program==="msw"?["async_sync","online_only","async_only"]:data.program==="bsw"?["on_ground","on_ground_async","summer_flex"]:["async_sync","async_only"]).map(v=>React.createElement("label",{key:v,style:{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:13}},
+React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":v==="online_only"?"online":v==="on_ground"?"sync":v==="on_ground_async"?"both":v==="summer_flex"?"both":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?(data.program==="msw"?"Async/Sync":"Fully Online"):v==="online_only"?"100% Online":v==="async_only"?"Asynchronous Only":v==="on_ground"?"On-Ground (In-Person)":v==="on_ground_async"?"On-Ground + Async Components":v==="summer_flex"?"Summer Flex (Zoom + Field + Async)":"")))),
 React.createElement(F,{label:"Sync Min / Module",value:data.syncMin,onChange:v=>s("syncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Async Min / Module",value:data.asyncMin,onChange:v=>s("asyncMin",v),placeholder:"75"})),
 React.createElement(A,{label:"Course Description (do not modify)",value:data.courseDesc,onChange:v=>s("courseDesc",v),placeholder:"Paste the official course description here.",rows:5}));}
@@ -731,21 +796,22 @@ if(mswMapping){
 
 // === DEFAULT PATH (DSW + unmapped MSW electives) ===
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
-React.createElement("div",{className:"stitle"},data.program==="msw"?"CSWE 2022 EPAS Competency Mapping":"CSWE 2025 Core Expertise & Skills Mapping"),
-React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},data.program==="msw"?"Select each CSWE 2022 EPAS Competency this course addresses. When you check a competency, explain how this course maps to it and list aligned CLOs.":"Select each CSWE 2025 Core Expertise & Skill this course addresses. When you check a skill, explain how this course maps to it and list aligned CLOs. Per Accreditation Standards D3.0.1 and D5.0.1."),
+React.createElement("div",{className:"stitle"},data.program==="msw"?"CSWE 2022 EPAS Competency Mapping":data.program==="bsw"?"CSWE 2022 EPAS — Baccalaureate Level Competency Mapping":"CSWE 2025 Core Expertise & Skills Mapping"),
+React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},data.program==="msw"?"Select each CSWE 2022 EPAS Competency this course addresses. When you check a competency, explain how this course maps to it and list aligned CLOs.":data.program==="bsw"?"Select each CSWE 2022 EPAS Generalist Practice Competency (C1–9) this course addresses. These are baccalaureate-level behaviors from the 2022 EPAS. Check each competency addressed, explain how, and list aligned CLOs.":"Select each CSWE 2025 Core Expertise & Skill this course addresses. When you check a skill, explain how this course maps to it and list aligned CLOs. Per Accreditation Standards D3.0.1 and D5.0.1."),
 React.createElement("div",{style:{marginBottom:28}},
-(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).map(ces=>React.createElement("div",{key:ces.id,className:"ces-card"+(data.cesChecked[ces.id]?" ck":"")},
+(data.program==="bsw"?BSW_COMPS:data.program==="msw"?MSW_COMPS:CSWE_SKILLS).map(ces=>React.createElement("div",{key:ces.id,className:"ces-card"+(data.cesChecked[ces.id]?" ck":"")},
 React.createElement("div",{className:"ces-inner"},
 React.createElement("input",{type:"checkbox",checked:!!data.cesChecked[ces.id],onChange:()=>toggleCES(ces.id),style:{width:18,height:18,marginTop:2,accentColor:C.cardinal,cursor:"pointer"}}),
 React.createElement("div",{style:{flex:1}},
 React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
-React.createElement("span",{className:"badge",style:{background:data.cesChecked[ces.id]?C.cardinal:"#bbb"}},(data.program==="msw"?"C":"CSWE ")+ces.id),
+React.createElement("span",{className:"badge",style:{background:data.cesChecked[ces.id]?C.cardinal:"#bbb"}},(data.program==="msw"||data.program==="bsw"?"C":"CSWE ")+ces.id),
 React.createElement("span",{style:{fontSize:12,fontWeight:700,color:C.cardinal}},ces.short||ces.name)),
 React.createElement("p",{style:{fontSize:12,color:"#555",lineHeight:1.5}},ces.desc),
+data.program==="bsw"&&ces.behaviors&&React.createElement("div",{style:{marginTop:6,paddingLeft:4}},ces.behaviors.map(function(b){return React.createElement("div",{key:b.id,style:{fontSize:11,color:"#666",lineHeight:1.5,marginBottom:2,display:"flex",gap:5}},React.createElement("span",{style:{fontWeight:700,color:"#D97706",minWidth:22}},b.id+"."),React.createElement("span",null,b.text));})),
 data.cesChecked[ces.id]&&React.createElement("div",{style:{marginTop:10,background:"#faf8f4",borderRadius:10,padding:12,border:"1px solid #e8e0d0"}},
 React.createElement("div",{className:"field"},
-React.createElement("label",null,"How does this course address this expertise & skill?"),
-React.createElement("textarea",{value:data.cesExplain[ces.id]||"",onChange:e=>setExplain(ces.id,e.target.value),placeholder:"Explain how your course content, activities, and assessments map to this CSWE Core Expertise & Skill...",rows:3,style:{padding:"8px 12px",borderRadius:10,border:"1px solid #ddd",fontSize:12,width:"100%"}})),
+React.createElement("label",null,data.program==="bsw"?"How does this course address this competency (cite specific behaviors, modules, and assessments)?":"How does this course address this expertise & skill?"),
+React.createElement("textarea",{value:data.cesExplain[ces.id]||"",onChange:e=>setExplain(ces.id,e.target.value),placeholder:data.program==="bsw"?"Explain how this course addresses this CSWE 2022 EPAS baccalaureate-level competency. Reference specific behaviors (e.g., C"+ces.id+"a), modules, and assessments...":"Explain how your course content, activities, and assessments map to this CSWE Core Expertise & Skill...",rows:3,style:{padding:"8px 12px",borderRadius:10,border:"1px solid #ddd",fontSize:12,width:"100%"}})),
 React.createElement("div",{className:"g2",style:{marginTop:8}},
 React.createElement(F,{label:"Primary CLOs Aligned",value:data.cesClos[ces.id]||"",onChange:v=>setClo(ces.id,v),placeholder:"e.g., CLO 1, CLO 3"}),
 React.createElement("div",{className:"field"},
@@ -753,8 +819,8 @@ React.createElement("label",null,"Addressed?"),
 React.createElement("div",{style:{padding:"8px 12px",borderRadius:10,border:"1px solid #ddd",fontSize:14,background:"#f0fdf4",color:"#166534",fontWeight:700}},"\u2713 Yes \u2014 Addressed"))
 )))))
 ),
-data.program!=="msw"&&React.createElement("div",{style:{borderTop:"2px solid #e8e0d0",paddingTop:18,marginTop:8}}),
-data.program!=="msw"&&React.createElement("div",{className:"stitle",style:{fontSize:24}},"CSWE 2022 MSW Competency Mapping (If Applicable)"),
+data.program!=="msw"&&data.program!=="bsw"&&React.createElement("div",{style:{borderTop:"2px solid #e8e0d0",paddingTop:18,marginTop:8}}),
+data.program!=="msw"&&data.program!=="bsw"&&React.createElement("div",{className:"stitle",style:{fontSize:24}},"CSWE 2022 MSW Competency Mapping (If Applicable)"),
 data.program!=="msw"&&React.createElement("div",{className:"ssub"},"If this course builds upon or extends MSW-level competencies, check which apply. This demonstrates how the DSW curriculum advances beyond the master\u2019s level."),
 data.program!=="msw"&&React.createElement("div",{className:"g3",style:{gap:8}},
 MSW_COMPS.map(c=>React.createElement("div",{key:c.id,className:"msw-card"+(data.mswComps[c.id]?" ck":""),onClick:()=>toggleMSW(c.id)},
@@ -827,6 +893,7 @@ var modSubTags=Array.isArray(mod.subcompTags)?mod.subcompTags:[];
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"Learning Modules"),
 React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:8}},"Build each module with objectives, materials, activities, and assessments."),
+data.program==="bsw"&&(data.modality==="summer_flex"||data.modality==="on_ground_async")&&React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:12,padding:"12px 16px",marginBottom:12,fontSize:13}},React.createElement("div",{style:{fontWeight:700,color:"#D97706",marginBottom:6}},data.modality==="summer_flex"?"📋 Summer Flex Contact-Hour Tracker":"📋 On-Ground + Async Contact-Hour Tracker"),React.createElement("div",{style:{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,color:"#555"}},data.modality==="summer_flex"&&React.createElement("span",null,"💻 Zoom: "+data.modules.reduce(function(a,r){return a+parseFloat(r.zoomMin||0);},0).toFixed(1)+" hrs"),data.modality==="summer_flex"&&React.createElement("span",null,"🌿 Field: "+data.modules.reduce(function(a,r){return a+parseFloat(r.fieldMin||0);},0).toFixed(1)+" hrs"),React.createElement("span",null,"📚 Async: "+data.modules.reduce(function(a,r){return a+parseFloat(r.asyncMin||0);},0).toFixed(1)+" hrs"),React.createElement("span",{style:{fontWeight:700,color:"#D97706"}},"Σ Total: "+data.modules.reduce(function(a,r){return a+parseFloat(r.zoomMin||0)+parseFloat(r.fieldMin||0)+parseFloat(r.asyncMin||0);},0).toFixed(1)+" hrs"))),
 React.createElement("div",{style:{background:"#F0F9FF",border:"1px solid #BAE6FD",borderRadius:12,padding:"10px 16px",marginBottom:16,fontSize:13,color:"#0369A1"}},
 React.createElement("strong",null,"Purpose of this tab: "),
 "Map the high-level architecture of each module \u2014 what you\u2019re teaching, how it aligns to CLOs and CSWE skills, and how it\u2019s assessed. ",
@@ -837,12 +904,11 @@ React.createElement("button",{onClick:addMod,className:"btn-s",style:{width:"aut
 ),
 React.createElement("div",{className:"card card-accent"},
 React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:8,background:data.contentType==="async"?"#FEF3C7":"#F0FDF4",color:data.contentType==="async"?"#92400E":"#166534"}},(data.program==="msw"?"MSW":"DSW")+" | "+(data.contentType==="async"?"ASYNC ONLY":"FULLY ONLINE"))),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},React.createElement("h3",{style:{fontSize:18,fontWeight:900,color:C.cardinal}},"Module "+(active+1)),React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:8,background:data.contentType==="async"?"#FEF3C7":"#F0FDF4",color:data.contentType==="async"?"#92400E":"#166534"}},(data.program==="msw"?"MSW":data.program==="bsw"?"BSW":"DSW")+" | "+(data.contentType==="async"?"ASYNC ONLY":"FULLY ONLINE"))),
 data.modules.length>1&&React.createElement("button",{onClick:()=>removeMod(active),style:{fontSize:13,padding:"6px 14px",borderRadius:20,background:"#fef2f2",color:"#e55",border:"none",cursor:"pointer"}},"Remove Module")),
 React.createElement("div",{className:"g4"},
 React.createElement(F,{label:"Module Title",value:mod.title,onChange:v=>setM("title",v),placeholder:"Foundations of..."}),
-React.createElement(F,{label:"Sync Minutes",value:mod.syncMin,onChange:v=>setM("syncMin",v),placeholder:"75"}),
-React.createElement(F,{label:"Async Minutes",value:mod.asyncMin,onChange:v=>setM("asyncMin",v),placeholder:"75"}),
+(data.program==="bsw"&&data.modality==="summer_flex"?React.createElement(F,{label:"Zoom Hours",value:mod.zoomMin||"",onChange:v=>setM("zoomMin",v),placeholder:"3.3"}):data.program==="bsw"&&data.modality==="on_ground_async"?React.createElement(F,{label:"Sync Min",value:mod.syncMin||"",onChange:v=>setM("syncMin",v),placeholder:"75"}):React.createElement(F,{label:"Sync Minutes",value:mod.syncMin,onChange:v=>setM("syncMin",v),placeholder:"75"})),data.program==="bsw"&&data.modality==="summer_flex"&&React.createElement(F,{label:"Field Hours",value:mod.fieldMin||"",onChange:v=>setM("fieldMin",v),placeholder:"3.3"}),(data.program==="bsw"&&(data.modality==="summer_flex"||data.modality==="on_ground_async")?React.createElement(F,{label:"Async Hours",value:mod.asyncMin||"",onChange:v=>setM("asyncMin",v),placeholder:"3.3"}):React.createElement(F,{label:"Async Minutes",value:mod.asyncMin,onChange:v=>setM("asyncMin",v),placeholder:"75"})),
 React.createElement(F,{label:"Essential Terms",value:mod.terms,onChange:v=>setM("terms",v),placeholder:"Trauma, Resilience..."})),
 React.createElement(A,{label:"Module Overview",value:mod.overview,onChange:v=>setM("overview",v),placeholder:"Brief narrative overview of this module\u2019s focus and connection to the course.",rows:2,className:"",style:{marginTop:10}}),
 // Phase 2b: Sub-competency tagger for mapped MSW courses
@@ -887,7 +953,7 @@ React.createElement("button",{onClick:addO,className:"btn-s",style:{marginTop:6}
 function ReviewStep({data,set,authUser}){
 // Phase 2a: For mapped MSW courses, count addressed sub-competencies; otherwise count addressed competencies
 var mswMap_review=data.program==="msw"?getMSWMapping(data.courseName):null;
-const ckCES=mswMap_review?mswMap_review.subcomps.filter(function(s){return data.subcompChecked&&data.subcompChecked[s.id];}):(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).filter(c=>data.cesChecked[c.id]);
+const ckCES=mswMap_review?mswMap_review.subcomps.filter(function(s){return data.subcompChecked&&data.subcompChecked[s.id];}):(data.program==="msw"?MSW_COMPS:data.program==="bsw"?BSW_COMPS:CSWE_SKILLS).filter(c=>data.cesChecked[c.id]);
 const fCLOs=data.clos.filter(c=>c.text.trim());
 const fMods=data.modules.filter(m=>m.title.trim());
 const items=[{l:"Course Information",d:!!data.courseName&&!!data.courseLead},{l:"CSWE Mapping",d:ckCES.length>0},{l:"Learning Objectives",d:fCLOs.length>0},{l:"Learning Modules",d:fMods.length>0}];
@@ -899,7 +965,7 @@ let h=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CDM Report - ${es
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Source Sans 3',sans-serif;color:#1a1a1a;font-size:11px;line-height:1.5}@page{size:landscape;margin:.45in}.page{page-break-after:always;padding:6px}.page:last-child{page-break-after:auto}h1{font-size:22px;color:#990000;font-weight:900;margin-bottom:4px}h2{font-size:14px;color:#990000;font-weight:700;border-bottom:2px solid #990000;padding-bottom:3px;margin:14px 0 8px}h3{font-size:12px;color:#990000;font-weight:700;margin:8px 0 4px}.bar{height:2px;background:#FFCC00;margin-bottom:8px}table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10px}th{background:#990000;color:#fff;padding:5px 6px;text-align:left;font-weight:700;font-size:9px;text-transform:uppercase}td{padding:5px 6px;border:1px solid #ddd;vertical-align:top}tr:nth-child(even) td{background:#faf5ee}.badge{display:inline-block;background:#990000;color:#fff;font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:4px}.badge-gold{background:#FFCC00;color:#1a1a1a}.ig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:8px 0}.ig div{background:#faf5ee;padding:5px 8px;border-radius:5px;border:1px solid #e8e0d0}.ig label{font-size:7px;font-weight:700;color:#990000;text-transform:uppercase;display:block;margin-bottom:1px}.ig span{font-size:10px}.ft{text-align:center;font-size:7px;color:#999;padding-top:6px;border-top:1px solid #990000;margin-top:10px}.mh{background:#faf5ee;border:2px solid #990000;border-radius:6px;padding:7px 10px;margin-bottom:6px}.mh h3{margin:0;font-size:13px}.ov{background:#fff8e7;border-left:3px solid #FFCC00;padding:5px 10px;font-size:10px;margin:5px 0;border-radius:0 5px 5px 0}.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #990000;padding-bottom:5px;margin-bottom:10px}.hdr .sub{font-size:9px;color:#999;font-style:italic}</style></head><body>`;
 h+=`<div class="page"><div style="text-align:center;padding:14px 0 8px"><div style="font-size:10px;color:#999;margin-bottom:5px">USC Suzanne Dworak-Peck School of Social Work</div><h1>Course Design Map (CDM)</h1><div style="font-size:16px;font-weight:700;color:#333;margin-top:4px">${esc(data.courseName)}</div><div style="font-size:13px;color:#555">${data.program==="msw"?"Master of Social Work (MSW) Program":"Doctor of Social Work (DSW) Program"}</div><div style="width:80px;height:2px;background:#FFCC00;margin:6px auto"></div></div><div class="bar"></div><h2>General Course Information</h2><div class="ig">`;
-[["Course",data.courseName],["Dev Started",data.devStarted],["Target Delivery",data.targetDelivery],["Course Lead",data.courseLead],["Email",data.leadEmail],["Phone",data.leadPhone],["Instructional Designer",data.instDesigner],["Program Director",data.progDirector],["Area of Focus",data.areaOfFocus],["Modality",data.modality==="async_sync"?"Async & Sync":"Async Only"],["Sync Min/Module",data.syncMin],["Async Min/Module",data.asyncMin]].forEach(([l,v])=>{h+=`<div><label>${l}</label><span>${esc(v)}</span></div>`;});
+[["Course",data.courseName],["Dev Started",data.devStarted],["Target Delivery",data.targetDelivery],["Course Lead",data.courseLead],["Email",data.leadEmail],["Phone",data.leadPhone],["Instructional Designer",data.instDesigner],["Program Director",data.progDirector],["Area of Focus",data.areaOfFocus],["Modality",data.modality==="async_sync"?"Async & Sync":data.modality==="async_only"?"Async Only":data.modality==="online_only"?"100% Online":data.modality==="on_ground"?"On-Ground (In-Person)":data.modality==="on_ground_async"?"On-Ground + Async Components":data.modality==="summer_flex"?"Summer Flex (Zoom + Field + Async)":"—"],["Sync Min/Module",data.syncMin],["Async Min/Module",data.asyncMin]].forEach(([l,v])=>{h+=`<div><label>${l}</label><span>${esc(v)}</span></div>`;});
 h+=`</div>`;
 if(data.courseDesc)h+=`<h3>Course Description</h3><p style="font-size:10px;color:#444;margin:3px 0">${esc(data.courseDesc)}</p>`;
 // Phase 2c: For mapped MSW courses, render Sub-Competency Mapping; otherwise render existing Competency Mapping
@@ -939,17 +1005,17 @@ if(pdfMswMap){
   h+=`</table>`;
 }else{
   // === Existing Competency Mapping (DSW + unmapped MSW electives) ===
-  h+=`<h2>${data.program==="msw"?"CSWE 2022 EPAS Competency Mapping":"CSWE 2025 Core Expertise & Skills Mapping"}</h2><table><tr><th>CSWE</th><th>Description</th><th>Addressed</th><th>How It Maps</th><th>CLOs</th></tr>`;
-  (data.program==="msw"?MSW_COMPS:CSWE_SKILLS).forEach(c=>{var label=data.program==="msw"?c.name:c.short;h+=`<tr><td><span class="badge">${data.program==="msw"?"C":"CES "}${c.id}</span> ${label}</td><td>${c.desc}</td><td style="text-align:center;font-weight:700;color:${data.cesChecked[c.id]?"#990000":"#ccc"}">${data.cesChecked[c.id]?"\u2713":"\u2014"}</td><td>${esc(data.cesExplain[c.id])}</td><td>${esc(data.cesClos[c.id])}</td></tr>`;});
+  h+=`<h2>${data.program==="msw"?"CSWE 2022 EPAS Competency Mapping":data.program==="bsw"?"CSWE 2022 EPAS — Baccalaureate Level Competency Mapping (Generalist Practice)":"CSWE 2025 Core Expertise & Skills Mapping"}</h2><table><tr><th>CSWE</th><th>Description</th><th>Addressed</th><th>How It Maps</th><th>CLOs</th></tr>`;
+  (data.program==="bsw"?BSW_COMPS:data.program==="msw"?MSW_COMPS:CSWE_SKILLS).forEach(c=>{var label=data.program==="msw"||data.program==="bsw"?c.name:c.short;h+=`<tr><td><span class="badge">${data.program==="msw"||data.program==="bsw"?"C":"CES "}${c.id}</span> ${label}</td><td>${c.desc}</td><td style="text-align:center;font-weight:700;color:${data.cesChecked[c.id]?"#990000":"#ccc"}">${data.cesChecked[c.id]?"\u2713":"\u2014"}</td><td>${esc(data.cesExplain[c.id])}</td><td>${esc(data.cesClos[c.id])}</td></tr>`;});
   h+=`</table>`;
 }
 const mswAct=MSW_COMPS.filter(c=>data.mswComps[c.id]);
 if(data.program!=="msw"&&mswAct.length){h+=`<h3>MSW Competencies Extended</h3><p style="font-size:10px">`;mswAct.forEach(function(c,i){h+='<span class="badge badge-gold">C'+c.id+": "+c.name+"</span>";if(i<mswAct.length-1)h+=" &nbsp;\u2022 &nbsp;";});h+=`</p>`;}
 h+=`<h2>Course Learning Objectives</h2><table><tr><th>CLO</th><th>Objective</th><th>CSWE Aligned</th><th>ADEI</th><th>Assessment</th></tr>`;
 data.clos.forEach((c,i)=>{if(c.text)h+=`<tr><td><span class="badge">CLO ${i+1}</span></td><td>${esc(c.text)}</td><td>${esc(c.ces)}</td><td>${esc(c.adei)}</td><td>${esc(c.assess)}</td></tr>`;});
-h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":"DSW"} Program | CDM v${data.cdmVersion||"1.0"}</div></div>`;
+h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":data.program==="bsw"?"BSW":"DSW"} Program | CDM v${data.cdmVersion||"1.0"}</div></div>`;
 data.modules.forEach((mod,mi)=>{if(!mod.title)return;
-h+=`<div class="page"><div class="hdr"><div><strong style="color:#990000">Course Design Map</strong> \u2014 ${esc(data.courseName)}</div><div class="sub">CDM v${data.cdmVersion||"1.0"}</div></div><div class="bar"></div><div class="mh"><h3>Module ${mi+1}: ${esc(mod.title)}</h3><div style="font-size:9px;color:#666;margin-top:2px"><strong>Sync:</strong> ${esc(mod.syncMin)} min | <strong>Async:</strong> ${esc(mod.asyncMin)} min | <strong>Terms:</strong> ${esc(mod.terms)}</div></div>`;
+h+=`<div class="page"><div class="hdr"><div><strong style="color:#990000">Course Design Map</strong> \u2014 ${esc(data.courseName)}</div><div class="sub">CDM v${data.cdmVersion||"1.0"}</div></div><div class="bar"></div><div class="mh"><h3>Module ${mi+1}: ${esc(mod.title)}</h3><div style="font-size:9px;color:#666;margin-top:2px">${data.program==="bsw"&&(data.modality==="summer_flex"||data.modality==="on_ground_async")?`<strong>Zoom:</strong> ${esc(mod.zoomMin||"—")} hrs${data.modality==="summer_flex"?` | <strong>Field:</strong> ${esc(mod.fieldMin||"—")} hrs`:""}  | <strong>Async:</strong> ${esc(mod.asyncMin||"—")} hrs`:`<strong>Sync:</strong> ${esc(mod.syncMin)} min | <strong>Async:</strong> ${esc(mod.asyncMin)} min`} | <strong>Terms:</strong> ${esc(mod.terms)}</div></div>`;
 if(mod.overview)h+=`<div class="ov"><strong>Overview:</strong> ${esc(mod.overview)}</div>`;
 // Phase 2c: Show module-level sub-competency tags for mapped MSW courses
 if(pdfMswMap){
@@ -999,7 +1065,7 @@ if(pdfMswMap){
 })();
 h+=`<table><tr><th>Objective</th><th>Materials</th><th>Sync</th><th>Async</th><th>Assessment</th><th>CLOs Addressed</th><th>CSWE Addressed</th><th>Strategies</th><th>ADEI</th></tr>`;
 mod.objectives.forEach((o,oi)=>{if(!o.text)return;h+=`<tr><td><span class="badge">Obj ${oi+1}</span><br>${esc(o.text)}</td><td>${esc(o.materials)}</td><td>${esc(o.syncAct)}</td><td>${esc(o.asyncAct)}</td><td>${esc(o.assessment)}</td><td>${esc(o.clos)}</td><td>${esc(o.ces)}</td><td>${esc(o.strategies)}</td><td>${esc(o.adei)}</td></tr>`;});
-h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":"DSW"} Program | Module ${mi+1}</div></div>`;});
+h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":data.program==="bsw"?"BSW":"DSW"} Program | Module ${mi+1}</div></div>`;});
 h+="<scr"+"ipt>window.onload=function(){setTimeout(function(){window.print()},700)}</scr"+"ipt></body></html>";
 w.document.write(h);w.document.close();setTimeout(()=>setGen(false),800);};
 const resetAll=()=>{if(confirm("Delete this course CDM? This cannot be undone.")){var u=firebase.auth().currentUser;if(u&&currentCourseId){deleteCourse(u.uid,currentCourseId,function(){goToDashboard();});}}};
@@ -1050,14 +1116,14 @@ React.createElement("table",{style:{width:"100%",borderCollapse:"collapse",fontS
 React.createElement("thead",null,
 React.createElement("tr",null,
 React.createElement("th",{style:{padding:"8px",textAlign:"left",borderBottom:"2px solid #990000",fontWeight:700,color:"#990000"}},"Module"),
-(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).map(function(comp){
-return React.createElement("th",{key:comp.id,style:{padding:"6px 4px",textAlign:"center",borderBottom:"2px solid #990000",fontSize:12,fontWeight:600,color:"#990000",minWidth:50}},(data.program==="msw"?"C":"CSWE ")+comp.id);
+(data.program==="msw"?MSW_COMPS:data.program==="bsw"?BSW_COMPS:CSWE_SKILLS).map(function(comp){
+return React.createElement("th",{key:comp.id,style:{padding:"6px 4px",textAlign:"center",borderBottom:"2px solid #990000",fontSize:12,fontWeight:600,color:"#990000",minWidth:50}},(data.program==="msw"||data.program==="bsw"?"C":"CSWE ")+comp.id);
 }))),
 React.createElement("tbody",null,
 data.modules.map(function(mod,mi){
 return React.createElement("tr",{key:mi},
 React.createElement("td",{style:{padding:"8px",fontWeight:600,fontSize:12,borderBottom:"1px solid #eee"}},mod.title||"Module "+(mi+1)),
-(data.program==="msw"?MSW_COMPS:CSWE_SKILLS).map(function(comp){
+(data.program==="msw"?MSW_COMPS:data.program==="bsw"?BSW_COMPS:CSWE_SKILLS).map(function(comp){
 var covered=false;
 mod.objectives.forEach(function(obj){if(obj.ces&&obj.ces.includes(String(comp.id)))covered=true;});
 return React.createElement("td",{key:comp.id,style:{padding:"6px",textAlign:"center",borderBottom:"1px solid #eee"}},
@@ -1163,7 +1229,7 @@ function AdminDashboard(props){
         var tc=0,dc=0,mc=0,lc=0;faculty.forEach(function(f){f.courses.forEach(function(cc){if(cc.archived)return;tc++;if(cc.program==="msw")mc++;else dc++;if(cc.cdmStatus==="Launched")lc++;});});
         h+="<h2>Summary</h2><table><tr><th>Metric</th><th>Count</th></tr><tr><td>Total Active CDMs</td><td><strong>"+tc+"</strong></td></tr><tr><td>DSW</td><td>"+dc+"</td></tr><tr><td>MSW</td><td>"+mc+"</td></tr><tr><td>Launched</td><td>"+lc+"</td></tr></table>";
         h+="<h2>All Active Courses</h2><table><tr><th>Faculty</th><th>Program</th><th>Course</th><th>Version</th><th>Status</th></tr>";
-        faculty.forEach(function(f){var activeCs=f.courses.filter(function(cc){return !cc.archived;});activeCs.forEach(function(fc,fi){h+="<tr><td>"+(fi===0?f.name:"")+"</td><td>"+(fc.program==="msw"?"MSW":"DSW")+"</td><td>"+fc.name+"</td><td>v"+(fc.cdmVersion||"1.0")+"</td><td>"+(fc.cdmStatus||"Draft")+"</td></tr>";});});
+        faculty.forEach(function(f){var activeCs=f.courses.filter(function(cc){return !cc.archived;});activeCs.forEach(function(fc,fi){h+="<tr><td>"+(fi===0?f.name:"")+"</td><td>"+(fc.program==="msw"?"MSW":fc.program==="bsw"?"BSW":"DSW")+"</td><td>"+fc.name+"</td><td>v"+(fc.cdmVersion||"1.0")+"</td><td>"+(fc.cdmStatus||"Draft")+"</td></tr>";});});
         h+="</table><p style='margin-top:40px;font-size:11px;color:#888'>USC SSW CDM Platform</p></body></html>";
         w.document.write(h);w.document.close();
       },style:{background:"#ECFDF5",border:"1px solid #059669",color:"#059669",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},"Accreditation Report"),
@@ -1239,7 +1305,7 @@ faculty.map(function(f){
 return f.courses.map(function(fc,fi){
 return React.createElement("tr",{key:f.uid+fi,style:{borderBottom:"1px solid #eee"}},
 React.createElement("td",{style:{padding:"8px"}},fi===0?f.name:""),
-React.createElement("td",{style:{padding:"8px",textAlign:"center"}},React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:fc.program==="msw"?"#DBEAFE":"#F0FDF4",color:fc.program==="msw"?"#1E40AF":"#166534"}},fc.program==="msw"?"MSW":"DSW")),
+React.createElement("td",{style:{padding:"8px",textAlign:"center"}},React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:fc.program==="msw"?"#DBEAFE":fc.program==="bsw"?"#FEF3C7":"#F0FDF4",color:fc.program==="msw"?"#1E40AF":fc.program==="bsw"?"#D97706":"#166534"}},fc.program==="msw"?"MSW":fc.program==="bsw"?"BSW":"DSW")),
 React.createElement("td",{style:{padding:"8px",textAlign:"center",fontWeight:600}},fc.name),
 React.createElement("td",{style:{padding:"8px",textAlign:"center"}},React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:STATUS_COLORS[fc.cdmStatus]||"#888",color:"#fff"}},fc.cdmStatus||"Draft")),
 React.createElement("td",{style:{padding:"8px",textAlign:"center",fontSize:12,color:"#888"}},fc.lastUpdated?new Date(fc.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"America/Los_Angeles"}):""));
@@ -1600,7 +1666,21 @@ var SOWK_CATALOG={
 "SOWK 647":{t:"Advanced Integrative Social Work Practice with Complex Cases",u:3,p:"msw",d:"Advanced practice concepts for engagement, assessment and diagnosis with complex social work cases from a meta-framework perspective."},
 "SOWK 648":{t:"Management and Organizational Development for Social Workers",u:3,p:"msw",d:"Management and organizational development skills for social workers in leadership positions within human service organizations."},
 "SOWK 649":{t:"Promoting Sustainability through Social Work",u:3,p:"msw",d:"Promoting sustainability through social work practice, examining environmental justice and community resilience."},
-"SOWK 651":{t:"Clinical Psychopharmacology for Social Workers",u:3,p:"msw",d:"Clinical psychopharmacology knowledge for social workers, including medication effects, interactions, and collaborative practice with prescribers."}
+"SOWK 651":{t:"Clinical Psychopharmacology for Social Workers",u:3,p:"msw",d:"Clinical psychopharmacology knowledge for social workers, including medication effects, interactions, and collaborative practice with prescribers."},
+"SOWK 110":{t:"Thriving: Wellness Through a Social Justice Lens",u:3,p:"bsw",d:"Introduction to personal and community well-being examined through a social justice lens, foundational to baccalaureate generalist social work practice.",cswe:"1,2,3"},
+"SOWK 210":{t:"Global Well-Being and Human Performance",u:3,p:"bsw",d:"Explores well-being and human performance in global and community contexts, with attention to equity, human development, and diverse populations.",cswe:"2,3,6"},
+"SOWK 300":{t:"Foundations of Social Work",u:3,p:"bsw",d:"Foundational overview of the social work profession, its history, values, ethics, and the person-in-environment framework.",cswe:"1,2,6"},
+"SOWK 306":{t:"Introduction to Human Behavior and the Social Environment",u:3,p:"bsw",d:"Examines human development and behavior across the lifespan within family, group, organizational, and community systems.",cswe:"6,7"},
+"SOWK 323":{t:"Intercultural Coaching, Care Coordination and Perspectives",u:3,p:"bsw",d:"Develops intercultural coaching and care coordination skills for culturally responsive generalist social work practice.",cswe:"3,6,8"},
+"SOWK 330":{t:"Intercultural Humility in Social Work",u:3,p:"bsw",d:"Builds cultural humility, self-awareness, and anti-oppressive practice skills for working with diverse populations.",cswe:"2,3"},
+"SOWK 336":{t:"Social Work Policy Advocacy for Social Change",u:3,p:"bsw",d:"Introduces social welfare policy analysis and advocacy strategies to advance social, racial, economic, and environmental justice.",cswe:"2,5"},
+"SOWK 346":{t:"Evidence-Based Social Work Practice (EBSWP)",u:3,p:"bsw",d:"Introduction to research methods, evidence-based practice, and program evaluation for generalist social work practice.",cswe:"4"},
+"SOWK 423A":{t:"Macro Practice I: Engagement and Assessment (A)",u:3,p:"bsw",d:"First course in macro generalist practice focused on engagement and assessment with organizations and communities.",cswe:"6,7"},
+"SOWK 423B":{t:"Macro Practice I: Engagement and Assessment (B)",u:3,p:"bsw",d:"Continuation of macro generalist practice, focused on engagement and assessment with organizations and communities.",cswe:"6,7"},
+"SOWK 425A":{t:"Micro/Mezzo Practice II: Intervention & Evaluation (A)",u:3,p:"bsw",d:"Micro and mezzo generalist practice focused on intervention and evaluation with individuals, families, and groups.",cswe:"8,9"},
+"SOWK 425B":{t:"Micro/Mezzo Practice II: Intervention & Evaluation (B)",u:3,p:"bsw",d:"Continuation of micro and mezzo generalist practice in intervention and evaluation with individuals, families, and groups.",cswe:"8,9"},
+"SOWK 491":{t:"Practicum (A)",u:3,p:"bsw",d:"Supervised generalist social work field practicum applying the nine CSWE 2022 EPAS competencies in a community agency setting.",cswe:"1,2,3,4,5,6,7,8,9"},
+"SOWK 493":{t:"Practicum (B)",u:3,p:"bsw",d:"Continuation of supervised generalist field practicum, demonstrating integration of baccalaureate-level competencies.",cswe:"1,2,3,4,5,6,7,8,9"}
 };
 
 
@@ -2150,28 +2230,34 @@ function CreateCDMFlow(props){
           React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:"#1E40AF",marginBottom:6}},"MSW"),
           React.createElement("p",{style:{fontSize:14,color:"#666",marginBottom:12}},"Master of Social Work"),
           React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"4px 12px",borderRadius:8,background:"#DBEAFE",color:"#1E40AF"}},"Multiple Modalities"),
-          React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2022 EPAS Competencies"))));
+          React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2022 EPAS Competencies")),
+        React.createElement("div",{onClick:function(){setProgram("bsw");setModality("on_ground");setContentType("sync");},style:{flex:1,maxWidth:300,minWidth:240,background:"#fff",border:"3px solid #e8e0d0",borderRadius:20,padding:"32px 24px",cursor:"pointer",textAlign:"center",transition:"all .2s"},onMouseOver:function(e){e.currentTarget.style.borderColor="#D97706";e.currentTarget.style.boxShadow="0 4px 20px rgba(217,119,6,.15)";},onMouseOut:function(e){e.currentTarget.style.borderColor="#e8e0d0";e.currentTarget.style.boxShadow="none";}},
+          React.createElement("div",{style:{width:64,height:64,borderRadius:32,background:"#D97706",margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,color:"#fff",fontWeight:700}},"B"),
+          React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:"#D97706",marginBottom:6}},"BSW"),
+          React.createElement("p",{style:{fontSize:14,color:"#666",marginBottom:12}},"Bachelor of Social Work"),
+          React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"4px 12px",borderRadius:8,background:"#FEF3C7",color:"#D97706"}},"On-Ground"),
+          React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:12}},"CSWE 2022 EPAS — Generalist Practice"))));
   }
 
   return React.createElement("div",{style:{maxWidth:600,margin:"0 auto",padding:"40px 16px"}},
     React.createElement("button",{onClick:function(){setProgram(null);setCourseName("");},style:{fontSize:14,color:"#990000",background:"none",border:"none",cursor:"pointer",marginBottom:20,display:"flex",alignItems:"center",gap:6}},String.fromCharCode(8592)+" Back to Program Selection"),
     React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:24}},
-      React.createElement("div",{style:{width:40,height:40,borderRadius:20,background:program==="dsw"?"#990000":"#1E40AF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:"#fff"}},program==="dsw"?"D":"M"),
+      React.createElement("div",{style:{width:40,height:40,borderRadius:20,background:program==="dsw"?"#990000":program==="bsw"?"#D97706":"#1E40AF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:"#fff"}},program==="dsw"?"D":program==="bsw"?"B":"M"),
       React.createElement("div",null,
-        React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:program==="dsw"?"#990000":"#1E40AF",margin:0}},program==="dsw"?"DSW":"MSW"),
-        React.createElement("p",{style:{fontSize:13,color:"#888",margin:0}},program==="dsw"?"Doctor of Social Work":"Master of Social Work"))),
+        React.createElement("h2",{style:{fontSize:22,fontWeight:800,color:program==="dsw"?"#990000":program==="bsw"?"#D97706":"#1E40AF",margin:0}},program==="dsw"?"DSW":program==="bsw"?"BSW":"MSW"),
+        React.createElement("p",{style:{fontSize:13,color:"#888",margin:0}},program==="dsw"?"Doctor of Social Work":program==="bsw"?"Bachelor of Social Work":"Master of Social Work"))),
     React.createElement("div",{style:{background:"#fff",border:"2px solid #e8e0d0",borderRadius:16,padding:24}},
       React.createElement("div",{className:"field",style:{marginBottom:16}},
         React.createElement("label",{style:{fontSize:14,fontWeight:700,color:"#990000",marginBottom:6,display:"block"}},"Select Course from Catalog"),
-        React.createElement("select",{value:"",onChange:function(e){if(e.target.value){var entry=SOWK_CATALOG[e.target.value];if(entry){setCourseName(e.target.value+": "+entry.t);if(entry.d)setCourseDesc(entry.d);if(entry.u)setCourseUnits(String(entry.u));}}},style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14}},
+        React.createElement("select",{value:"",onChange:function(e){if(e.target.value==="__OTHER__"){setCourseName("");setCourseDesc("");setTimeout(function(){var inp=document.getElementById("manualCourseName");if(inp)inp.focus();},50);}else if(e.target.value){var entry=SOWK_CATALOG[e.target.value];if(entry){setCourseName(e.target.value+": "+entry.t);if(entry.d)setCourseDesc(entry.d);if(entry.u)setCourseUnits(String(entry.u));}}},style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14}},
           React.createElement("option",{value:""},"Choose a course..."),
-          React.createElement("optgroup",{label:program==="msw"?"MSW Courses (500-600 level)":"DSW Courses (700-level)"},
+          React.createElement("optgroup",{label:program==="msw"?"MSW Courses (500-600 level)":program==="bsw"?"BSW Courses (100-400 level)":"DSW Courses (700-level)"},
           Object.keys(SOWK_CATALOG).filter(function(k){return SOWK_CATALOG[k].p===program;}).sort().map(function(k){
-            return React.createElement("option",{key:k,value:k},k+": "+SOWK_CATALOG[k].t);})))),
+            return React.createElement("option",{key:k,value:k},k+": "+SOWK_CATALOG[k].t);})),React.createElement("optgroup",{label:"Not Listed"},React.createElement("option",{value:"__OTHER__"},"Other \u2014 enter course manually below")))),
       React.createElement("div",{style:{textAlign:"center",fontSize:13,color:"#999",margin:"12px 0"}},"or type a custom course name"),
       React.createElement("div",{className:"field",style:{marginBottom:20}},
         React.createElement("label",{style:{fontSize:14,fontWeight:700,color:"#990000",marginBottom:6,display:"block"}},"Course Name"),
-        React.createElement("input",{value:courseName,onChange:function(e){setCourseName(e.target.value);},placeholder:program==="dsw"?"e.g., SOWK 704: Complex Social Problems":"e.g., SOWK 616: Clinical Practice with Older Adults",style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14}})),
+        React.createElement("input",{id:"manualCourseName",value:courseName,onChange:function(e){setCourseName(e.target.value);},placeholder:program==="dsw"?"e.g., SOWK 704: Complex Social Problems":program==="bsw"?"e.g., SOWK 203: Sport, Community, and Social Justice":"e.g., SOWK 616: Clinical Practice with Older Adults",style:{width:"100%",padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14}})),
       program==="msw"?React.createElement("div",{style:{marginBottom:20}},
         React.createElement("label",{style:{fontSize:14,fontWeight:700,color:"#990000",marginBottom:12,display:"block"}},"Content Type"),
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
@@ -2210,7 +2296,7 @@ function Dashboard(pp){
           var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Never";
           return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
             React.createElement("div",{style:{flex:1}},
-              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":"#F0FDF4",color:c.program==="msw"?"#1E40AF":"#166534"}},c.program==="msw"?"MSW":"DSW"),React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:c.cdmStatus==="Launched"?"#166534":c.cdmStatus==="Approved"?"#0369A1":c.cdmStatus==="Submitted"?"#92400E":"#888",color:"#fff"}},c.cdmStatus||"Draft"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":c.program==="bsw"?"#FEF3C7":"#F0FDF4",color:c.program==="msw"?"#1E40AF":c.program==="bsw"?"#D97706":"#166534"}},c.program==="msw"?"MSW":c.program==="bsw"?"BSW":"DSW"),React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:c.cdmStatus==="Launched"?"#166534":c.cdmStatus==="Approved"?"#0369A1":c.cdmStatus==="Submitted"?"#92400E":"#888",color:"#fff"}},c.cdmStatus||"Draft"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
               React.createElement("div",{style:{fontSize:14,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X"),
