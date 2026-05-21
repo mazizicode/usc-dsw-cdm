@@ -722,6 +722,7 @@ React.createElement("select",{value:data.progDirector,onChange:function(e){s("pr
 React.createElement("option",{value:""},"Select..."),
 data.program==="dsw"?React.createElement("option",{value:"Dr. June Wiley"},"Dr. June Wiley"):null,
 data.program==="msw"?React.createElement("option",{value:"Dr. Jennifer Lewis"},"Dr. Jennifer Lewis"):null,
+data.program==="bsw"?React.createElement("option",{value:"Dr. Umeka Franklin"},"Dr. Umeka Franklin"):null,
 React.createElement("option",{value:"Other"},"Other"))),
 React.createElement("div",{className:"field"},
 React.createElement("label",null,"CURRICULUM & ACCREDITATION DIRECTOR"),
@@ -1027,8 +1028,9 @@ if(pdfMswMap){
     h+=`<div style="background:#fef2f2;border-left:3px solid #999;padding:5px 10px;font-size:10px;margin:5px 0;border-radius:0 5px 5px 0;color:#666;font-style:italic">Sub-Competencies Addressed in This Module: <em>None tagged</em></div>`;
   }
 }
-// Step 3.5: Module Video Plan in PDF (per Jen Lewis spec, May 6 meeting)
+// Step 3.5: Module Video Plan in PDF (per Jen Lewis spec, May 6 meeting) — skipped for BSW
 (function(){
+  if(data.program==="bsw")return;
   var vp=mod.videoPlan;
   if(!vp||(typeof vp!=="object"))return;
   var lec=Array.isArray(vp.lectureVideos)?vp.lectureVideos:[];
@@ -1870,8 +1872,8 @@ function AsyncDesignStep(props){
       React.createElement("p",{style:{fontSize:14,color:"#92400E",marginBottom:20}},"Fill in each section of the 5-step async module structure below. Click "+String.fromCharCode(8220)+"Show Guide"+String.fromCharCode(8221)+" in any section for tips and examples."),
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16}},
 
-        // ===== MODULE VIDEO PLAN (per Jen Lewis spec, May 6 meeting) =====
-        (function(){
+        // ===== MODULE VIDEO PLAN (per Jen Lewis spec, May 6 meeting) — hidden for BSW (no video recording) =====
+        data.program!=="bsw"&&(function(){
           var vp=ensureVP(activeMod);
           var lec=vp.lectureVideos;
           var sb=vp.skillBuilderVideos;
