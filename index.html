@@ -381,7 +381,7 @@ wrapUp:{competenceAssessment:"",liveSessionQuestions:""}
 }});
 const INIT={
 program:"dsw",
-courseName:"",units:"",courseDesc:"",devStarted:"",targetDelivery:"",courseLead:"",leadEmail:"",leadPhone:"",
+courseName:"",units:"",courseDesc:"",sectionNotes:"",devStarted:"",targetDelivery:"",courseLead:"",leadEmail:"",leadPhone:"",
 instDesigner:"Mirwais Azizi",progDirector:"",
 curriculumDirector:"",areaOfFocus:"",modality:"async_sync",
 contentType:"both",
@@ -739,7 +739,8 @@ React.createElement("div",{style:{display:"flex",gap:16,marginTop:6}},
 React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":v==="online_only"?"online":v==="on_ground"?"sync":v==="on_ground_async"?"both":v==="summer_flex"?"both":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?(data.program==="msw"?"Async/Sync":"Fully Online"):v==="online_only"?"100% Online":v==="async_only"?"Asynchronous Only":v==="on_ground"?"On-Ground (In-Person)":v==="on_ground_async"?"On-Ground + Async Components":v==="summer_flex"?"Summer Flex (Zoom + Field + Async)":"")))),
 React.createElement(F,{label:"Sync Min / Module",value:data.syncMin,onChange:v=>s("syncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Async Min / Module",value:data.asyncMin,onChange:v=>s("asyncMin",v),placeholder:"75"})),
-React.createElement(A,{label:"Course Description (do not modify)",value:data.courseDesc,onChange:v=>s("courseDesc",v),placeholder:"Paste the official course description here.",rows:5}));}
+React.createElement(A,{label:"Course Description (do not modify)",value:data.courseDesc,onChange:v=>s("courseDesc",v),placeholder:"Paste the official course description here.",rows:5}),
+data.program==="bsw"&&React.createElement(A,{label:"Section Notes",value:data.sectionNotes,onChange:v=>s("sectionNotes",v),placeholder:"Describe the delivery format, scheduling, and any modality-specific details for this section (e.g., Summer Flex pilot format, Zoom and field activity schedule).",rows:5}));}
 
 // ==== STEP 4: CSWE Mapping ====
 function CSWEMapping({data,set}){
@@ -969,6 +970,7 @@ h+=`<div class="page"><div style="text-align:center;padding:14px 0 8px"><div sty
 [["Course",data.courseName],["Dev Started",data.devStarted],["Target Delivery",data.targetDelivery],["Course Lead",data.courseLead],["Email",data.leadEmail],["Phone",data.leadPhone],["Instructional Designer",data.instDesigner],["Program Director",data.progDirector],["Area of Focus",data.areaOfFocus],["Modality",data.modality==="async_sync"?"Async & Sync":data.modality==="async_only"?"Async Only":data.modality==="online_only"?"100% Online":data.modality==="on_ground"?"On-Ground (In-Person)":data.modality==="on_ground_async"?"On-Ground + Async Components":data.modality==="summer_flex"?"Summer Flex (Zoom + Field + Async)":"—"],["Sync Min/Module",data.syncMin],["Async Min/Module",data.asyncMin]].forEach(([l,v])=>{h+=`<div><label>${l}</label><span>${esc(v)}</span></div>`;});
 h+=`</div>`;
 if(data.courseDesc)h+=`<h3>Course Description</h3><p style="font-size:10px;color:#444;margin:3px 0">${esc(data.courseDesc)}</p>`;
+if(data.program==="bsw"&&data.sectionNotes)h+=`<h3>Section Notes</h3><p style="font-size:10px;color:#444;margin:3px 0">${esc(data.sectionNotes)}</p>`;
 // Phase 2c: For mapped MSW courses, render Sub-Competency Mapping; otherwise render existing Competency Mapping
 var pdfMswMap=data.program==="msw"?getMSWMapping(data.courseName):null;
 if(pdfMswMap){
