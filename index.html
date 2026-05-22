@@ -382,7 +382,7 @@ wrapUp:{competenceAssessment:"",liveSessionQuestions:""}
 const INIT={
 program:"dsw",
 courseName:"",units:"",courseDesc:"",sectionNotes:"",devStarted:"",targetDelivery:"",courseLead:"",leadEmail:"",leadPhone:"",
-instDesigner:"Mirwais Azizi",progDirector:"",
+instDesigner:"Dr. Mirwais Azizi",progDirector:"",
 curriculumDirector:"",areaOfFocus:"",modality:"async_sync",
 contentType:"both",
 syncMin:"",asyncMin:"",courseDesc:"",
@@ -699,7 +699,7 @@ function CourseInfo({data,set}){
 const s=(k,v)=>set(d=>({...d,[k]:v}));
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"General Course Information"),
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.program==="msw"?"#DBEAFE":data.program==="bsw"?"#FEF3C7":"#F0FDF4",color:data.program==="msw"?"#1E40AF":data.program==="bsw"?"#D97706":"#166534"}},(data.program==="msw"?"MSW":data.program==="bsw"?"BSW":"DSW")+" | "+(data.contentType==="async"?"Asynchronous Only":data.contentType==="online"?"100% Online":"Fully Online"))),
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12,marginBottom:20}},React.createElement("p",{style:{fontSize:15,color:"#888"}},"Enter your course details. All fields auto-save."),React.createElement("span",{style:{fontSize:13,fontWeight:700,padding:"4px 14px",borderRadius:10,background:data.program==="msw"?"#DBEAFE":data.program==="bsw"?"#FEF3C7":"#F0FDF4",color:data.program==="msw"?"#1E40AF":data.program==="bsw"?"#D97706":"#166534"}},(data.program==="msw"?"MSW":data.program==="bsw"?"BSW":"DSW")+" | "+(data.program==="bsw"?(data.modality==="on_ground_async"?"On-Ground + Async":data.modality==="summer_flex"?"Summer Flex":"On-Ground"):(data.contentType==="async"?"Asynchronous Only":data.contentType==="online"?"100% Online":"Fully Online")))),
 React.createElement("div",{className:"g3",style:{marginBottom:12}},
 React.createElement(F,{label:"Course Number / Name",value:data.courseName,onChange:v=>s("courseName",v),placeholder:"SOWK 616: Clinical Practice with Older Adults"}),
 React.createElement(F,{label:"Development Started",value:data.devStarted,onChange:v=>s("devStarted",v),placeholder:"August 2025"}),
