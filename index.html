@@ -405,6 +405,18 @@ cdmCreated:null
 var ADMIN_EMAILS=["mirwaisa@usc.edu","singhmi@usc.edu"];
 function isAdmin(email){return ADMIN_EMAILS.indexOf(email.toLowerCase())>=0;}
 
+// ===== Program Director role (View + Comment on submitted CDMs for their program) =====
+var PROGRAM_DIRECTORS={"ufrankli@usc.edu":"bsw","lewi573@usc.edu":"msw","june.wiley@usc.edu":"dsw"};
+function isProgramDirector(email){return email&&PROGRAM_DIRECTORS.hasOwnProperty(email.toLowerCase());}
+function programDirectorProgram(email){return email?(PROGRAM_DIRECTORS[email.toLowerCase()]||null):null;}
+// A CDM is visible to a Program Director once it reaches Submitted or any later workflow stage.
+function pdVisibleStatus(status){
+  var s=status||"Draft";
+  var i=CDM_STATUSES.indexOf(s);
+  var subIdx=CDM_STATUSES.indexOf("Submitted");
+  return i>=subIdx&&subIdx>=0;
+}
+
 function loadAllFaculty(cb){
   // Use collectionGroup so we find every "courses" subcollection across every
   // user, even when the parent cdm_data/{uid} document was never written
@@ -2308,6 +2320,52 @@ function Dashboard(pp){
               React.createElement("span",{style:{color:"#990000",fontSize:18}},String.fromCharCode(8250))));}))));
 }
 
+// ===== Program Director Dashboard: submitted CDMs for the PD's program (view + comment) =====
+function ProgramDirectorDashboard(props){
+  var user=props.user;var onLogout=props.onLogout;var onViewCourse=props.onViewCourse;
+  var myProgram=programDirectorProgram(user.email);
+  var _f=useState(null),faculty=_f[0],setFaculty=_f[1];
+  useEffect(function(){
+    loadAllFaculty(function(list){setFaculty(list||[]);});
+  },[]);
+  var progLabel=myProgram?myProgram.toUpperCase():"";
+  // Flatten to submitted-or-later courses for this PD's program only
+  var rows=[];
+  if(faculty){
+    faculty.forEach(function(f){
+      (f.courses||[]).forEach(function(c){
+        if(c.archived)return;
+        if((c.program||"dsw")!==myProgram)return;
+        if(!pdVisibleStatus(c.cdmStatus))return;
+        rows.push({uid:f.uid,fname:f.name||f.userName||c.userName||"Faculty",course:c});
+      });
+    });
+  }
+  rows.sort(function(a,b){return (b.course.lastUpdated||0)-(a.course.lastUpdated||0);});
+  return React.createElement("div",{style:{maxWidth:1000,margin:"0 auto",padding:"32px 16px"}},
+    React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}},
+      React.createElement("div",null,
+        React.createElement("h1",{style:{fontSize:30,fontWeight:900,color:"#990000",margin:0}},"Program Director Review"),
+        React.createElement("p",{style:{fontSize:14,color:"#666",margin:"4px 0 0"}},progLabel+" Program \u2014 submitted Course Design Maps")),
+      React.createElement("button",{onClick:onLogout,style:{fontSize:13,color:"#999",fontWeight:600,background:"none",border:"none",cursor:"pointer"}},"Sign Out")),
+    React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:10,background:"#FEF3C7",border:"1px solid #FCD34D",borderRadius:12,padding:"10px 16px",margin:"12px 0 22px"}},
+      React.createElement("span",{style:{fontSize:24,fontWeight:900,color:"#92400E"}},String(rows.length)),
+      React.createElement("span",{style:{fontSize:13,fontWeight:700,color:"#92400E"}},rows.length===1?"CDM awaiting your review":"CDMs awaiting your review")),
+    (faculty===null)?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:30}},"Loading submitted CDMs..."):
+    (rows.length===0)?React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
+      React.createElement("p",{style:{fontSize:16}},"No submitted "+progLabel+" CDMs yet."),
+      React.createElement("p",{style:{fontSize:13}},"CDMs appear here once a faculty member marks them \u201CSubmitted.\u201D")):
+    React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+      rows.map(function(r){
+        return React.createElement("div",{key:r.uid+"_"+r.course.id,style:{background:"#fff",border:"1px solid #e8e0d0",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}},
+          React.createElement("div",{style:{flex:1,minWidth:0}},
+            React.createElement("div",{style:{fontSize:15,fontWeight:700,color:"#1a1a1a"}},r.course.name||"Untitled"),
+            React.createElement("div",{style:{fontSize:12,color:"#888",marginTop:2}},"Faculty: "+r.fname+"  \u2022  v"+(r.course.cdmVersion||"1.0"))),
+          React.createElement("span",{style:{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:8,background:STATUS_COLORS[r.course.cdmStatus]||"#888",color:"#fff",whiteSpace:"nowrap"}},r.course.cdmStatus||"Draft"),
+          React.createElement("button",{onClick:function(){onViewCourse(r.uid,r.course.id,r.course.name,r.fname);},style:{fontSize:13,fontWeight:700,color:"#fff",background:"#990000",border:"none",borderRadius:10,padding:"8px 16px",cursor:"pointer",whiteSpace:"nowrap"}},"View & Comment"));
+      })));
+}
+
 function App(){
 var _a=useState(null),authUser=_a[0],setAuthUser=_a[1];
 var _b=useState(true),authLoading=_b[0],setAuthLoading=_b[1];
@@ -2442,6 +2500,13 @@ if(showDashboard){
       },100);
     }});}
     return React.createElement(AdminDashboard,{user:authUser,onLogout:function(){firebase.auth().signOut();},onSwitchToFaculty:function(){setAdminMode(false);},onViewCourse:function(uid,cid,cname,fname){
+      setAdminViewInfo({courseName:cname,facultyName:fname,facultyUid:uid,courseId:cid});
+      loadFacultyCourse(uid,cid,function(d){setAdminViewData(d);});
+    }});
+  }
+  if(isProgramDirector(authUser.email)&&!isAdmin(authUser.email)){
+    if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,facultyUid:adminViewInfo.facultyUid,courseId:adminViewInfo.courseId,authUser:authUser,onBack:function(){setAdminViewData(null);},onExport:function(){alert("To download this CDM as PDF, the faculty member can use the Review & Export step in their CDM.");}});}
+    return React.createElement(ProgramDirectorDashboard,{user:authUser,onLogout:function(){firebase.auth().signOut();},onViewCourse:function(uid,cid,cname,fname){
       setAdminViewInfo({courseName:cname,facultyName:fname,facultyUid:uid,courseId:cid});
       loadFacultyCourse(uid,cid,function(d){setAdminViewData(d);});
     }});
