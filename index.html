@@ -1200,6 +1200,8 @@ function UserBar(props){
 
 function AdminDashboard(props){
   var user=props.user;var onLogout=props.onLogout;var onViewCourse=props.onViewCourse;var onSwitchToFaculty=props.onSwitchToFaculty;
+  var onViewAsPD=props.onViewAsPD;
+  var _pdpick=useState(false),pdPickerOpen=_pdpick[0],setPdPickerOpen=_pdpick[1];
   var _f=useState(null),faculty=_f[0],setFaculty=_f[1];
   var _s=useState(""),search=_s[0],setSearch=_s[1];
   var _at=useState(false),showAnalytics=_at[0],setShowAnalytics=_at[1];
@@ -1249,8 +1251,17 @@ function AdminDashboard(props){
         h+="</table><p style='margin-top:40px;font-size:11px;color:#888'>USC SSW CDM Platform</p></body></html>";
         w.document.write(h);w.document.close();
       },style:{background:"#ECFDF5",border:"1px solid #059669",color:"#059669",cursor:"pointer",fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10}},"Accreditation Report"),
-      React.createElement("button",{onClick:onSwitchToFaculty,style:{background:"#fff",border:"1px solid #990000",color:"#990000",padding:"8px 18px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:600}},"Switch to Faculty View"),
+      React.createElement("button",{onClick:function(){setPdPickerOpen(!pdPickerOpen);},style:{background:"#FEF3C7",border:"1px solid #D97706",color:"#92400E",padding:"8px 18px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:600}},"View as Program Director"),
+        React.createElement("button",{onClick:onSwitchToFaculty,style:{background:"#fff",border:"1px solid #990000",color:"#990000",padding:"8px 18px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:600}},"Switch to Faculty View"),
         React.createElement("button",{onClick:onLogout,style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600}},"Sign Out"))),
+    pdPickerOpen?React.createElement("div",{style:{maxWidth:1000,margin:"0 auto",padding:"0 24px"}},
+      React.createElement("div",{style:{background:"#FEF9F0",border:"1px solid #F0D9A8",borderRadius:14,padding:"16px 20px",marginTop:8}},
+        React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#92400E",marginBottom:4}},"Preview a Program Director's view"),
+        React.createElement("div",{style:{fontSize:12,color:"#92400E",marginBottom:12}},"See exactly what each Program Director sees — their program's submitted CDMs. You can return to the Admin Dashboard at any time."),
+        React.createElement("div",{style:{display:"flex",gap:10,flexWrap:"wrap"}},
+          [["bsw","BSW — Dr. Umeka Franklin"],["msw","MSW — Dr. Jennifer Lewis"],["dsw","DSW — Dr. June Wiley"]].map(function(p){
+            return React.createElement("button",{key:p[0],onClick:function(){setPdPickerOpen(false);onViewAsPD(p[0]);},style:{background:"#990000",color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontSize:13,fontWeight:700,cursor:"pointer"}},p[1]);
+          })))):null,
     React.createElement("div",{style:{maxWidth:1000,margin:"0 auto",padding:"30px 24px"}},
       React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:40,marginBottom:16}}),
       React.createElement("h1",{style:{fontSize:30,fontWeight:900,color:"#990000",marginBottom:6}},"Admin Dashboard"),
@@ -2323,7 +2334,9 @@ function Dashboard(pp){
 // ===== Program Director Dashboard: submitted CDMs for the PD's program (view + comment) =====
 function ProgramDirectorDashboard(props){
   var user=props.user;var onLogout=props.onLogout;var onViewCourse=props.onViewCourse;
-  var myProgram=programDirectorProgram(user.email);
+  var onBackToAdmin=props.onBackToAdmin;
+  // programOverride lets an admin preview a specific program's PD view.
+  var myProgram=props.programOverride||programDirectorProgram(user.email);
   var _f=useState(null),faculty=_f[0],setFaculty=_f[1];
   useEffect(function(){
     loadAllFaculty(function(list){setFaculty(list||[]);});
@@ -2347,7 +2360,9 @@ function ProgramDirectorDashboard(props){
       React.createElement("div",null,
         React.createElement("h1",{style:{fontSize:30,fontWeight:900,color:"#990000",margin:0}},"Program Director Review"),
         React.createElement("p",{style:{fontSize:14,color:"#666",margin:"4px 0 0"}},progLabel+" Program \u2014 submitted Course Design Maps")),
-      React.createElement("button",{onClick:onLogout,style:{fontSize:13,color:"#999",fontWeight:600,background:"none",border:"none",cursor:"pointer"}},"Sign Out")),
+      React.createElement("div",{style:{display:"flex",gap:10,alignItems:"center"}},
+        onBackToAdmin?React.createElement("button",{onClick:onBackToAdmin,style:{fontSize:13,color:"#990000",fontWeight:700,background:"#fff",border:"1px solid #990000",borderRadius:10,padding:"8px 16px",cursor:"pointer"}},String.fromCharCode(8592)+" Back to Admin Dashboard"):null,
+        React.createElement("button",{onClick:onLogout,style:{fontSize:13,color:"#999",fontWeight:600,background:"none",border:"none",cursor:"pointer"}},"Sign Out"))),
     React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:10,background:"#FEF3C7",border:"1px solid #FCD34D",borderRadius:12,padding:"10px 16px",margin:"12px 0 22px"}},
       React.createElement("span",{style:{fontSize:24,fontWeight:900,color:"#92400E"}},String(rows.length)),
       React.createElement("span",{style:{fontSize:13,fontWeight:700,color:"#92400E"}},rows.length===1?"CDM awaiting your review":"CDMs awaiting your review")),
@@ -2395,6 +2410,7 @@ useEffect(function(){
 var _adm=useState(false),adminMode=_adm[0],setAdminMode=_adm[1];
 var _av=useState(null),adminViewData=_av[0],setAdminViewData=_av[1];
 var _avInfo=useState({}),adminViewInfo=_avInfo[0],setAdminViewInfo=_avInfo[1];
+var _pdp=useState(null),pdPreview=_pdp[0],setPdPreview=_pdp[1];
 
 var openCourse=function(cid){setCurrentCourseId(cid);setDataLoaded(false);loadCourse(authUser.uid,cid,function(d){setData(d);setDataLoaded(true);setShowDashboard(false);setStep(0);});};
 var _showDup=useState(null),dupInfo=_showDup[0],setDupInfo=_showDup[1];
@@ -2499,7 +2515,13 @@ if(showDashboard){
         setData(oldData);alert("To download this CDM as PDF, open the faculty member's CDM in the app and use the Review & Export step.");
       },100);
     }});}
-    return React.createElement(AdminDashboard,{user:authUser,onLogout:function(){firebase.auth().signOut();},onSwitchToFaculty:function(){setAdminMode(false);},onViewCourse:function(uid,cid,cname,fname){
+    if(pdPreview){
+      return React.createElement(ProgramDirectorDashboard,{user:authUser,programOverride:pdPreview,onLogout:function(){firebase.auth().signOut();},onBackToAdmin:function(){setPdPreview(null);},onViewCourse:function(uid,cid,cname,fname){
+        setAdminViewInfo({courseName:cname,facultyName:fname,facultyUid:uid,courseId:cid});
+        loadFacultyCourse(uid,cid,function(d){setAdminViewData(d);});
+      }});
+    }
+    return React.createElement(AdminDashboard,{user:authUser,onLogout:function(){firebase.auth().signOut();},onSwitchToFaculty:function(){setAdminMode(false);},onViewAsPD:function(prog){setPdPreview(prog);},onViewCourse:function(uid,cid,cname,fname){
       setAdminViewInfo({courseName:cname,facultyName:fname,facultyUid:uid,courseId:cid});
       loadFacultyCourse(uid,cid,function(d){setAdminViewData(d);});
     }});
