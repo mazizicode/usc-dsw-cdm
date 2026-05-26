@@ -494,7 +494,7 @@ function loadFacultyCourse(uid,cid,cb){
 
 function load(){return INIT;}
 function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();if(x.archived===true)return;r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||"",program:x.program||"dsw",cdmStatus:x.cdmStatus||"Draft",cdmVersion:x.cdmVersion||"1.0"});});cb(r);}).catch(function(){cb([]);});}
-function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";if(!p.cdmStatus)p.cdmStatus="Draft";if(!p.cdmStatusHistory)p.cdmStatusHistory=[];if(!p.targetSemester)p.targetSemester="";if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];if(!m.videoPlan||typeof m.videoPlan!=="object")m.videoPlan={lectureVideos:[],skillBuilderVideos:[]};if(!Array.isArray(m.videoPlan.lectureVideos))m.videoPlan.lectureVideos=[];if(!Array.isArray(m.videoPlan.skillBuilderVideos))m.videoPlan.skillBuilderVideos=[];});}cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
+function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";if(!p.cdmStatus)p.cdmStatus="Draft";if(!p.cdmStatusHistory)p.cdmStatusHistory=[];var _topStatus=d.data().cdmStatus;if(_topStatus)p.cdmStatus=_topStatus;var _topHist=d.data().cdmStatusHistory;if(_topHist&&_topHist.length>=(p.cdmStatusHistory?p.cdmStatusHistory.length:0))p.cdmStatusHistory=_topHist;if(!p.targetSemester)p.targetSemester="";if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];if(!m.videoPlan||typeof m.videoPlan!=="object")m.videoPlan={lectureVideos:[],skillBuilderVideos:[]};if(!Array.isArray(m.videoPlan.lectureVideos))m.videoPlan.lectureVideos=[];if(!Array.isArray(m.videoPlan.skillBuilderVideos))m.videoPlan.skillBuilderVideos=[];});}cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
 function createNewCourse(uid,initData,cb){if(typeof initData==="function"){cb=initData;initData=null;}var d=initData||INIT;var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(d),courseName:d.courseName||"New Course",leadName:d.courseLead||"",program:d.program||"dsw",cdmStatus:"Draft",
 cdmStatusHistory:[],
 targetSemester:"",
@@ -544,6 +544,18 @@ function addComment(uid,cid,commentData,cb){
   firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).collection("comments").add(
     Object.assign(commentData,{timestamp:firebase.firestore.FieldValue.serverTimestamp()})
   ).then(function(){cb();}).catch(function(e){console.error("Comment error:",e);});
+}
+
+// Reviewer (admin or Program Director) sets a course's workflow status.
+// Updates ONLY the top-level status fields — never course content.
+function reviewerSetStatus(facultyUid,courseId,newStatus,actorName,note,cb){
+  var ref=firebase.firestore().collection("cdm_data").doc(facultyUid).collection("courses").doc(courseId);
+  ref.get().then(function(d){
+    var hist=[];
+    if(d.exists&&d.data().cdmStatusHistory)hist=d.data().cdmStatusHistory.slice();
+    hist.push({status:newStatus,changedBy:actorName||"Reviewer",changedAt:new Date().toISOString(),note:note||""});
+    return ref.set({cdmStatus:newStatus,cdmStatusHistory:hist,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  }).then(function(){if(cb)cb(true);}).catch(function(e){console.error("Status update error:",e);if(cb)cb(false);});
 }
 
 function loadVersionHistory(uid,cid,cb){
@@ -1159,6 +1171,33 @@ React.createElement("div",{className:"g3",style:{marginBottom:16}},
 React.createElement("div",{style:{fontSize:32,fontWeight:900,color:C.cardinal}},c.n),React.createElement("div",{style:{fontSize:14,color:"#888"}},c.l)))),
 React.createElement("button",{onClick:doExport,className:"btn-p",style:{width:"100%",fontSize:15,padding:"16px"},disabled:gen},gen?"\u23F3 Generating...":"\u{1F4C4} Generate CDM Report (opens in new tab \u2192 Save as PDF)"),
 React.createElement("p",{style:{fontSize:13,color:"#999",textAlign:"center",margin:"10px 0 18px"}},"The report opens in a new tab. Use Print \u2192 \u201CSave as PDF\u201D to download. Share the PDF via Google Drive or email."),
+React.createElement("div",{style:{marginTop:24,marginBottom:8,background:"#FFF8E8",border:"2px solid #FFCC00",borderRadius:16,padding:"22px 24px"}},
+  React.createElement("div",{style:{fontSize:20,fontWeight:900,color:"#990000",marginBottom:6}},"\u2705 You\u2019re Done \u2014 Final Steps"),
+  React.createElement("div",{style:{fontSize:14,color:"#444",marginBottom:16}},"Submitting in the app is not the final step. To complete your Course Design Map, you must also email a PDF copy for review and approval. Please complete all three steps below."),
+  React.createElement("div",{style:{fontSize:14,color:"#333",lineHeight:1.7,marginBottom:16}},
+    React.createElement("div",{style:{marginBottom:8}},React.createElement("b",null,"1. Generate and review your PDF.")," Use the \u201CExport / Print CDM\u201D button above to create the PDF and check it over."),
+    React.createElement("div",{style:{marginBottom:8}},React.createElement("b",null,"2. Submit your CDM.")," Click the button below to mark it \u201CSubmitted\u201D in the app. Important: this records your CDM but does NOT send it for approval on its own \u2014 you must still complete Step 3 below."),
+    React.createElement("div",null,React.createElement("b",null,"3. Email a copy.")," This step is required. Email your CDM PDF to all three reviewers \u2014 your Program Director, ",
+      React.createElement("b",{style:{color:"#990000"}},
+        (data.program==="bsw"?"Dr. Umeka Franklin (ufrankli@usc.edu)":data.program==="msw"?"Dr. Jennifer Lewis (lewi573@usc.edu)":"Dr. June Wiley (june.wiley@usc.edu)")),
+      ", and the Instructional Designers, ",
+      React.createElement("b",{style:{color:"#990000"}},"Dr. Mirwais Azizi (mirwaisa@usc.edu)"),
+      " and ",
+      React.createElement("b",{style:{color:"#990000"}},"Dr. Melissa Singh (singhmi@usc.edu)"),
+      ". They will review your CDM, and your Program Director will approve it once it is ready. You will be notified when it is approved.")),
+  (data.cdmStatus==="Submitted"||data.cdmStatus==="Approved"||data.cdmStatus==="In Build"||data.cdmStatus==="Build Review"||data.cdmStatus==="Ready for Launch"||data.cdmStatus==="Launched")
+    ? React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:8,background:"#ECFDF5",border:"1px solid #059669",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:700,color:"#059669"}},"\u2713 This CDM has been submitted (status: "+data.cdmStatus+")")
+    : React.createElement("button",{onClick:function(){
+        if(!set){alert("Unable to submit \u2014 please open this CDM from your dashboard.");return;}
+        if(!confirm("Mark this CDM as \u201CSubmitted\u201D? Your Program Director will be able to review it."))return;
+        var note="Submitted by faculty from the Review & Export step.";
+        set(function(d){
+          var hist=(d.cdmStatusHistory||[]).slice();
+          hist.push({status:"Submitted",changedBy:(typeof authUser!=="undefined"&&authUser?(authUser.displayName||authUser.email):"Faculty"),changedAt:new Date().toISOString(),note:note});
+          return Object.assign({},d,{cdmStatus:"Submitted",cdmStatusHistory:hist});
+        });
+        alert("Your CDM is now marked \u201CSubmitted.\u201D\n\nIMPORTANT \u2014 you are not done yet: please complete Step 3 and email your CDM PDF to your Program Director and the Instructional Designers (Dr. Azizi and Dr. Singh) for review and approval.");
+      },style:{background:"linear-gradient(135deg,#B11313 0%,#990000 60%,#7d0000 100%)",color:"#fff",border:"3px solid #FFCC00",borderRadius:14,padding:"14px 28px",fontSize:16,fontWeight:900,cursor:"pointer"}},"\u2714 Mark CDM as Submitted")),
 React.createElement("div",{style:{borderTop:"1px solid #eee",paddingTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}},
 React.createElement("span",{style:{fontSize:13,color:"#bbb"}},"\u{1F4BE} Data is auto-saved in your browser"),
 React.createElement("button",{onClick:resetAll,style:{fontSize:13,color:"#e55",background:"none",border:"none",cursor:"pointer",textDecoration:"underline"}},"Reset All Data")));}
@@ -1499,6 +1538,7 @@ function AdminCDMViewer(props){
   var _t=useState(""),newText=_t[0],setNewText=_t[1];
   var _sc=useState("General"),section=_sc[0],setSection=_sc[1];
   var _l=useState(false),posting=_l[0],setPosting=_l[1];
+  var _vs=useState((cdmData&&cdmData.cdmStatus)||"Draft"),viewStatus=_vs[0],setViewStatus=_vs[1];
   var canComment=!!(facultyUid&&courseId&&authUser);
   useEffect(function(){
     if(!canComment)return;
@@ -1531,6 +1571,22 @@ function AdminCDMViewer(props){
       React.createElement("button",{onClick:onExport,className:"btn-p",style:{padding:"8px 20px",fontSize:13}},"Download PDF")),
     React.createElement("div",{style:{maxWidth:1000,margin:"0 auto",padding:"24px"}},
       React.createElement("div",{style:{background:"#fef2f2",border:"1px solid #990000",borderRadius:12,padding:"12px 18px",marginBottom:20,fontSize:14,color:"#990000",fontWeight:600}},"Admin View \u2014 You are viewing "+facultyName+"'s CDM. You can leave comments below; direct editing of this CDM is not available from this view."),
+      React.createElement("div",{style:{background:"#fff",border:"2px solid #FFCC00",borderRadius:14,padding:"16px 20px",marginBottom:20}},
+        React.createElement("div",{style:{fontSize:15,fontWeight:800,color:"#990000",marginBottom:4}},"CDM Review Status"),
+        React.createElement("div",{style:{fontSize:13,color:"#666",marginBottom:12}},"Current status: ",React.createElement("b",{style:{color:STATUS_COLORS[viewStatus]||"#888"}},viewStatus)),
+        (CDM_STATUSES.indexOf(viewStatus)>=CDM_STATUSES.indexOf("Approved"))
+          ? React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:8,background:"#ECFDF5",border:"1px solid #059669",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:700,color:"#059669"}},"\u2713 This CDM has been approved (status: "+viewStatus+").")
+          : React.createElement("div",null,
+              React.createElement("div",{style:{fontSize:13,color:"#444",marginBottom:10}},"After reviewing this CDM and adding any comments below, click Approve to advance it. The faculty member will see it marked \u201CApproved.\u201D"),
+              React.createElement("button",{onClick:function(){
+                if(!canComment){alert("Unable to approve \u2014 course information is missing.");return;}
+                if(!confirm("Approve this CDM? It will be marked \u201CApproved\u201D and the faculty member will see the updated status."))return;
+                var note=prompt("Add an optional note for this approval:")||"";
+                reviewerSetStatus(facultyUid,courseId,"Approved",(authUser&&(authUser.displayName||authUser.email))||"Reviewer",note,function(ok){
+                  if(ok){setViewStatus("Approved");alert("This CDM has been approved. Thank you.");}
+                  else alert("Could not update the status. Please try again.");
+                });
+              },style:{background:"linear-gradient(135deg,#0F9D58 0%,#059669 60%,#047857 100%)",color:"#fff",border:"none",borderRadius:12,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"\u2714 Approve CDM"))),
       React.createElement("div",{className:"card"},
         React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#990000",marginBottom:12}},"Course Information"),
         React.createElement("div",{className:"g3",style:{gap:12}},
