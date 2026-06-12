@@ -2372,6 +2372,7 @@ function Dashboard(pp){
       React.createElement("p",{style:{fontSize:16,color:"#999",marginBottom:24}},"Select a course to continue working, or create a new CDM."),
       React.createElement("button",{onClick:function(){setShowCreate(true);},onMouseOver:function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 28px rgba(153,0,0,.38)";},onMouseOut:function(e){e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 6px 20px rgba(153,0,0,.30)";},style:{width:"100%",marginBottom:16,padding:"22px 24px",fontSize:19,fontWeight:900,background:"linear-gradient(135deg,#B11313 0%,#990000 55%,#7d0000 100%)",color:"#fff",border:"3px solid #FFCC00",borderRadius:18,cursor:"pointer",transition:"all .2s ease",boxShadow:"0 6px 20px rgba(153,0,0,.30)",display:"flex",alignItems:"center",justifyContent:"center",gap:12,letterSpacing:".3px"}},React.createElement("span",{style:{fontSize:24,lineHeight:1}},"\uD83D\uDC49"),React.createElement("span",null,"Click Here to Create a New CDM"),React.createElement("span",{style:{fontSize:24,fontWeight:900,lineHeight:1}},"+")),
       pp.isAdmin?React.createElement("button",{onClick:pp.onAdminMode,style:{width:"100%",marginBottom:20,padding:"12px",fontSize:14,fontWeight:700,background:"#fff",border:"2px solid #990000",color:"#990000",borderRadius:14,cursor:"pointer"}},"\u{1F6E1} Open Admin Dashboard"):null,
+      pp.isProgramDirector&&pp.onBackToPD?React.createElement("button",{onClick:pp.onBackToPD,style:{width:"100%",marginBottom:20,padding:"12px",fontSize:14,fontWeight:700,background:"#fff",border:"2px solid #990000",color:"#990000",borderRadius:14,cursor:"pointer"}},String.fromCharCode(8592)+" Back to Program Director Review"):null,
       !courses?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20}},"Loading your courses..."):
       courses.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
         React.createElement("p",{style:{fontSize:17,fontWeight:700,color:"#990000",marginBottom:6}},"\uD83D\uDC46 Start by clicking the red button above"),React.createElement("p",{style:{fontSize:15,color:"#999"}},"You don\u2019t have any Course Design Maps yet. Click \u201CCreate a New CDM\u201D to begin.")):
@@ -2390,7 +2391,7 @@ function Dashboard(pp){
 // ===== Program Director Dashboard: submitted CDMs for the PD's program (view + comment) =====
 function ProgramDirectorDashboard(props){
   var user=props.user;var onLogout=props.onLogout;var onViewCourse=props.onViewCourse;
-  var onBackToAdmin=props.onBackToAdmin;
+  var onBackToAdmin=props.onBackToAdmin;var onSwitchToFaculty=props.onSwitchToFaculty;
   // programOverride lets an admin preview a specific program's PD view.
   var myProgram=props.programOverride||programDirectorProgram(user.email);
   var _f=useState(null),faculty=_f[0],setFaculty=_f[1];
@@ -2418,6 +2419,7 @@ function ProgramDirectorDashboard(props){
         React.createElement("p",{style:{fontSize:14,color:"#666",margin:"4px 0 0"}},progLabel+" Program \u2014 submitted Course Design Maps")),
       React.createElement("div",{style:{display:"flex",gap:10,alignItems:"center"}},
         onBackToAdmin?React.createElement("button",{onClick:onBackToAdmin,style:{fontSize:13,color:"#990000",fontWeight:700,background:"#fff",border:"1px solid #990000",borderRadius:10,padding:"8px 16px",cursor:"pointer"}},String.fromCharCode(8592)+" Back to Admin Dashboard"):null,
+        onSwitchToFaculty?React.createElement("button",{onClick:onSwitchToFaculty,style:{fontSize:13,color:"#fff",fontWeight:700,background:"#990000",border:"1px solid #990000",borderRadius:10,padding:"8px 16px",cursor:"pointer"}},"Switch to Faculty View"):null,
         React.createElement("button",{onClick:onLogout,style:{fontSize:13,color:"#999",fontWeight:600,background:"none",border:"none",cursor:"pointer"}},"Sign Out"))),
     React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:10,background:"#FEF3C7",border:"1px solid #FCD34D",borderRadius:12,padding:"10px 16px",margin:"12px 0 22px"}},
       React.createElement("span",{style:{fontSize:24,fontWeight:900,color:"#92400E"}},String(rows.length)),
@@ -2467,6 +2469,7 @@ var _adm=useState(false),adminMode=_adm[0],setAdminMode=_adm[1];
 var _av=useState(null),adminViewData=_av[0],setAdminViewData=_av[1];
 var _avInfo=useState({}),adminViewInfo=_avInfo[0],setAdminViewInfo=_avInfo[1];
 var _pdp=useState(null),pdPreview=_pdp[0],setPdPreview=_pdp[1];
+var _pdaf=useState(false),pdAsFaculty=_pdaf[0],setPdAsFaculty=_pdaf[1];
 
 var openCourse=function(cid){setCurrentCourseId(cid);setDataLoaded(false);loadCourse(authUser.uid,cid,function(d){setData(d);setDataLoaded(true);setShowDashboard(false);setStep(0);});};
 var _showDup=useState(null),dupInfo=_showDup[0],setDupInfo=_showDup[1];
@@ -2582,14 +2585,14 @@ if(showDashboard){
       loadFacultyCourse(uid,cid,function(d){setAdminViewData(d);});
     }});
   }
-  if(isProgramDirector(authUser.email)&&!isAdmin(authUser.email)){
+  if(isProgramDirector(authUser.email)&&!isAdmin(authUser.email)&&!pdAsFaculty){
     if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,facultyUid:adminViewInfo.facultyUid,courseId:adminViewInfo.courseId,authUser:authUser,onBack:function(){setAdminViewData(null);},onExport:function(){alert("To download this CDM as PDF, the faculty member can use the Review & Export step in their CDM.");}});}
-    return React.createElement(ProgramDirectorDashboard,{user:authUser,onLogout:function(){firebase.auth().signOut();},onViewCourse:function(uid,cid,cname,fname){
+    return React.createElement(ProgramDirectorDashboard,{user:authUser,onLogout:function(){firebase.auth().signOut();},onSwitchToFaculty:function(){setPdAsFaculty(true);},onViewCourse:function(uid,cid,cname,fname){
       setAdminViewInfo({courseName:cname,facultyName:fname,facultyUid:uid,courseId:cid});
       loadFacultyCourse(uid,cid,function(d){setAdminViewData(d);});
     }});
   }
-  return React.createElement(Dashboard,{user:authUser,onSelect:openCourse,onNew:createCourse,onLogout:function(){firebase.auth().signOut();},isAdmin:isAdmin(authUser.email),onAdminMode:function(){setAdminMode(true);}});
+  return React.createElement(Dashboard,{user:authUser,onSelect:openCourse,onNew:createCourse,onLogout:function(){firebase.auth().signOut();},isAdmin:isAdmin(authUser.email),onAdminMode:function(){setAdminMode(true);},isProgramDirector:isProgramDirector(authUser.email)&&!isAdmin(authUser.email),onBackToPD:(isProgramDirector(authUser.email)&&!isAdmin(authUser.email))?function(){setPdAsFaculty(false);}:null});
 }
 if(!dataLoaded){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading your course..."));}
 return React.createElement("div",null,
