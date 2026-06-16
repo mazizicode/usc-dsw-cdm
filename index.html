@@ -495,10 +495,15 @@ function loadFacultyCourse(uid,cid,cb){
 function load(){return INIT;}
 function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();if(x.archived===true)return;r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||"",program:x.program||"dsw",cdmStatus:x.cdmStatus||"Draft",cdmVersion:x.cdmVersion||"1.0"});});cb(r);}).catch(function(){cb([]);});}
 function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";if(!p.cdmStatus)p.cdmStatus="Draft";if(!p.cdmStatusHistory)p.cdmStatusHistory=[];var _topStatus=d.data().cdmStatus;if(_topStatus)p.cdmStatus=_topStatus;var _topHist=d.data().cdmStatusHistory;if(_topHist&&_topHist.length>=(p.cdmStatusHistory?p.cdmStatusHistory.length:0))p.cdmStatusHistory=_topHist;if(!p.targetSemester)p.targetSemester="";if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];if(!m.videoPlan||typeof m.videoPlan!=="object")m.videoPlan={lectureVideos:[],skillBuilderVideos:[]};if(!Array.isArray(m.videoPlan.lectureVideos))m.videoPlan.lectureVideos=[];if(!Array.isArray(m.videoPlan.skillBuilderVideos))m.videoPlan.skillBuilderVideos=[];});}cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
-function createNewCourse(uid,initData,cb){if(typeof initData==="function"){cb=initData;initData=null;}var d=initData||INIT;var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();r.set({cdmData:JSON.stringify(d),courseName:d.courseName||"New Course",leadName:d.courseLead||"",program:d.program||"dsw",cdmStatus:"Draft",
+function createNewCourse(uid,initData,cb){if(typeof initData==="function"){cb=initData;initData=null;}var d=initData||INIT;var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();var done=false;var finish=function(){if(done)return;done=true;cb(r.id);};r.set({cdmData:JSON.stringify(d),courseName:d.courseName||"New Course",leadName:d.courseLead||"",program:d.program||"dsw",cdmStatus:"Draft",
 cdmStatusHistory:[],
 targetSemester:"",
-cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){cb(r.id);}).catch(function(e){console.error("Create course error:",e);alert("Error creating course. Please check that Firestore rules are updated. Error: "+e.message);});}
+cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){finish();}).catch(function(e){console.error("Create course error:",e);if(!done){done=true;alert("Error creating course. Please check that Firestore rules are updated. Error: "+e.message);}});
+// Safety net: Firestore generates the doc id client-side and writes to the local
+// cache immediately, so the course already exists even if the server ack is delayed
+// (e.g. flaky network / offline queue). Proceed after a short wait so the button
+// never hangs on "Creating..." while still preferring the real ack when it is fast.
+setTimeout(finish,1200);}
 function deleteCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).delete().then(cb);}
 
 // Admin delete: also cleans up the course's comments and versions subcollections.
@@ -899,6 +904,7 @@ React.createElement("button",{onClick:addCLO,className:"btn-s"},"+ Add CLO"));}
 // ==== STEP 6: Modules ====
 function ModulesStep({data,set}){
 const[active,setActive]=useState(0);
+const[showUDL,setShowUDL]=useState(false);
 const hasAsync=data.contentType!=="online";
 const hasSync=data.contentType!=="async";
 const addMod=()=>set(d=>({...d,modules:[...d.modules,emptyMod()]}));
@@ -919,6 +925,21 @@ var modSubTags=Array.isArray(mod.subcompTags)?mod.subcompTags:[];
 return React.createElement("div",{className:"content",style:{paddingTop:20}},
 React.createElement("div",{className:"stitle"},"Learning Modules"),
 React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:8}},"Build each module with objectives, materials, activities, and assessments."),
+React.createElement("div",{style:{marginBottom:14}},
+React.createElement("button",{onClick:()=>setShowUDL(!showUDL),style:{fontSize:13,padding:"8px 16px",borderRadius:20,fontWeight:700,border:"1px solid "+C.cardinal,background:showUDL?C.cardinal:"#fff",color:showUDL?"#fff":C.cardinal,cursor:"pointer"}},(showUDL?"\u2715 Hide":"\u267F Show")+" UDL Design Considerations")),
+showUDL&&React.createElement("div",{className:"card warm-bg",style:{marginBottom:18}},
+React.createElement("p",{style:{fontSize:14,marginTop:0,marginBottom:12,color:"#444"}},"Universal Design for Learning (UDL) improves access and engagement for all students. As you build each module, consider offering more than one way for students to take in content, demonstrate learning, and stay engaged. These are design prompts, not required fields."),
+React.createElement("div",{className:"g3",style:{gap:8}},
+React.createElement("div",{className:"bloom-card"},
+React.createElement("div",{style:{fontSize:13,fontWeight:800,color:C.cardinal,marginBottom:3}},"Representation"),
+React.createElement("div",{style:{fontSize:12,color:"#666"}},"Offer content in multiple formats: text, video, audio, visuals, and diagrams. Provide transcripts and captions.")),
+React.createElement("div",{className:"bloom-card"},
+React.createElement("div",{style:{fontSize:13,fontWeight:800,color:C.cardinal,marginBottom:3}},"Action & Expression"),
+React.createElement("div",{style:{fontSize:12,color:"#666"}},"Let students demonstrate learning in varied ways: writing, discussion, audio or video, or applied demonstration.")),
+React.createElement("div",{className:"bloom-card"},
+React.createElement("div",{style:{fontSize:13,fontWeight:800,color:C.cardinal,marginBottom:3}},"Engagement"),
+React.createElement("div",{style:{fontSize:12,color:"#666"}},"Build in relevance and choice: real-world examples, scaffolded challenge, and options that sustain motivation."))),
+React.createElement("p",{style:{fontSize:12,marginTop:10,marginBottom:0,fontStyle:"italic",color:"#999"}},"Designing for variability up front reduces the need for individual accommodations later. Framework: CAST, Universal Design for Learning Guidelines.")),
 data.program==="bsw"&&(data.modality==="summer_flex"||data.modality==="on_ground_async")&&React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:12,padding:"12px 16px",marginBottom:12,fontSize:13}},React.createElement("div",{style:{fontWeight:700,color:"#D97706",marginBottom:6}},data.modality==="summer_flex"?"📋 Summer Flex Contact-Hour Tracker":"📋 On-Ground + Async Contact-Hour Tracker"),React.createElement("div",{style:{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,color:"#555"}},data.modality==="summer_flex"&&React.createElement("span",null,"💻 Zoom: "+data.modules.reduce(function(a,r){return a+parseFloat(r.zoomMin||0);},0).toFixed(1)+" hrs"),data.modality==="summer_flex"&&React.createElement("span",null,"🌿 Field: "+data.modules.reduce(function(a,r){return a+parseFloat(r.fieldMin||0);},0).toFixed(1)+" hrs"),React.createElement("span",null,"📚 Async: "+data.modules.reduce(function(a,r){return a+parseFloat(r.asyncMin||0);},0).toFixed(1)+" hrs"),React.createElement("span",{style:{fontWeight:700,color:"#D97706"}},"Σ Total: "+data.modules.reduce(function(a,r){return a+parseFloat(r.zoomMin||0)+parseFloat(r.fieldMin||0)+parseFloat(r.asyncMin||0);},0).toFixed(1)+" hrs"))),
 React.createElement("div",{style:{background:"#F0F9FF",border:"1px solid #BAE6FD",borderRadius:12,padding:"10px 16px",marginBottom:16,fontSize:13,color:"#0369A1"}},
 React.createElement("strong",null,"Purpose of this tab: "),
