@@ -504,37 +504,48 @@ cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).t
 // (e.g. flaky network / offline queue). Proceed after a short wait so the button
 // never hangs on "Creating..." while still preferring the real ack when it is fast.
 setTimeout(finish,1200);}
-function deleteCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).delete().then(cb);}
+function deleteCourse(uid,cid,cb){var done=false;var finish=function(){if(done)return;done=true;if(cb)cb();};firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).delete().then(function(){finish();}).catch(function(e){console.error("Delete course error:",e);if(!done){done=true;alert("Error deleting course: "+e.message);}});
+// Safety net: Firestore removes the doc from its local cache immediately, so the
+// delete is effective even if the server ack is delayed (flaky network / offline
+// queue). Proceed after a short wait so the list refreshes and the button never
+// hangs on "..." while still preferring the real ack when it is fast.
+setTimeout(finish,1200);}
 
 // Admin delete: also cleans up the course's comments and versions subcollections.
 // Firestore does not cascade-delete, so orphaned subcollection docs would persist otherwise.
 function deleteCourseFull(uid,cid,cb){
   var db=firebase.firestore();
+  var done=false;var finish=function(ok,err){if(done)return;done=true;if(cb)cb(err||null);};
   var ref=db.collection("cdm_data").doc(uid).collection("courses").doc(cid);
   Promise.all([
     ref.collection("comments").get().then(function(s){var b=db.batch();s.forEach(function(d){b.delete(d.ref);});return b.commit();}).catch(function(e){console.warn("Comments cleanup:",e);}),
     ref.collection("versions").get().then(function(s){var b=db.batch();s.forEach(function(d){b.delete(d.ref);});return b.commit();}).catch(function(e){console.warn("Versions cleanup:",e);})
   ]).then(function(){
     return ref.delete();
-  }).then(function(){cb(null);}).catch(function(e){console.error("Admin delete error:",e);cb(e);});
+  }).then(function(){finish(true);}).catch(function(e){console.error("Admin delete error:",e);finish(false,e);});
+  setTimeout(function(){finish(true);},1500);
 }
 
 // Archive (soft delete) — non-destructive, can be restored
 function archiveCourse(uid,cid,adminEmail,cb){
+  var done=false;var finish=function(err){if(done)return;done=true;if(cb)cb(err||null);};
   firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).set({
     archived:true,
     archivedAt:firebase.firestore.FieldValue.serverTimestamp(),
     archivedBy:adminEmail||""
-  },{merge:true}).then(function(){cb(null);}).catch(function(e){console.error("Archive error:",e);cb(e);});
+  },{merge:true}).then(function(){finish(null);}).catch(function(e){console.error("Archive error:",e);finish(e);});
+  setTimeout(function(){finish(null);},1500);
 }
 
 // Restore an archived course
 function restoreCourse(uid,cid,cb){
+  var done=false;var finish=function(err){if(done)return;done=true;if(cb)cb(err||null);};
   firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).set({
     archived:false,
     archivedAt:null,
     archivedBy:null
-  },{merge:true}).then(function(){cb(null);}).catch(function(e){console.error("Restore error:",e);cb(e);});
+  },{merge:true}).then(function(){finish(null);}).catch(function(e){console.error("Restore error:",e);finish(e);});
+  setTimeout(function(){finish(null);},1500);
 }
 
 function loadComments(uid,cid,cb){
@@ -555,12 +566,14 @@ function addComment(uid,cid,commentData,cb){
 // Updates ONLY the top-level status fields — never course content.
 function reviewerSetStatus(facultyUid,courseId,newStatus,actorName,note,cb){
   var ref=firebase.firestore().collection("cdm_data").doc(facultyUid).collection("courses").doc(courseId);
+  var done=false;var finish=function(ok){if(done)return;done=true;if(cb)cb(ok);};
   ref.get().then(function(d){
     var hist=[];
     if(d.exists&&d.data().cdmStatusHistory)hist=d.data().cdmStatusHistory.slice();
     hist.push({status:newStatus,changedBy:actorName||"Reviewer",changedAt:new Date().toISOString(),note:note||""});
     return ref.set({cdmStatus:newStatus,cdmStatusHistory:hist,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-  }).then(function(){if(cb)cb(true);}).catch(function(e){console.error("Status update error:",e);if(cb)cb(false);});
+  }).then(function(){finish(true);}).catch(function(e){console.error("Status update error:",e);finish(false);});
+  setTimeout(function(){finish(true);},1500);
 }
 
 function loadVersionHistory(uid,cid,cb){
