@@ -145,7 +145,7 @@ firebase.initializeApp({apiKey:"AIzaSyBPdcyZcwpgrY5jOAYsPiPoNpwmJmKQwzg",authDom
 
 
 
-const{useState,useEffect}=React;
+const{useState,useEffect,useRef}=React;
 const C={cardinal:"#990000",gold:"#FFCC00",dark:"#1a1a1a",cream:"#FFF8E7",warm:"#FAF5EE"};
 
 const ALIGN_IMG="data:image/jpeg;base64,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";
@@ -612,7 +612,111 @@ function loadVersionData(uid,cid,versionId,cb){
   }).catch(function(){cb(null,null);});
 }
 
-function save(d,cid){var u=firebase.auth().currentUser;if(!u||!cid)return;var db=firebase.firestore();db.collection("cdm_data").doc(u.uid).collection("courses").doc(cid).set({cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",cdmVersion:d.cdmVersion||"1.0",program:d.program||"dsw",cdmStatus:d.cdmStatus||"Draft",targetDelivery:d.targetDelivery||"",leadName:d.courseLead||"",userEmail:u.email,userName:u.displayName,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(function(e){console.error("Save:",e);});db.collection("cdm_data").doc(u.uid).set({uid:u.uid,email:u.email||"",name:u.displayName||"",lastActive:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(function(e){console.error("Profile upsert:",e);});}
+// Save the course CDM and WAIT for the server acknowledgment, with automatic retry.
+// onStatus(state) is called with "saving", "saved", or "error" so the UI can show
+// the real save state instead of a fake "Saved" badge. Returns a Promise that
+// resolves true on confirmed server write, false if all retries failed.
+// This is the core safeguard against silent data loss: we never claim "saved"
+// unless the server actually acknowledged the write.
+function save(d,cid,onStatus){
+  var u=firebase.auth().currentUser;
+  if(!u||!cid){return Promise.resolve(false);}
+  var db=firebase.firestore();
+  var payload={cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",cdmVersion:d.cdmVersion||"1.0",program:d.program||"dsw",cdmStatus:d.cdmStatus||"Draft",targetDelivery:d.targetDelivery||"",leadName:d.courseLead||"",userEmail:u.email,userName:u.displayName,lastUpdated:firebase.firestore.FieldValue.serverTimestamp()};
+  if(onStatus)onStatus("saving");
+  // Best-effort profile upsert (non-critical, does not affect save status).
+  db.collection("cdm_data").doc(u.uid).set({uid:u.uid,email:u.email||"",name:u.displayName||"",lastActive:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(function(e){console.error("Profile upsert:",e);});
+  var ref=db.collection("cdm_data").doc(u.uid).collection("courses").doc(cid);
+  var attempts=0,maxAttempts=4;
+  function tryWrite(){
+    attempts++;
+    return ref.set(payload,{merge:true}).then(function(){
+      if(onStatus)onStatus("saved");
+      return true;
+    }).catch(function(e){
+      console.error("Save attempt "+attempts+" failed:",e);
+      if(attempts<maxAttempts){
+        if(onStatus)onStatus("saving");
+        return new Promise(function(res){setTimeout(res,Math.min(1000*attempts,4000));}).then(tryWrite);
+      }
+      if(onStatus)onStatus("error");
+      return false;
+    });
+  }
+  return tryWrite();
+}
+
+// ============================================================================
+// LAYER 1: LOCAL BROWSER BACKUP (localStorage)
+// Mirrors every change to the user's own browser so work survives even a total
+// loss of connection to the server. All access is wrapped in try/catch so the app
+// never breaks if localStorage is unavailable (private mode, full quota, etc.).
+// ============================================================================
+function backupKey(uid,cid){return "cdm_backup_"+uid+"_"+cid;}
+
+// Write a local backup of the current CDM. Best-effort: failures are logged, never thrown.
+function writeLocalBackup(uid,cid,d){
+  if(!uid||!cid)return false;
+  try{
+    var rec={cdmData:JSON.stringify(d),courseName:d.courseName||"Untitled",cdmVersion:d.cdmVersion||"1.0",savedAt:Date.now()};
+    window.localStorage.setItem(backupKey(uid,cid),JSON.stringify(rec));
+    return true;
+  }catch(e){console.error("Local backup write failed:",e);return false;}
+}
+
+// Read the local backup for a course. Returns {data, savedAt, courseName, cdmVersion} or null.
+function readLocalBackup(uid,cid){
+  if(!uid||!cid)return null;
+  try{
+    var raw=window.localStorage.getItem(backupKey(uid,cid));
+    if(!raw)return null;
+    var rec=JSON.parse(raw);
+    if(!rec||!rec.cdmData)return null;
+    var parsed=JSON.parse(rec.cdmData);
+    return {data:parsed,savedAt:rec.savedAt||0,courseName:rec.courseName||"",cdmVersion:rec.cdmVersion||"1.0"};
+  }catch(e){console.error("Local backup read failed:",e);return null;}
+}
+
+// Remove the local backup once the server copy is confirmed current.
+function clearLocalBackup(uid,cid){
+  if(!uid||!cid)return;
+  try{window.localStorage.removeItem(backupKey(uid,cid));}catch(e){console.error("Local backup clear failed:",e);}
+}
+
+// ============================================================================
+// LAYER 4: OFF-PLATFORM DOWNLOAD BACKUP
+// Exports the full CDM as a timestamped JSON file the faculty member can keep on
+// their own computer or OneDrive. A true off-platform copy: survives even if the
+// server, account, or browser storage is unavailable.
+// ============================================================================
+function downloadBackup(d){
+  try{
+    var stamp=new Date();
+    var pad=function(n){return (n<10?"0":"")+n;};
+    var ts=stamp.getFullYear()+"-"+pad(stamp.getMonth()+1)+"-"+pad(stamp.getDate())+"_"+pad(stamp.getHours())+pad(stamp.getMinutes());
+    var safeName=(d.courseName||"CDM").replace(/[^a-zA-Z0-9_\- ]/g,"").replace(/\s+/g,"_").substring(0,60);
+    var wrapper={
+      _type:"USC_SDP_CDM_Backup",
+      _version:1,
+      exportedAt:stamp.toISOString(),
+      courseName:d.courseName||"Untitled",
+      cdmVersion:d.cdmVersion||"1.0",
+      program:d.program||"",
+      cdm:d
+    };
+    var blob=new Blob([JSON.stringify(wrapper,null,2)],{type:"application/json"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url;
+    a.download="CDM_Backup_"+(safeName||"course")+"_"+ts+".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1000);
+    return true;
+  }catch(e){console.error("Download backup failed:",e);alert("Could not generate the backup file. Please try again.");return false;}
+}
+
 
 function F({label,value,onChange,placeholder,type="text",className=""}){
 return React.createElement("div",{className:"field "+className},
@@ -1259,6 +1363,14 @@ function LoginScreen(){
 
 function UserBar(props){
   var user=props.user;var cname=props.courseName;var onBack=props.onBack;
+  // Real save-status indicator. status: "idle" | "saving" | "saved" | "error"
+  var status=props.saveStatus||"idle";
+  var dot, label, col, bg;
+  if(status==="saving"){dot=String.fromCharCode(9679);label="Saving\u2026";col="#B8860B";bg="#FFF8E0";}
+  else if(status==="error"){dot=String.fromCharCode(9888);label="Save failed \u2014 retrying";col="#990000";bg="#FFF0F0";}
+  else if(status==="saved"){dot=String.fromCharCode(9679);label="All changes saved";col="#15803d";bg="#f0fdf4";}
+  else {dot=String.fromCharCode(9679);label="Ready";col="#999";bg="#f7f7f7";}
+  var saveBadge=React.createElement("span",{title:status==="error"?"Your last change has not been confirmed saved. The app is retrying. Please keep this tab open.":(status==="saving"?"Saving your changes to the server\u2026":"Your work is safely saved on the server."),style:{fontSize:11,fontWeight:700,color:col,background:bg,border:"1px solid "+col,borderRadius:8,padding:"2px 8px",display:"inline-flex",alignItems:"center",gap:4}},dot+" "+label);
   return React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 16px",background:"#fff",borderBottom:"1px solid #eee",fontSize:12,flexWrap:"wrap",gap:4}},
     React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}},
       React.createElement("button",{onClick:onBack,style:{background:"#990000",border:"none",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:8}},String.fromCharCode(8592)+" My Courses"),
@@ -1266,8 +1378,10 @@ function UserBar(props){
       user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:20,height:20,borderRadius:10}}):null,
       React.createElement("span",{style:{fontWeight:600,color:"#333"}},user.displayName||""),
       cname?React.createElement("span",{style:{color:"#990000",fontWeight:600}}," "+String.fromCharCode(8212)+" "+cname):null,
-      props.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#FFCC00",background:"#990000",padding:"2px 8px",borderRadius:8}},"v"+(props.cdmVersion||"1.0")):null,React.createElement("span",{style:{color:"#22c55e",fontSize:12}},String.fromCharCode(9679)+" Saved")),
-    React.createElement("button",{onClick:function(){firebase.auth().signOut();},style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600}},"Sign Out"));
+      props.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#FFCC00",background:"#990000",padding:"2px 8px",borderRadius:8}},"v"+(props.cdmVersion||"1.0")):null,saveBadge),
+    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12}},
+      props.onDownloadBackup?React.createElement("button",{onClick:props.onDownloadBackup,title:"Download a backup copy of this CDM to your computer",style:{background:"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:12,fontWeight:700,padding:"6px 12px",borderRadius:8,display:"inline-flex",alignItems:"center",gap:4}},String.fromCharCode(8595)+" Backup"):null,
+      React.createElement("button",{onClick:function(){firebase.auth().signOut();},style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600}},"Sign Out")));
 }
 
 
@@ -2481,6 +2595,13 @@ var _d=useState(INIT),data=_d[0],setData=_d[1];
 var _l=useState(false),dataLoaded=_l[0],setDataLoaded=_l[1];
 var _ci=useState(null),currentCourseId=_ci[0],setCurrentCourseId=_ci[1];
 var _sd=useState(true),showDashboard=_sd[0],setShowDashboard=_sd[1];
+// Save-status tracking — the safeguard against silent data loss.
+// saveStatus: "idle" | "saving" | "saved" | "error"
+var _ss=useState("idle"),saveStatus=_ss[0],setSaveStatus=_ss[1];
+// dirty = there are local edits not yet confirmed saved to the server.
+var _dty=useState(false),dirty=_dty[0],setDirty=_dty[1];
+// Pending local-backup restore offer: {cid, serverData, backup} or null.
+var _rb=useState(null),restoreOffer=_rb[0],setRestoreOffer=_rb[1];
 
 useEffect(function(){
   var unsub=firebase.auth().onAuthStateChanged(function(user){
@@ -2505,7 +2626,30 @@ var _avInfo=useState({}),adminViewInfo=_avInfo[0],setAdminViewInfo=_avInfo[1];
 var _pdp=useState(null),pdPreview=_pdp[0],setPdPreview=_pdp[1];
 var _pdaf=useState(false),pdAsFaculty=_pdaf[0],setPdAsFaculty=_pdaf[1];
 
-var openCourse=function(cid){setCurrentCourseId(cid);setDataLoaded(false);loadCourse(authUser.uid,cid,function(d){setData(d);setDataLoaded(true);setShowDashboard(false);setStep(0);});};
+var openCourse=function(cid){
+  setCurrentCourseId(cid);setDataLoaded(false);setDirty(false);setSaveStatus("idle");
+  loadCourse(authUser.uid,cid,function(d){
+    // LAYER 1 restore check: if a local backup exists and its content differs from
+    // what the server returned, the user likely had unsaved work from a previous
+    // session (e.g. a disconnect). Offer to restore it rather than silently using
+    // the server copy. We compare the actual CDM content, not timestamps, to avoid
+    // false positives.
+    var backup=readLocalBackup(authUser.uid,cid);
+    var differs=false;
+    if(backup&&backup.data){
+      try{differs=JSON.stringify(backup.data)!==JSON.stringify(d);}catch(e){differs=false;}
+    }
+    if(backup&&differs){
+      // Load the server copy for now, but surface the restore offer.
+      setData(d);setDataLoaded(true);setShowDashboard(false);setStep(0);
+      setRestoreOffer({cid:cid,serverData:d,backup:backup});
+    }else{
+      // No meaningful local backup; clear any stale one and proceed normally.
+      if(backup&&!differs){clearLocalBackup(authUser.uid,cid);}
+      setData(d);setDataLoaded(true);setShowDashboard(false);setStep(0);
+    }
+  });
+};
 var _showDup=useState(null),dupInfo=_showDup[0],setDupInfo=_showDup[1];
 
 var createCourse=function(){
@@ -2568,13 +2712,94 @@ var doCreateSeparate=function(name){
   doCreateFresh(name+" (New)",dupInfo?dupInfo.contentType:null,dupInfo?dupInfo.modalityVal:null,dupInfo?dupInfo.program:null);
   setDupInfo(null);
 };
-var goToDashboard=function(){setShowDashboard(true);setStep(0);setCurrentCourseId(null);setDataLoaded(false);setData(INIT);};
+var goToDashboard=function(){setShowDashboard(true);setStep(0);setCurrentCourseId(null);setDataLoaded(false);setData(INIT);setDirty(false);setSaveStatus("idle");setRestoreOffer(null);};
 
-useEffect(function(){if(authUser&&dataLoaded&&currentCourseId){save(data,currentCourseId);}},[data]);
-const goN=()=>setStep(s=>Math.min(s+1,STEPS.length-1));
+// LAYER 1 restore handlers.
+var doRestoreBackup=function(){
+  if(!restoreOffer)return;
+  var cid=restoreOffer.cid, backupData=restoreOffer.backup.data;
+  setRestoreOffer(null);
+  // Apply the recovered data. The autosave effect will then persist it to the
+  // server and the local backup is refreshed in the process.
+  setData(backupData);
+  // setData triggers autosave; mark dirty so the recovered work saves promptly.
+  setDirty(true);
+};
+var doDiscardBackup=function(){
+  if(!restoreOffer)return;
+  var cid=restoreOffer.cid;
+  clearLocalBackup(authUser.uid,cid);
+  setRestoreOffer(null);
+};
+
+// Autosave: on every data change (after the course has loaded), mark the work as
+// dirty and save with confirmation. saveStatus reflects the real server state, and
+// dirty only clears when the server actually acknowledges the write. A monotonically
+// increasing token guards against a stale (slow) save overwriting the status of a
+// newer edit.
+var saveTokenRef=useRef(0);
+useEffect(function(){
+  if(authUser&&dataLoaded&&currentCourseId){
+    setDirty(true);
+    // LAYER 1: write a local backup immediately (synchronous, no network needed).
+    // This is what survives a connection loss — it happens before the server save.
+    writeLocalBackup(authUser.uid,currentCourseId,data);
+    var myToken=(saveTokenRef.current||0)+1;
+    saveTokenRef.current=myToken;
+    save(data,currentCourseId,function(state){
+      // Ignore status from any save that is no longer the latest edit.
+      if(saveTokenRef.current!==myToken){return;}
+      setSaveStatus(state);
+      if(state==="saved"){
+        setDirty(false);
+        // Server copy is now confirmed current, so the local backup is no longer
+        // needed. Clearing it prevents a stale "restore?" prompt next time.
+        clearLocalBackup(authUser.uid,currentCourseId);
+      }
+    });
+  }
+},[data]);
+// Warn before closing/reloading the tab if there are unsaved changes. This is the
+// last line of defense: if a save has not yet confirmed, the browser prompts the
+// user instead of letting hours of work vanish silently.
+useEffect(function(){
+  function handler(e){
+    if(dirty){
+      e.preventDefault();
+      e.returnValue="You have unsaved changes. They may be lost if you leave now.";
+      return e.returnValue;
+    }
+  }
+  window.addEventListener("beforeunload",handler);
+  return function(){window.removeEventListener("beforeunload",handler);};
+},[dirty]);
 const goP=()=>setStep(s=>Math.max(s-1,0));
 if(authLoading){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading..."));}
 if(!authUser){return React.createElement(LoginScreen,null);}
+if(restoreOffer){
+  var bAt=restoreOffer.backup.savedAt?new Date(restoreOffer.backup.savedAt):null;
+  var bWhen=bAt?(bAt.toLocaleDateString()+" at "+bAt.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})):"a previous session";
+  return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)",display:"flex",alignItems:"center",justifyContent:"center"}},
+    React.createElement("div",{style:{maxWidth:580,width:"100%",padding:"0 24px"}},
+      React.createElement("div",{style:{background:"#fff",borderRadius:20,padding:32,boxShadow:"0 4px 24px rgba(0,0,0,0.1)",border:"2px solid #FFCC00"}},
+        React.createElement("div",{style:{textAlign:"center",marginBottom:18}},
+          React.createElement("div",{style:{fontSize:40,marginBottom:8}},"\u{1F4BE}"),
+          React.createElement("h2",{style:{fontSize:23,fontWeight:900,color:"#990000",marginBottom:8}},"Unsaved Work Found"),
+          React.createElement("p",{style:{fontSize:15,color:"#555",lineHeight:1.5}},"We found changes saved on this computer from ",React.createElement("strong",null,bWhen),' that are newer than, or different from, the version on the server. This can happen if your connection dropped before your last changes finished saving.')),
+        React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:12,padding:"12px 16px",marginBottom:20,fontSize:13,color:"#92400E"}},
+          "Choose ",React.createElement("strong",null,"Restore"),' to recover the work from this computer, or ',React.createElement("strong",null,"Use Server Version")," to keep what is currently saved on the server. If you are unsure, choose Restore, you can always review and adjust afterward."),
+        React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+          React.createElement("button",{onClick:doRestoreBackup,style:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"16px 20px",borderRadius:14,border:"2px solid #990000",background:"#fff",cursor:"pointer",textAlign:"left"}},
+            React.createElement("div",{style:{fontSize:26}},"\u21A9\uFE0F"),
+            React.createElement("div",null,
+              React.createElement("div",{style:{fontSize:15,fontWeight:700,color:"#990000"}},"Restore my work from this computer"),
+              React.createElement("div",{style:{fontSize:12,color:"#888"}},"Recover the unsaved changes and continue where you left off"))),
+          React.createElement("button",{onClick:doDiscardBackup,style:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"16px 20px",borderRadius:14,border:"1px solid #ddd",background:"#f9f9f9",cursor:"pointer",textAlign:"left"}},
+            React.createElement("div",{style:{fontSize:26}},"\u2601\uFE0F"),
+            React.createElement("div",null,
+              React.createElement("div",{style:{fontSize:15,fontWeight:700,color:"#333"}},"Use Server Version"),
+              React.createElement("div",{style:{fontSize:12,color:"#888"}},"Keep the version currently saved on the server and discard the local copy")))))));
+}
 if(dupInfo){return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)",display:"flex",alignItems:"center",justifyContent:"center"}},
   React.createElement("div",{style:{maxWidth:560,width:"100%",padding:"0 24px"}},
     React.createElement("div",{style:{background:"#fff",borderRadius:20,padding:32,boxShadow:"0 4px 24px rgba(0,0,0,0.1)",border:"1px solid #e8e0d0"}},
@@ -2630,7 +2855,7 @@ if(showDashboard){
 }
 if(!dataLoaded){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading your course..."));}
 return React.createElement("div",null,
-React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard,cdmVersion:data.cdmVersion}),
+React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard,cdmVersion:data.cdmVersion,saveStatus:saveStatus,onDownloadBackup:function(){downloadBackup(data);}}),
 React.createElement("div",{className:"top-bar"}),
 React.createElement("div",{className:"gold-bar-top"}),
 React.createElement(Nav,{cur:step,set:setStep}),
