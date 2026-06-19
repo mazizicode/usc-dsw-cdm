@@ -137,6 +137,35 @@ body{font-size:17px;line-height:1.6}
 
 firebase.initializeApp({apiKey:"AIzaSyBPdcyZcwpgrY5jOAYsPiPoNpwmJmKQwzg",authDomain:"usc-dsw-cdm-e5fd7.firebaseapp.com",projectId:"usc-dsw-cdm-e5fd7",storageBucket:"usc-dsw-cdm-e5fd7.firebasestorage.app",messagingSenderId:"170623137328",appId:"1:170623137328:web:67069099494d1e01a31ff5"});
 
+// ============================================================================
+// OFFLINE PERSISTENCE (durability safety net)
+// Enable IndexedDB-backed offline persistence so that any write made while the
+// connection is dropped is QUEUED on the faculty member's device and AUTOMATICALLY
+// synced to the server the moment the connection returns — even if they reload or
+// reopen the tab in between. This is the automatic counterpart to the localStorage
+// backup: localStorage protects the data; persistence makes the actual save
+// complete itself without the user having to do anything.
+//
+// SAFETY: this MUST run before any Firestore read/write. It is wrapped so that if
+// the browser does not support it (private mode, old browser) the app simply falls
+// back to the in-memory cache and keeps working — it never crashes. synchronizeTabs
+// lets multiple open tabs share one persistent cache safely.
+//
+// IMPORTANT: enabling persistence does NOT change save-status semantics. A write's
+// promise still resolves only when the SERVER confirms it, so the green "All changes
+// saved" badge continues to mean a true server-acknowledged save, never just a local
+// write. While offline, the write stays pending (status remains "Saving") and the
+// localStorage backup holds the work until the server confirms.
+try{
+  firebase.firestore().enablePersistence({synchronizeTabs:true}).catch(function(err){
+    // failed-precondition: multiple tabs without shared support. unimplemented: browser unsupported.
+    // Either way we continue safely on the in-memory cache.
+    console.warn("Offline persistence not enabled (continuing on in-memory cache):",err&&err.code?err.code:err);
+  });
+}catch(e){
+  console.warn("Offline persistence setup skipped (continuing on in-memory cache):",e);
+}
+
 
 
 </script>
@@ -1367,10 +1396,11 @@ function UserBar(props){
   var status=props.saveStatus||"idle";
   var dot, label, col, bg;
   if(status==="saving"){dot=String.fromCharCode(9679);label="Saving\u2026";col="#B8860B";bg="#FFF8E0";}
-  else if(status==="error"){dot=String.fromCharCode(9888);label="Save failed \u2014 retrying";col="#990000";bg="#FFF0F0";}
+  else if(status==="error"){dot=String.fromCharCode(9888);label="Not saved \u2014 your work is backed up on this device";col="#990000";bg="#FFF0F0";}
   else if(status==="saved"){dot=String.fromCharCode(9679);label="All changes saved";col="#15803d";bg="#f0fdf4";}
   else {dot=String.fromCharCode(9679);label="Ready";col="#999";bg="#f7f7f7";}
-  var saveBadge=React.createElement("span",{title:status==="error"?"Your last change has not been confirmed saved. The app is retrying. Please keep this tab open.":(status==="saving"?"Saving your changes to the server\u2026":"Your work is safely saved on the server."),style:{fontSize:11,fontWeight:700,color:col,background:bg,border:"1px solid "+col,borderRadius:8,padding:"2px 8px",display:"inline-flex",alignItems:"center",gap:4}},dot+" "+label);
+  var saveBadge=React.createElement("span",{title:status==="error"?"The last change has not been confirmed saved to the server, but it is safely backed up on this device and in the downloadable backup. Use Retry now, and keep this tab open.":(status==="saving"?"Saving your changes to the server\u2026":"Your work is safely saved on the server."),style:{fontSize:11,fontWeight:700,color:col,background:bg,border:"1px solid "+col,borderRadius:8,padding:"2px 8px",display:"inline-flex",alignItems:"center",gap:4}},dot+" "+label);
+  var retryBtn=(status==="error"&&props.onRetrySave)?React.createElement("button",{onClick:props.onRetrySave,title:"Try saving to the server again now",style:{fontSize:11,fontWeight:800,color:"#fff",background:"#990000",border:"none",borderRadius:8,padding:"3px 10px",cursor:"pointer"}},"Retry now"):null;
   return React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 16px",background:"#fff",borderBottom:"1px solid #eee",fontSize:12,flexWrap:"wrap",gap:4}},
     React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}},
       React.createElement("button",{onClick:onBack,style:{background:"#990000",border:"none",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:8}},String.fromCharCode(8592)+" My Courses"),
@@ -1378,7 +1408,7 @@ function UserBar(props){
       user.photoURL?React.createElement("img",{src:user.photoURL,alt:"",style:{width:20,height:20,borderRadius:10}}):null,
       React.createElement("span",{style:{fontWeight:600,color:"#333"}},user.displayName||""),
       cname?React.createElement("span",{style:{color:"#990000",fontWeight:600}}," "+String.fromCharCode(8212)+" "+cname):null,
-      props.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#FFCC00",background:"#990000",padding:"2px 8px",borderRadius:8}},"v"+(props.cdmVersion||"1.0")):null,saveBadge),
+      props.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#FFCC00",background:"#990000",padding:"2px 8px",borderRadius:8}},"v"+(props.cdmVersion||"1.0")):null,saveBadge,retryBtn),
     React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12}},
       props.onDownloadBackup?React.createElement("button",{onClick:props.onDownloadBackup,title:"Download a backup copy of this CDM to your computer",style:{background:"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:12,fontWeight:700,padding:"6px 12px",borderRadius:8,display:"inline-flex",alignItems:"center",gap:4}},String.fromCharCode(8595)+" Backup"):null,
       React.createElement("button",{onClick:function(){firebase.auth().signOut();},style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600}},"Sign Out")));
@@ -2602,6 +2632,11 @@ var _ss=useState("idle"),saveStatus=_ss[0],setSaveStatus=_ss[1];
 var _dty=useState(false),dirty=_dty[0],setDirty=_dty[1];
 // Pending local-backup restore offer: {cid, serverData, backup} or null.
 var _rb=useState(null),restoreOffer=_rb[0],setRestoreOffer=_rb[1];
+// Document-size guard: Firestore caps a single course document at ~1,048,576 bytes.
+// We track the serialized size and warn the faculty member well before the ceiling
+// so a large CDM can never silently fail to save. null = comfortably under the limit.
+// {bytes, pct, severe} when approaching the cap.
+var _sz=useState(null),sizeWarning=_sz[0],setSizeWarning=_sz[1];
 // Save-flow refs (declared early so every handler below can use them safely):
 // saveTokenRef guards against stale saves; debounceTimerRef holds the pending
 // debounced write; pendingSaveRef holds the latest unsaved {uid,cid,data}.
@@ -2766,10 +2801,33 @@ var doDiscardBackup=function(){
 //   edits collapse into a single server save, cutting write volume dramatically.
 // - A monotonic token still guards against a stale save overwriting a newer one.
 useEffect(function(){
-  if(authUser&&dataLoaded&&currentCourseId){
+  // CRITICAL GUARD: do NOTHING while a restore decision is pending (restoreOffer set).
+  // When the "Unsaved Work Found" prompt is showing, the server copy has just been
+  // loaded into `data`. Without this guard, this effect would immediately overwrite
+  // the faculty member's unsaved local backup with that server copy — destroying the
+  // very work the prompt is offering to recover if they close the tab before choosing.
+  // We hold off all backup writes and saves until they pick Restore or Use Server.
+  if(authUser&&dataLoaded&&currentCourseId&&!restoreOffer){
     setDirty(true);
     // IMMEDIATE local backup (no network, no quota) — the data-loss safety net.
     writeLocalBackup(authUser.uid,currentCourseId,data);
+    // DOCUMENT-SIZE GUARD (non-blocking). Firestore rejects any single document over
+    // ~1,048,576 bytes. We measure the serialized course and warn the faculty member
+    // long before that, so a growing CDM can never hit a silent write failure. This
+    // only sets a banner; it never blocks saving.
+    try{
+      var _serialized=JSON.stringify(data);
+      var _bytes=0;
+      try{_bytes=new Blob([_serialized]).size;}catch(_e){_bytes=unescape(encodeURIComponent(_serialized)).length;}
+      var _LIMIT=1048576;            // Firestore hard ceiling for one document
+      var _WARN=Math.round(_LIMIT*0.70);  // ~734 KB: start warning with generous runway
+      var _SEVERE=Math.round(_LIMIT*0.90); // ~944 KB: strongly urge action now
+      if(_bytes>=_WARN){
+        setSizeWarning({bytes:_bytes,pct:Math.round((_bytes/_LIMIT)*100),severe:_bytes>=_SEVERE});
+      }else{
+        setSizeWarning(null);
+      }
+    }catch(_e){/* measuring must never break editing */ setSizeWarning(null);}
     // Show "Saving..." right away so the UI feels responsive while we debounce.
     setSaveStatus("saving");
     // Remember the latest data + course so a flush (navigation/unmount) can persist it.
@@ -2829,6 +2887,20 @@ useEffect(function(){
   window.addEventListener("beforeunload",handler);
   return function(){window.removeEventListener("beforeunload",handler);};
 },[dirty]);
+// Manual "Retry now" for the error state. If automatic retries are exhausted, the
+// faculty member can trigger a fresh save attempt. Their work is already held in the
+// localStorage backup, so this never risks the data — it just re-attempts the server
+// write with the current course content.
+var retrySaveNow=function(){
+  if(!authUser||!currentCourseId)return;
+  var myToken=(saveTokenRef.current||0)+1;saveTokenRef.current=myToken;
+  setSaveStatus("saving");
+  save(data,currentCourseId,function(state){
+    if(saveTokenRef.current!==myToken){return;}
+    setSaveStatus(state);
+    if(state==="saved"){setDirty(false);pendingSaveRef.current=null;clearLocalBackup(authUser.uid,currentCourseId);}
+  });
+};
 const goN=()=>setStep(s=>Math.min(s+1,STEPS.length-1));
 const goP=()=>setStep(s=>Math.max(s-1,0));
 if(authLoading){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading..."));}
@@ -2912,7 +2984,10 @@ if(showDashboard){
 }
 if(!dataLoaded){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading your course..."));}
 return React.createElement("div",null,
-React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard,cdmVersion:data.cdmVersion,saveStatus:saveStatus,onDownloadBackup:function(){downloadBackup(data);}}),
+React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard,cdmVersion:data.cdmVersion,saveStatus:saveStatus,onDownloadBackup:function(){downloadBackup(data);},onRetrySave:retrySaveNow}),
+sizeWarning?React.createElement("div",{style:{background:sizeWarning.severe?"#FEF2F2":"#FFFBEB",borderBottom:"1px solid "+(sizeWarning.severe?"#FCA5A5":"#FDE68A"),color:sizeWarning.severe?"#991B1B":"#92400E",padding:"10px 16px",fontSize:13,fontWeight:600,textAlign:"center"}},
+  (sizeWarning.severe?String.fromCharCode(9888)+" This CDM is very large (about "+sizeWarning.pct+"% of the per-course limit). To be safe, download a backup now and consider splitting content into a new version. Your work is still saving normally.":String.fromCharCode(9888)+" This CDM is getting large (about "+sizeWarning.pct+"% of the per-course limit). It is still saving normally. As a precaution, you may want to download a backup.")
+):null,
 React.createElement("div",{className:"top-bar"}),
 React.createElement("div",{className:"gold-bar-top"}),
 React.createElement(Nav,{cur:step,set:setStep}),
