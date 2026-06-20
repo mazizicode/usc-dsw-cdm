@@ -660,8 +660,21 @@ function save(d,cid,onStatus){
   function tryWrite(){
     attempts++;
     return ref.set(payload,{merge:true}).then(function(){
-      if(onStatus)onStatus("saved");
-      return true;
+      // CRITICAL: ref.set() resolving is NOT proof the SERVER has the data. With
+      // offline persistence enabled, the write can resolve once it is committed to
+      // the local device cache while the server copy is still pending. If we reported
+      // "saved" here, the badge would go green and the app would clear the on-device
+      // backup before the data ever reached the server — exactly the silent-loss path.
+      //
+      // waitForPendingWrites() resolves ONLY when the backend has acknowledged every
+      // pending write. So we wait for it before declaring "saved". While offline this
+      // stays pending (badge never goes green), and once the connection returns and the
+      // server confirms, it resolves and we report a true, server-backed save.
+      var confirm=(typeof db.waitForPendingWrites==="function")?db.waitForPendingWrites():Promise.resolve();
+      return confirm.then(function(){
+        if(onStatus)onStatus("saved");
+        return true;
+      });
     }).catch(function(e){
       console.error("Save attempt "+attempts+" failed:",e);
       if(attempts<maxAttempts){
@@ -1394,13 +1407,19 @@ function UserBar(props){
   var user=props.user;var cname=props.courseName;var onBack=props.onBack;
   // Real save-status indicator. status: "idle" | "saving" | "saved" | "error"
   var status=props.saveStatus||"idle";
+  var offline=(props.isOnline===false);
   var dot, label, col, bg;
-  if(status==="saving"){dot=String.fromCharCode(9679);label="Saving\u2026";col="#B8860B";bg="#FFF8E0";}
+  if(offline&&(status==="saving"||status==="error")){
+    // Offline with work not yet confirmed on the server. Be honest and reassuring:
+    // the work is safe on this device and will sync automatically on reconnect.
+    dot=String.fromCharCode(9888);label="Offline \u2014 saved on this device, will sync when you reconnect";col="#92400E";bg="#FFFBEB";
+  }
+  else if(status==="saving"){dot=String.fromCharCode(9679);label="Saving\u2026";col="#B8860B";bg="#FFF8E0";}
   else if(status==="error"){dot=String.fromCharCode(9888);label="Not saved \u2014 your work is backed up on this device";col="#990000";bg="#FFF0F0";}
   else if(status==="saved"){dot=String.fromCharCode(9679);label="All changes saved";col="#15803d";bg="#f0fdf4";}
   else {dot=String.fromCharCode(9679);label="Ready";col="#999";bg="#f7f7f7";}
-  var saveBadge=React.createElement("span",{title:status==="error"?"The last change has not been confirmed saved to the server, but it is safely backed up on this device and in the downloadable backup. Use Retry now, and keep this tab open.":(status==="saving"?"Saving your changes to the server\u2026":"Your work is safely saved on the server."),style:{fontSize:11,fontWeight:700,color:col,background:bg,border:"1px solid "+col,borderRadius:8,padding:"2px 8px",display:"inline-flex",alignItems:"center",gap:4}},dot+" "+label);
-  var retryBtn=(status==="error"&&props.onRetrySave)?React.createElement("button",{onClick:props.onRetrySave,title:"Try saving to the server again now",style:{fontSize:11,fontWeight:800,color:"#fff",background:"#990000",border:"none",borderRadius:8,padding:"3px 10px",cursor:"pointer"}},"Retry now"):null;
+  var saveBadge=React.createElement("span",{title:offline?"You are offline. Your changes are saved on this device and will sync to the server automatically when your connection returns. Keep this tab open.":(status==="error"?"The last change has not been confirmed saved to the server, but it is safely backed up on this device and in the downloadable backup. Use Retry now, and keep this tab open.":(status==="saving"?"Saving your changes to the server\u2026":"Your work is safely saved on the server.")),style:{fontSize:11,fontWeight:700,color:col,background:bg,border:"1px solid "+col,borderRadius:8,padding:"2px 8px",display:"inline-flex",alignItems:"center",gap:4}},dot+" "+label);
+  var retryBtn=(status==="error"&&!offline&&props.onRetrySave)?React.createElement("button",{onClick:props.onRetrySave,title:"Try saving to the server again now",style:{fontSize:11,fontWeight:800,color:"#fff",background:"#990000",border:"none",borderRadius:8,padding:"3px 10px",cursor:"pointer"}},"Retry now"):null;
   return React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 16px",background:"#fff",borderBottom:"1px solid #eee",fontSize:12,flexWrap:"wrap",gap:4}},
     React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}},
       React.createElement("button",{onClick:onBack,style:{background:"#990000",border:"none",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700,padding:"6px 14px",borderRadius:8}},String.fromCharCode(8592)+" My Courses"),
@@ -2637,6 +2656,16 @@ var _rb=useState(null),restoreOffer=_rb[0],setRestoreOffer=_rb[1];
 // so a large CDM can never silently fail to save. null = comfortably under the limit.
 // {bytes, pct, severe} when approaching the cap.
 var _sz=useState(null),sizeWarning=_sz[0],setSizeWarning=_sz[1];
+// Connection awareness so we can tell faculty the honest truth: while offline, work
+// is held safely on their device and will sync on reconnect (never a false "saved").
+var _on=useState(typeof navigator!=="undefined"?navigator.onLine!==false:true),isOnline=_on[0],setIsOnline=_on[1];
+useEffect(function(){
+  function up(){setIsOnline(true);}
+  function down(){setIsOnline(false);}
+  window.addEventListener("online",up);
+  window.addEventListener("offline",down);
+  return function(){window.removeEventListener("online",up);window.removeEventListener("offline",down);};
+},[]);
 // Save-flow refs (declared early so every handler below can use them safely):
 // saveTokenRef guards against stale saves; debounceTimerRef holds the pending
 // debounced write; pendingSaveRef holds the latest unsaved {uid,cid,data}.
@@ -2984,7 +3013,7 @@ if(showDashboard){
 }
 if(!dataLoaded){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading your course..."));}
 return React.createElement("div",null,
-React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard,cdmVersion:data.cdmVersion,saveStatus:saveStatus,onDownloadBackup:function(){downloadBackup(data);},onRetrySave:retrySaveNow}),
+React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard,cdmVersion:data.cdmVersion,saveStatus:saveStatus,onDownloadBackup:function(){downloadBackup(data);},onRetrySave:retrySaveNow,isOnline:isOnline}),
 sizeWarning?React.createElement("div",{style:{background:sizeWarning.severe?"#FEF2F2":"#FFFBEB",borderBottom:"1px solid "+(sizeWarning.severe?"#FCA5A5":"#FDE68A"),color:sizeWarning.severe?"#991B1B":"#92400E",padding:"10px 16px",fontSize:13,fontWeight:600,textAlign:"center"}},
   (sizeWarning.severe?String.fromCharCode(9888)+" This CDM is very large (about "+sizeWarning.pct+"% of the per-course limit). To be safe, download a backup now and consider splitting content into a new version. Your work is still saving normally.":String.fromCharCode(9888)+" This CDM is getting large (about "+sizeWarning.pct+"% of the per-course limit). It is still saving normally. As a precaution, you may want to download a backup.")
 ):null,
