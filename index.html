@@ -2048,6 +2048,7 @@ function AsyncDesignStep(props){
   var data=props.data;var set=props.set;
   var _a=useState(0),activeMod=_a[0],setActiveMod=_a[1];
   var _g=useState({}),showGuide=_g[0],setShowGuide=_g[1];
+  var _est=useState(false),estOpen=_est[0],setEstOpen=_est[1];
   
   var hasAsync=data.contentType!=="online";
   
@@ -2077,6 +2078,12 @@ function AsyncDesignStep(props){
     if(!mod||!mod.asyncContent||!mod.asyncContent[section])return "";
     return mod.asyncContent[section][key]||"";
   };
+  // Time-on-task estimate (optional, faculty-controlled). Stored in a separate
+  // mod.timeEstimate object so it never touches async content, the objectives, or the
+  // export. Purely additive; blank fields count as zero.
+  var getEst=function(modIdx,key){var m=data.modules[modIdx];return (m&&m.timeEstimate&&m.timeEstimate[key])||"";};
+  var setEst=function(modIdx,key,val){set(function(d){var m=d.modules.slice();var te=Object.assign({},m[modIdx].timeEstimate||{});te[key]=val;m[modIdx]=Object.assign({},m[modIdx],{timeEstimate:te});return Object.assign({},d,{modules:m});});};
+  var estTotal=function(m){var t=0;["startHere","learn","skillBuilder","reflectConnect","wrapUp"].forEach(function(k){var v=parseFloat(m&&m.timeEstimate&&m.timeEstimate[k]);if(!isNaN(v)&&v>0)t+=v;});return t;};
 
   // OPTION A: auto-populate the async "Module Learning Objectives" field from the
   // Modules-tab objectives, but ONLY when the async field is empty. Safety rules:
@@ -2205,6 +2212,25 @@ function AsyncDesignStep(props){
       React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#92400E",marginBottom:4}},"Module "+(activeMod+1)+": "+(mod.title||"Untitled")),
       React.createElement("p",{style:{fontSize:14,color:"#92400E",marginBottom:20}},"Fill in each section of the 5-step async module structure below. Click "+String.fromCharCode(8220)+"Show Guide"+String.fromCharCode(8221)+" in any section for tips and examples."),
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16}},
+
+        // Optional, faculty-controlled time-on-task estimate for this module. Collapsed
+        // by default; nothing is required, and it never affects saved content or export.
+        React.createElement("div",null,
+          React.createElement("button",{onClick:function(){setEstOpen(!estOpen);},style:{fontSize:12,color:"#990000",background:"#fff",border:"1px solid #e8e0d0",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontWeight:700}},(estOpen?String.fromCharCode(9650):String.fromCharCode(9660))+" \u23F1 Time-on-task estimate (optional)"),
+          estOpen?React.createElement("div",{style:{marginTop:8,background:"#faf8f4",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 16px"}},
+            React.createElement("p",{style:{fontSize:12,color:"#777",marginBottom:10,lineHeight:1.5}},"Optional. Estimate how many minutes a student spends in each part of this module. It is only a guide toward roughly 75 minutes of student work per module. Leave any field blank if you would rather not use it \u2014 nothing here is required."),
+            [["startHere","Start Here"],["learn","Learn"],["skillBuilder","Skill Builder"],["reflectConnect","Reflect & Connect"],["wrapUp","Wrap Up"]].map(function(row){
+              return React.createElement("div",{key:row[0],style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:6}},
+                React.createElement("span",{style:{fontSize:13,color:"#444"}},row[1]),
+                React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},
+                  React.createElement("input",{type:"number",min:"0",value:getEst(activeMod,row[0]),onChange:function(e){setEst(activeMod,row[0],e.target.value);},placeholder:"0",style:{width:70,padding:"5px 8px",border:"1px solid #ddd",borderRadius:6,fontSize:13,textAlign:"right"}}),
+                  React.createElement("span",{style:{fontSize:12,color:"#999"}},"min")
+                )
+              );
+            }),
+            (function(){var t=estTotal(mod);var ok=t>=60&&t<=90;var col=t===0?"#999":(ok?"#15803d":"#B45309");return React.createElement("div",{style:{marginTop:10,paddingTop:10,borderTop:"1px solid #e8e0d0",display:"flex",alignItems:"center",justifyContent:"space-between"}},React.createElement("span",{style:{fontSize:13,fontWeight:700,color:"#444"}},"Estimated total for this module"),React.createElement("span",{style:{fontSize:14,fontWeight:800,color:col}},t+" / ~75 min"+(t>0&&ok?"  \u2713":"")));})()
+          ):null
+        ),
 
         // ===== MODULE VIDEO PLAN (per Jen Lewis spec, May 6 meeting) — hidden for BSW (no video recording) =====
         data.program!=="bsw"&&(function(){
