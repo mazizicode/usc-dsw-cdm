@@ -759,6 +759,30 @@ function downloadBackup(d){
   }catch(e){console.error("Download backup failed:",e);alert("Could not generate the backup file. Please try again.");return false;}
 }
 
+// ============================================================================
+// LAYER 4 (restore side): LOAD A DOWNLOADED BACKUP BACK IN
+// Reads a CDM backup file the faculty member previously downloaded and hands back
+// its CDM content. Validates the file so a wrong, corrupt, or unrelated file is
+// rejected cleanly rather than loading bad data into a course.
+// ============================================================================
+function parseBackupFile(file,onDone){
+  try{
+    var reader=new FileReader();
+    reader.onload=function(){
+      try{
+        var obj=JSON.parse(reader.result);
+        var cdm=null,meta={};
+        if(obj&&obj._type==="USC_SDP_CDM_Backup"&&obj.cdm){cdm=obj.cdm;meta={courseName:obj.courseName,exportedAt:obj.exportedAt,cdmVersion:obj.cdmVersion};}
+        else if(obj&&Array.isArray(obj.modules)){cdm=obj;meta={courseName:obj.courseName};}
+        if(!cdm||!Array.isArray(cdm.modules)){onDone(null,"This file doesn't look like a CDM backup. Please choose a file you downloaded with the Backup button.");return;}
+        onDone({cdm:cdm,meta:meta},null);
+      }catch(e){onDone(null,"Could not read this file. Please choose a valid CDM backup (.json).");}
+    };
+    reader.onerror=function(){onDone(null,"Could not read this file. Please try again.");};
+    reader.readAsText(file);
+  }catch(e){onDone(null,"Could not read this file. Please try again.");}
+}
+
 
 function F({label,value,onChange,placeholder,type="text",className=""}){
 return React.createElement("div",{className:"field "+className},
@@ -1440,6 +1464,7 @@ function UserBar(props){
       props.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#FFCC00",background:"#990000",padding:"2px 8px",borderRadius:8}},"v"+(props.cdmVersion||"1.0")):null,saveBadge,retryBtn),
     React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12}},
       props.onDownloadBackup?React.createElement("button",{onClick:props.onDownloadBackup,title:"Download a backup copy of this CDM to your computer",style:{background:"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:12,fontWeight:700,padding:"6px 12px",borderRadius:8,display:"inline-flex",alignItems:"center",gap:4}},String.fromCharCode(8595)+" Backup"):null,
+      props.onRestoreBackup?React.createElement("button",{onClick:props.onRestoreBackup,title:"Restore this CDM from a backup file on your computer",style:{background:"#fff",border:"1px solid #990000",color:"#990000",cursor:"pointer",fontSize:12,fontWeight:700,padding:"6px 12px",borderRadius:8,display:"inline-flex",alignItems:"center",gap:4}},String.fromCharCode(8593)+" Restore"):null,
       React.createElement("button",{onClick:function(){firebase.auth().signOut();},style:{background:"none",border:"none",color:"#990000",cursor:"pointer",fontSize:13,fontWeight:600}},"Sign Out")));
 }
 
@@ -2661,6 +2686,7 @@ var _ss=useState("idle"),saveStatus=_ss[0],setSaveStatus=_ss[1];
 var _dty=useState(false),dirty=_dty[0],setDirty=_dty[1];
 // Pending local-backup restore offer: {cid, serverData, backup} or null.
 var _rb=useState(null),restoreOffer=_rb[0],setRestoreOffer=_rb[1];
+var _rfo=useState(null),restoreFileOffer=_rfo[0],setRestoreFileOffer=_rfo[1];
 // Document-size guard: Firestore caps a single course document at ~1,048,576 bytes.
 // We track the serialized size and warn the faculty member well before the ceiling
 // so a large CDM can never silently fail to save. null = comfortably under the limit.
@@ -2682,6 +2708,7 @@ useEffect(function(){
 var saveTokenRef=useRef(0);
 var debounceTimerRef=useRef(null);
 var pendingSaveRef=useRef(null);
+var fileInputRef=useRef(null);
 
 useEffect(function(){
   var unsub=firebase.auth().onAuthStateChanged(function(user){
@@ -2825,6 +2852,20 @@ var doDiscardBackup=function(){
   clearLocalBackup(authUser.uid,cid);
   setRestoreOffer(null);
 };
+// ---- Restore from a downloaded backup file (the "load it back in" side of Layer 4) ----
+var triggerRestoreFile=function(){if(fileInputRef.current){fileInputRef.current.value="";fileInputRef.current.click();}};
+var onRestoreFileChange=function(e){var f=e.target.files&&e.target.files[0];if(!f)return;parseBackupFile(f,function(result,err){if(err){alert(err);return;}setRestoreFileOffer(result);});};
+var doRestoreFromFile=function(){
+  if(!restoreFileOffer||!restoreFileOffer.cdm)return;
+  var cdm=restoreFileOffer.cdm;
+  setRestoreFileOffer(null);
+  // Replace the current course content with the backup. setData triggers the autosave,
+  // which writes the local backup and saves the restored content to the server.
+  setData(cdm);
+  setStep(0);
+  setDirty(true);
+};
+var cancelRestoreFile=function(){setRestoreFileOffer(null);};
 
 // Autosave with debouncing to reduce Firestore write volume (and quota usage).
 //
@@ -2944,6 +2985,24 @@ const goN=()=>setStep(s=>Math.min(s+1,STEPS.length-1));
 const goP=()=>setStep(s=>Math.max(s-1,0));
 if(authLoading){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading..."));}
 if(!authUser){return React.createElement(LoginScreen,null);}
+if(restoreFileOffer){
+  var rMeta=restoreFileOffer.meta||{};
+  var rName=rMeta.courseName||"";
+  var rDate=rMeta.exportedAt?new Date(rMeta.exportedAt):null;
+  return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#f5f5f5",padding:20}},
+    React.createElement("div",{style:{background:"#fff",borderRadius:18,padding:36,maxWidth:520,width:"100%",boxShadow:"0 10px 40px rgba(0,0,0,0.15)"}},
+      React.createElement("div",{style:{fontSize:40,marginBottom:8}},"\u21A9\uFE0F"),
+      React.createElement("h2",{style:{fontSize:23,fontWeight:900,color:"#990000",marginBottom:8}},"Restore from a backup file"),
+      React.createElement("p",{style:{fontSize:14.5,color:"#555",marginBottom:6}},"This will replace the content of the course you are currently in with the backup",rName?React.createElement("strong",null," \u201C"+rName+"\u201D"):null,rDate?" (exported "+rDate.toLocaleDateString()+")":null,"."),
+      React.createElement("p",{style:{fontSize:13,color:"#991B1B",background:"#FEF2F2",border:"1px solid #FCA5A5",borderRadius:8,padding:"9px 12px",marginBottom:16}},"\u26A0 Your current course content will be overwritten. If you are not sure, choose \u201CDownload current first\u201D to save a copy before restoring."),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+        React.createElement("button",{onClick:doRestoreFromFile,style:{padding:"13px 18px",borderRadius:12,border:"none",background:"#990000",color:"#fff",fontSize:14.5,fontWeight:800,cursor:"pointer"}},"Replace current course with this backup"),
+        React.createElement("button",{onClick:function(){downloadBackup(data);},style:{padding:"11px 18px",borderRadius:12,border:"1px solid #990000",background:"#fff",color:"#990000",fontSize:13,fontWeight:700,cursor:"pointer"}},String.fromCharCode(8595)+" Download current first"),
+        React.createElement("button",{onClick:cancelRestoreFile,style:{padding:"11px 18px",borderRadius:12,border:"1px solid #ddd",background:"#f9f9f9",color:"#555",fontSize:13,fontWeight:700,cursor:"pointer"}},"Cancel")
+      )
+    )
+  );
+}
 if(restoreOffer){
   var bAt=restoreOffer.backup.savedAt?new Date(restoreOffer.backup.savedAt):null;
   var bWhen=bAt?(bAt.toLocaleDateString()+" at "+bAt.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})):"a previous session";
@@ -3023,7 +3082,8 @@ if(showDashboard){
 }
 if(!dataLoaded){return React.createElement("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("p",{style:{color:"#999"}},"Loading your course..."));}
 return React.createElement("div",null,
-React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard,cdmVersion:data.cdmVersion,saveStatus:saveStatus,onDownloadBackup:function(){downloadBackup(data);},onRetrySave:retrySaveNow,isOnline:isOnline}),
+React.createElement(UserBar,{user:authUser,courseName:data.courseName,onBack:goToDashboard,cdmVersion:data.cdmVersion,saveStatus:saveStatus,onDownloadBackup:function(){downloadBackup(data);},onRetrySave:retrySaveNow,isOnline:isOnline,onRestoreBackup:triggerRestoreFile}),
+React.createElement("input",{ref:fileInputRef,type:"file",accept:".json,application/json",style:{display:"none"},onChange:onRestoreFileChange}),
 sizeWarning?React.createElement("div",{style:{background:sizeWarning.severe?"#FEF2F2":"#FFFBEB",borderBottom:"1px solid "+(sizeWarning.severe?"#FCA5A5":"#FDE68A"),color:sizeWarning.severe?"#991B1B":"#92400E",padding:"10px 16px",fontSize:13,fontWeight:600,textAlign:"center"}},
   (sizeWarning.severe?String.fromCharCode(9888)+" This CDM is very large (about "+sizeWarning.pct+"% of the per-course limit). To be safe, download a backup now and consider splitting content into a new version. Your work is still saving normally.":String.fromCharCode(9888)+" This CDM is getting large (about "+sizeWarning.pct+"% of the per-course limit). It is still saving normally. As a precaution, you may want to download a backup.")
 ):null,
