@@ -2078,6 +2078,26 @@ function AsyncDesignStep(props){
     return mod.asyncContent[section][key]||"";
   };
 
+  // OPTION A: auto-populate the async "Module Learning Objectives" field from the
+  // Modules-tab objectives, but ONLY when the async field is empty. Safety rules:
+  //   - Never overwrites anything already typed; it only fills a blank field.
+  //   - Once filled, a hidden _objSeeded flag prevents it from ever re-filling, so if
+  //     a faculty member clears it on purpose it stays cleared (across reloads too).
+  //   - It writes ONLY when it actually fills a blank field, so simply browsing
+  //     modules never dirties or re-saves the course.
+  useEffect(function(){
+    var m=data.modules[activeMod];
+    if(!m)return;
+    var sh=(m.asyncContent&&m.asyncContent.startHere)||{};
+    if(sh._objSeeded)return;                                  // already handled: never touch again
+    if(sh.objectives&&(""+sh.objectives).trim())return;       // already has content: leave it untouched
+    var modObjs=(m.objectives||[]).filter(function(o){return o&&o.text&&(""+o.text).trim();});
+    if(!modObjs.length)return;                                // nothing on the Modules tab to copy
+    var formatted=modObjs.map(function(o,i){return (i+1)+". "+(""+o.text).trim();}).join("\n");
+    setAsync(activeMod,"startHere","objectives",formatted);
+    setAsync(activeMod,"startHere","_objSeeded",true);
+  },[activeMod]);
+
   // ============================================================
   // Module Video Plan helpers (per Jen Lewis's spec, May 6 meeting):
   //   Lecture videos: max 3, max 30 min total, formats: lecture / conversation / guest speaker
