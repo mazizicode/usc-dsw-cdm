@@ -2763,7 +2763,7 @@ function Dashboard(pp){
             parseFloat(c.cdmVersion||"1.0")>1?React.createElement("button",{onClick:function(e){e.stopPropagation();doShowChanges(c);},title:"See what has changed in this version compared to the previous one",style:{display:"block",width:"100%",marginTop:6,padding:"9px 16px",borderRadius:12,border:"1px solid #d9b8b8",background:"#fff",color:"#990000",fontSize:12.5,fontWeight:700,cursor:"pointer",textAlign:"center"}},(dashCmp&&dashCmp.id===c.id?"Hide changes":"What\u2019s changed in v"+(c.cdmVersion||"1.0"))):null,
             dashCmp&&dashCmp.id===c.id?(function(){
               if(dashCmp.loading)return React.createElement("div",{style:{marginTop:6,background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:14,fontSize:13,color:"#999",textAlign:"center"}},"Loading changes\u2026");
-              if(dashCmp.first)return React.createElement("div",{style:{marginTop:6,background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:14,fontSize:13,color:"#777",textAlign:"left"}},"This is v"+dashCmp.verNum+" \u2014 the first version. There is no earlier version to compare to yet.");
+              if(dashCmp.first)return React.createElement("div",{style:{marginTop:6,background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:14,fontSize:13,color:"#777",textAlign:"left"}},"This is v"+dashCmp.verNum+", the first version. There is no earlier version to compare to yet.");
               var col=cdmVerColor(dashCmp.verNum);
               return React.createElement("div",{style:{marginTop:6,background:"#fff",border:"2px solid "+col,borderRadius:12,padding:16,textAlign:"left"}},
                 React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:6}},
@@ -2777,7 +2777,7 @@ function Dashboard(pp){
                     ch.oldVal?React.createElement("div",{style:{fontSize:11,color:"#aaa",marginTop:1}},"was: "+(ch.oldVal.length>140?ch.oldVal.slice(0,140)+"\u2026":ch.oldVal)):null);
                 }));
             })():null,
-            React.createElement("button",{onClick:function(e){e.stopPropagation();doNewVer(c.id,c.name,c.cdmVersion);},title:"Save the current version to history and continue in a new version \u2014 content carried forward",style:{display:"block",width:"100%",marginTop:6,padding:"10px 16px",borderRadius:12,border:"1px solid #990000",background:"#fff",color:"#990000",fontSize:13,fontWeight:800,cursor:"pointer",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}},"+ Create New Version of \u201C"+c.name+"\u201D"));}))),
+            React.createElement("button",{onClick:function(e){e.stopPropagation();doNewVer(c.id,c.name,c.cdmVersion);},title:"Save the current version to history and continue in a new version with all content carried forward",style:{display:"block",width:"100%",marginTop:6,padding:"10px 16px",borderRadius:12,border:"1px solid #990000",background:"#fff",color:"#990000",fontSize:13,fontWeight:800,cursor:"pointer",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}},"+ Create New Version of \u201C"+c.name+"\u201D"));}))),
     verModal?React.createElement("div",{style:{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:9999,padding:20}},
       React.createElement("div",{style:{background:"#fff",borderRadius:18,padding:32,maxWidth:560,width:"100%",boxShadow:"0 10px 40px rgba(0,0,0,0.2)",textAlign:"left"}},
         React.createElement("div",{style:{fontSize:34,marginBottom:6}},"\uD83D\uDCDA"),
@@ -2786,7 +2786,7 @@ function Dashboard(pp){
           "Your current v"+verModal.cur+" will be saved to Version History as a permanent record, and you will continue working in ",
           React.createElement("strong",null,"v"+verModal.next),
           " with ",React.createElement("strong",null,"all of your content carried forward"),
-          ". Nothing is deleted or lost \u2014 a new version is simply a checkpoint."),
+          ". Nothing is deleted or lost. A new version is simply a checkpoint."),
         React.createElement("p",{style:{fontSize:13.5,color:"#666",lineHeight:1.5,marginBottom:6}},
           React.createElement("strong",{style:{color:"#7a1414"}},"Create a new version when you are starting a meaningful update, such as:")),
         React.createElement("ul",{style:{fontSize:13.5,color:"#666",lineHeight:1.6,margin:"0 0 10px 20px",padding:0}},
@@ -2795,7 +2795,7 @@ function Dashboard(pp){
           React.createElement("li",null,"A revision of the asynchronous design"),
           React.createElement("li",null,"A complete overhaul of the course")),
         React.createElement("p",{style:{fontSize:12.5,color:"#999",lineHeight:1.5,marginBottom:14}},
-          "For small everyday edits \u2014 fixing a typo or adjusting a sentence \u2014 you do not need a new version. Those changes save automatically into your current v"+verModal.cur+"."),
+          "For small everyday edits, such as fixing a typo or adjusting a sentence, you do not need a new version. Those changes save automatically into your current v"+verModal.cur+"."),
         React.createElement("div",{style:{marginBottom:16}},
           React.createElement("label",{style:{display:"block",fontSize:12.5,fontWeight:700,color:"#7a1414",marginBottom:5}},"In a few words, what updates are you about to make? (optional)"),
           React.createElement("input",{value:verNote,onChange:function(e){setVerNote(e.target.value);},placeholder:"e.g., Fall 2026 async updates",style:{width:"100%",padding:"10px 13px",borderRadius:10,border:"1px solid #ddd",fontSize:14,boxSizing:"border-box"}}),
@@ -3231,7 +3231,7 @@ if(dupInfo){return React.createElement("div",{style:{minHeight:"100vh",backgroun
           React.createElement("div",{style:{fontSize:28}},"\u{1F504}"),
           React.createElement("div",null,
             React.createElement("div",{style:{fontSize:15,fontWeight:700,color:"#92400E"}},"Create New Version"),
-            React.createElement("div",{style:{fontSize:12,color:"#888"}},"Save the current version to history and continue in a new version \u2014 your content is carried forward"))),
+            React.createElement("div",{style:{fontSize:12,color:"#888"}},"Save the current version to history and continue in a new version with your content carried forward"))),
         React.createElement("button",{onClick:function(){doCreateSeparate(dupInfo.name);},style:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"16px 20px",borderRadius:14,border:"1px solid #ddd",background:"#f9f9f9",cursor:"pointer",textAlign:"left"}},
           React.createElement("div",{style:{fontSize:28}},"\u{1F4CB}"),
           React.createElement("div",null,
