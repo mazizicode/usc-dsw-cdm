@@ -2533,39 +2533,21 @@ function CommentsStep(props){
 function VersionPanel(props){
   var data=props.data;var setData=props.setData;var courseId=props.courseId;var authUser=props.authUser;
   var _v=useState(null),versions=_v[0],setVersions=_v[1];
-  var _n=useState(""),note=_n[0],setNote=_n[1];
-  var _l=useState(false),creating=_l[0],setCreating=_l[1];
   var _vd=useState(null),viewData=_vd[0],setViewData=_vd[1];
   var _vi=useState(null),viewInfo=_vi[0],setViewInfo=_vi[1];
   var _pv=useState(null),prevViewData=_pv[0],setPrevViewData=_pv[1];
-  var _lc=useState(null),liveCmp=_lc[0],setLiveCmp=_lc[1];
 
   var uid=authUser.uid;
 
   function refresh(){loadVersionHistory(uid,courseId,function(v){setVersions(v);});}
   useEffect(function(){if(courseId)refresh();},[courseId]);
 
-  var doCreate=function(){
-    if(!note.trim()){alert("Please add a version note describing what changed.");return;}
-    setCreating(true);
-    createVersion(uid,courseId,data,note.trim(),function(updated,newNum){
-      setData(function(d){return Object.assign({},d,{cdmVersion:newNum,cdmVersionNote:note.trim()});});
-      setNote("");setCreating(false);refresh();
-      alert("Version saved! Now working on v"+newNum);
-    });
-  };
-
   return React.createElement("div",{style:{marginBottom:20}},
-    React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}},
+    React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:8}},
       React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
         React.createElement("span",{className:"ver-badge"},"v"+(data.cdmVersion||"1.0")),
         React.createElement("span",{style:{fontSize:14,color:"#666"}},data.cdmVersionNote||"Current version")),
-      React.createElement("button",{onClick:function(){var el=document.getElementById("ver-create");if(el)el.style.display=el.style.display==="none"?"block":"block";},style:{fontSize:13,fontWeight:600,color:"#990000",background:"none",border:"1px solid #990000",padding:"6px 14px",borderRadius:10,cursor:"pointer"}},"+ Save New Version")),
-    React.createElement("div",{id:"ver-create",style:{background:"#FAF5EE",borderRadius:12,padding:16,marginBottom:16,border:"1px solid #e8e0d0"}},
-      React.createElement("div",{className:"field",style:{marginBottom:10}},
-        React.createElement("label",null,"Version Note (describe what changed)"),
-        React.createElement("input",{value:note,onChange:function(e){setNote(e.target.value);},placeholder:"e.g., Updated Module 2 assessments, revised CLO 3...",style:{width:"100%",padding:"10px 14px",borderRadius:10,border:"1px solid #ddd",fontSize:14}})),
-      React.createElement("button",{onClick:doCreate,className:"btn-p",disabled:creating,style:{padding:"10px 20px",fontSize:13}},creating?"Saving...":"Lock Current & Create New Version")),
+      React.createElement("span",{style:{fontSize:12,color:"#999"}},"To start a new version, use the \u201C+ Create New Version\u201D button on My Course Design Maps.")),
     versions&&versions.length>0?React.createElement("div",null,
       React.createElement("h4",{style:{fontSize:14,fontWeight:700,color:"#990000",marginBottom:8}},"Version History"),
       React.createElement("div",{className:"ver-timeline"},
@@ -2573,9 +2555,7 @@ function VersionPanel(props){
           React.createElement("div",null,
             React.createElement("span",{className:"ver-badge"},"v"+(data.cdmVersion||"1.0")),
             React.createElement("span",{style:{fontSize:13,color:"#333",marginLeft:8,fontWeight:600}},"Current Working Version")),
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
-            versions.length>0?React.createElement("button",{onClick:function(){loadVersionData(authUser.uid,courseId,versions[0].id,function(pd,pi){if(pd){setViewData(null);setViewInfo(null);setLiveCmp({prev:pd,prevNum:pi.versionNumber});}});},title:"See everything you have changed in this working version compared to the last locked version",style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fff",border:"1px solid #990000",padding:"4px 12px",borderRadius:8,cursor:"pointer"}},"What\u2019s changed so far"):null,
-            React.createElement("span",{style:{fontSize:12,color:"#22c55e",fontWeight:600}},"Active"))),
+          React.createElement("span",{style:{fontSize:12,color:"#22c55e",fontWeight:600}},"Active")),
         versions.map(function(v){
           var time=v.createdAt?new Date(v.createdAt.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"America/Los_Angeles"}):"Unknown";
           return React.createElement("div",{key:v.id,className:"ver-card",onClick:function(){
@@ -2592,25 +2572,6 @@ function VersionPanel(props){
               React.createElement("div",{style:{fontSize:12,color:"#999",marginTop:2}},"Saved by "+v.createdBy+" on "+time)),
             React.createElement("span",{style:{fontSize:12,color:"#990000"}},"View "+String.fromCharCode(8250)));
         }))):null,
-    liveCmp?(function(){
-      var vn=data.cdmVersion||"1.0";
-      var col=cdmVerColor(vn);
-      var changes=cdmDiffVersions(liveCmp.prev,data);
-      return React.createElement("div",{style:{marginTop:16,background:"#fff",border:"2px solid "+col,borderRadius:14,padding:20}},
-        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
-            React.createElement("span",{style:{display:"inline-block",width:12,height:12,borderRadius:3,background:col,flexShrink:0}}),
-            React.createElement("span",{style:{fontSize:14,fontWeight:800,color:col}},changes.length===0?("No changes yet in v"+vn):(changes.length+" change"+(changes.length===1?"":"s")+" in v"+vn+" so far"))),
-          React.createElement("button",{onClick:function(){setLiveCmp(null);},style:{fontSize:12,color:"#990000",background:"none",border:"none",cursor:"pointer"}},"Close")),
-        React.createElement("div",{style:{fontSize:12,color:"#999",marginBottom:12}},"Compared to locked v"+liveCmp.prevNum+". This list updates as you edit \u2014 check back anytime."),
-        changes.length===0?React.createElement("div",{style:{fontSize:13,color:"#777"}},"Everything still matches v"+liveCmp.prevNum+". As you make updates, they will appear here in this version\u2019s color."):
-        changes.map(function(c,i){
-          return React.createElement("div",{key:i,style:{marginBottom:9,paddingLeft:10,borderLeft:"3px solid "+col}},
-            React.createElement("div",{style:{fontSize:12.5,fontWeight:700,color:col,marginBottom:2}},c.label),
-            React.createElement("div",{style:{fontSize:12.5,color:"#333",whiteSpace:"pre-wrap"}},c.newVal?(c.newVal.length>300?c.newVal.slice(0,300)+"\u2026":c.newVal):React.createElement("em",{style:{color:"#999"}},"(cleared)")),
-            c.oldVal?React.createElement("div",{style:{fontSize:11,color:"#aaa",marginTop:1}},"was: "+(c.oldVal.length>140?c.oldVal.slice(0,140)+"\u2026":c.oldVal)):null);
-        }));
-    })():null,
     viewData?React.createElement("div",{style:{marginTop:16,background:"#fff",border:"2px solid #990000",borderRadius:14,padding:20}},
       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
         React.createElement("div",null,
@@ -2731,6 +2692,24 @@ function Dashboard(pp){
   var _vm=useState(null),verModal=_vm[0],setVerModal=_vm[1];
   var _vn=useState(""),verNote=_vn[0],setVerNote=_vn[1];
   var _vb=useState(false),verBusy=_vb[0],setVerBusy=_vb[1];
+  // "What's changed" straight from the dashboard: loads the current course and its most
+  // recent locked version, then shows the differences inline. Read-only — loads and
+  // compares only, never writes, so it cannot touch any data.
+  var _dc=useState(null),dashCmp=_dc[0],setDashCmp=_dc[1];
+  var doShowChanges=function(c){
+    if(dashCmp&&dashCmp.id===c.id){setDashCmp(null);return;}
+    setDashCmp({id:c.id,loading:true});
+    loadCourse(user.uid,c.id,function(d){
+      if(!d){setDashCmp(null);alert("Could not load this course. Please try again.");return;}
+      loadVersionHistory(user.uid,c.id,function(vers){
+        if(!vers||vers.length===0){setDashCmp({id:c.id,first:true,verNum:d.cdmVersion||"1.0"});return;}
+        loadVersionData(user.uid,c.id,vers[0].id,function(pd,pi){
+          if(!pd){setDashCmp({id:c.id,first:true,verNum:d.cdmVersion||"1.0"});return;}
+          setDashCmp({id:c.id,verNum:d.cdmVersion||"1.0",prevNum:pi.versionNumber,changes:cdmDiffVersions(pd,d)});
+        });
+      });
+    });
+  };
   var doNewVer=function(id,name,curVer){
     setVerNote("");setVerBusy(false);
     setVerModal({id:id,name:name,cur:curVer||"1.0",next:(parseFloat(curVer||"1.0")+1).toFixed(1)});
@@ -2781,6 +2760,23 @@ function Dashboard(pp){
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("button",{onClick:function(e){e.stopPropagation();onSel(c.id);},title:"Open this course and continue working on it",style:{padding:"9px 18px",borderRadius:10,border:"none",background:"#990000",color:"#fff",fontSize:13,fontWeight:800,cursor:"pointer",whiteSpace:"nowrap"}},"Open Course "+String.fromCharCode(8594)),
               React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X")))),
+            React.createElement("button",{onClick:function(e){e.stopPropagation();doShowChanges(c);},title:"See what has changed in this version compared to the previous one",style:{display:"block",width:"100%",marginTop:6,padding:"9px 16px",borderRadius:12,border:"1px solid #d9b8b8",background:"#fff",color:"#990000",fontSize:12.5,fontWeight:700,cursor:"pointer",textAlign:"center"}},(dashCmp&&dashCmp.id===c.id?"Hide changes":"What\u2019s changed in v"+(c.cdmVersion||"1.0"))),
+            dashCmp&&dashCmp.id===c.id?(function(){
+              if(dashCmp.loading)return React.createElement("div",{style:{marginTop:6,background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:14,fontSize:13,color:"#999",textAlign:"center"}},"Loading changes\u2026");
+              if(dashCmp.first)return React.createElement("div",{style:{marginTop:6,background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:14,fontSize:13,color:"#777",textAlign:"left"}},"This is v"+dashCmp.verNum+" \u2014 the first version. There is no earlier version to compare to yet.");
+              var col=cdmVerColor(dashCmp.verNum);
+              return React.createElement("div",{style:{marginTop:6,background:"#fff",border:"2px solid "+col,borderRadius:12,padding:16,textAlign:"left"}},
+                React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:6}},
+                  React.createElement("span",{style:{display:"inline-block",width:12,height:12,borderRadius:3,background:col,flexShrink:0}}),
+                  React.createElement("span",{style:{fontSize:14,fontWeight:800,color:col}},dashCmp.changes.length===0?("No changes yet in v"+dashCmp.verNum):(dashCmp.changes.length+" change"+(dashCmp.changes.length===1?"":"s")+" in v"+dashCmp.verNum+" (compared to v"+dashCmp.prevNum+")"))),
+                dashCmp.changes.length===0?React.createElement("div",{style:{fontSize:13,color:"#777"}},"Everything still matches v"+dashCmp.prevNum+". As updates are made, they will appear here in this version\u2019s color."):
+                dashCmp.changes.map(function(ch,i){
+                  return React.createElement("div",{key:i,style:{marginBottom:9,paddingLeft:10,borderLeft:"3px solid "+col}},
+                    React.createElement("div",{style:{fontSize:12.5,fontWeight:700,color:col,marginBottom:2}},ch.label),
+                    React.createElement("div",{style:{fontSize:12.5,color:"#333",whiteSpace:"pre-wrap"}},ch.newVal?(ch.newVal.length>300?ch.newVal.slice(0,300)+"\u2026":ch.newVal):React.createElement("em",{style:{color:"#999"}},"(cleared)")),
+                    ch.oldVal?React.createElement("div",{style:{fontSize:11,color:"#aaa",marginTop:1}},"was: "+(ch.oldVal.length>140?ch.oldVal.slice(0,140)+"\u2026":ch.oldVal)):null);
+                }));
+            })():null,
             React.createElement("button",{onClick:function(e){e.stopPropagation();doNewVer(c.id,c.name,c.cdmVersion);},title:"Save the current version to history and continue in a new version \u2014 content carried forward",style:{display:"block",width:"100%",marginTop:6,padding:"10px 16px",borderRadius:12,border:"1px solid #990000",background:"#fff",color:"#990000",fontSize:13,fontWeight:800,cursor:"pointer",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}},"+ Create New Version of \u201C"+c.name+"\u201D"));}))),
     verModal?React.createElement("div",{style:{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:9999,padding:20}},
       React.createElement("div",{style:{background:"#fff",borderRadius:18,padding:32,maxWidth:560,width:"100%",boxShadow:"0 10px 40px rgba(0,0,0,0.2)",textAlign:"left"}},
