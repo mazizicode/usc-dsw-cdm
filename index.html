@@ -522,6 +522,35 @@ function loadFacultyCourse(uid,cid,cb){
 }
 
 function load(){return INIT;}
+// ===== COURSE SHARING (share-inbox pattern) =====
+// A sender writes a share package (their OWN course snapshot, addressed to one USC
+// recipient) into cdm_shares. Only the recipient (or the sender) can read or remove it.
+// The recipient's own login copies it into their own account on Accept. Nobody ever
+// writes into anyone else's account, and copies are fully independent afterward.
+function loadFacultyDirectory(cb){
+  firebase.firestore().collection("cdm_data").get().then(function(s){
+    var r=[];s.forEach(function(d){var x=d.data();if(x&&x.email&&x.name)r.push({uid:d.id,name:x.name,email:(""+x.email).toLowerCase()});});
+    r.sort(function(a,b){return a.name<b.name?-1:1;});cb(r);
+  }).catch(function(e){console.error("Directory load:",e);cb([]);});
+}
+function loadShareInbox(email,cb){
+  firebase.firestore().collection("cdm_shares").where("toEmail","==",(""+email).toLowerCase()).get().then(function(s){
+    var r=[];s.forEach(function(d){var x=d.data()||{};r.push({id:d.id,fromName:x.fromName||"A colleague",fromEmail:x.fromEmail||"",courseName:x.courseName||"Untitled",cdmData:x.cdmData||""});});
+    cb(r);
+  }).catch(function(e){console.error("Share inbox:",e);cb([]);});
+}
+function sendCourseShare(fromUser,toEmail,courseName,cdmDataStr,cb){
+  firebase.firestore().collection("cdm_shares").add({
+    fromUid:fromUser.uid,
+    fromName:fromUser.displayName||fromUser.email||"A colleague",
+    fromEmail:(fromUser.email||"").toLowerCase(),
+    toEmail:(""+toEmail).toLowerCase(),
+    courseName:courseName||"Untitled",
+    cdmData:cdmDataStr,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){cb(true);}).catch(function(e){console.error("Share failed:",e);cb(false,e);});
+}
+
 function loadCourseList(uid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").get().then(function(s){var r=[];s.forEach(function(d){var x=d.data();if(x.archived===true)return;r.push({id:d.id,name:x.courseName||"Untitled",lastUpdated:x.lastUpdated,leadName:x.leadName||"",program:x.program||"dsw",cdmStatus:x.cdmStatus||"Draft",cdmVersion:x.cdmVersion||"1.0"});});cb(r);}).catch(function(){cb([]);});}
 function loadCourse(uid,cid,cb){firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).get().then(function(d){if(d.exists){var x=d.data().cdmData;if(x){try{var p=JSON.parse(x);if(!p.cesExplain)p.cesExplain={};if(!p.cdmVersion)p.cdmVersion="1.0";if(!p.cdmVersionNote)p.cdmVersionNote="Initial version";if(!p.contentType)p.contentType="both";if(!p.program)p.program="dsw";if(!p.cdmStatus)p.cdmStatus="Draft";if(!p.cdmStatusHistory)p.cdmStatusHistory=[];var _topStatus=d.data().cdmStatus;if(_topStatus)p.cdmStatus=_topStatus;var _topHist=d.data().cdmStatusHistory;if(_topHist&&_topHist.length>=(p.cdmStatusHistory?p.cdmStatusHistory.length:0))p.cdmStatusHistory=_topHist;if(!p.targetSemester)p.targetSemester="";if(!p.subcompChecked)p.subcompChecked={};if(!p.subcompExplain)p.subcompExplain={};if(!p.subcompClos)p.subcompClos={};if(p.modules&&Array.isArray(p.modules)){p.modules.forEach(function(m){if(!Array.isArray(m.subcompTags))m.subcompTags=[];if(!m.videoPlan||typeof m.videoPlan!=="object")m.videoPlan={lectureVideos:[],skillBuilderVideos:[]};if(!Array.isArray(m.videoPlan.lectureVideos))m.videoPlan.lectureVideos=[];if(!Array.isArray(m.videoPlan.skillBuilderVideos))m.videoPlan.skillBuilderVideos=[];});}cb(p);}catch(e){console.error("Parse error:",e);cb(INIT);}}else cb(INIT);}else cb(INIT);}).catch(function(e){console.error("Load course error:",e);cb(INIT);});}
 function createNewCourse(uid,initData,cb){if(typeof initData==="function"){cb=initData;initData=null;}var d=initData||INIT;var r=firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc();var done=false;var finish=function(){if(done)return;done=true;cb(r.id);};r.set({cdmData:JSON.stringify(d),courseName:d.courseName||"New Course",leadName:d.courseLead||"",program:d.program||"dsw",cdmStatus:"Draft",
@@ -2696,6 +2725,53 @@ function Dashboard(pp){
   // recent locked version, then shows the differences inline. Read-only — loads and
   // compares only, never writes, so it cannot touch any data.
   var _dc=useState(null),dashCmp=_dc[0],setDashCmp=_dc[1];
+  // ---- Course sharing (sender modal + recipient inbox) ----
+  var _dir=useState(null),facDir=_dir[0],setFacDir=_dir[1];
+  var _sm=useState(null),shareModal=_sm[0],setShareModal=_sm[1];
+  var _ss=useState(""),shareSel=_ss[0],setShareSel=_ss[1];
+  var _sb=useState(false),shareBusy=_sb[0],setShareBusy=_sb[1];
+  var _sd=useState(false),shareSent=_sd[0],setShareSent=_sd[1];
+  var _ib=useState(null),inbox=_ib[0],setInbox=_ib[1];
+  useEffect(function(){if(user&&user.email)loadShareInbox(user.email,function(r){setInbox(r);});},[]);
+  var openShare=function(c){
+    setShareSel("");setShareSent(false);setShareBusy(false);
+    setShareModal({id:c.id,name:c.name});
+    if(!facDir)loadFacultyDirectory(function(r){setFacDir(r);});
+  };
+  var doSendShare=function(){
+    if(!shareModal||shareBusy)return;
+    if(!shareSel){alert("Please choose a colleague from the list.");return;}
+    setShareBusy(true);
+    loadCourse(user.uid,shareModal.id,function(d){
+      if(!d){setShareBusy(false);alert("Could not load this course. Please try again.");return;}
+      var str=JSON.stringify(d);
+      if(str.length>900000){setShareBusy(false);alert("This course is too large to share directly. Please use the Backup and Restore buttons instead.");return;}
+      sendCourseShare(user,shareSel,shareModal.name,str,function(ok,e){
+        setShareBusy(false);
+        if(ok){setShareSent(true);}
+        else{alert("Could not send the copy: "+(e&&e.message?e.message:"please try again."));}
+      });
+    });
+  };
+  var acceptShare=function(s){
+    try{
+      var d=JSON.parse(s.cdmData);
+      d.courseName=(s.courseName||d.courseName||"Untitled")+" (shared by "+s.fromName+")";
+      d.cdmVersion="1.0";
+      d.cdmVersionNote="Copy shared by "+s.fromName;
+      d.cdmStatus="Draft";
+      createNewCourse(user.uid,d,function(){
+        firebase.firestore().collection("cdm_shares").doc(s.id).delete().catch(function(e){console.warn("Share cleanup:",e);});
+        loadShareInbox(user.email,function(r){setInbox(r);});
+        loadCourseList(user.uid,function(c){setCourses(c);});
+      });
+    }catch(e){alert("This share could not be read. Please ask your colleague to share it again.");}
+  };
+  var declineShare=function(s){
+    firebase.firestore().collection("cdm_shares").doc(s.id).delete().then(function(){
+      loadShareInbox(user.email,function(r){setInbox(r);});
+    }).catch(function(e){console.warn("Share decline:",e);});
+  };
   var doShowChanges=function(c){
     if(dashCmp&&dashCmp.id===c.id){setDashCmp(null);return;}
     setDashCmp({id:c.id,loading:true});
@@ -2749,6 +2825,14 @@ function Dashboard(pp){
       courses.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:"#999"}},
         React.createElement("p",{style:{fontSize:17,fontWeight:700,color:"#990000",marginBottom:6}},"\uD83D\uDC46 Start by clicking the red button above"),React.createElement("p",{style:{fontSize:15,color:"#999"}},"You don\u2019t have any Course Design Maps yet. Click \u201CCreate a New CDM\u201D to begin.")):
       React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10,textAlign:"left"}},
+        inbox&&inbox.length>0?inbox.map(function(s){
+          return React.createElement("div",{key:s.id,style:{background:"#FFFBEB",border:"2px solid #FFCC00",borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}},
+            React.createElement("div",{style:{fontSize:14,color:"#333",lineHeight:1.5}},
+              "\uD83D\uDCE9 ",React.createElement("strong",null,s.fromName)," shared ",React.createElement("strong",null,"\u201C"+s.courseName+"\u201D")," with you. Accept to add your own independent copy to your dashboard."),
+            React.createElement("div",{style:{display:"flex",gap:8}},
+              React.createElement("button",{onClick:function(){acceptShare(s);},style:{padding:"8px 16px",borderRadius:10,border:"none",background:"#990000",color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer"}},"Accept"),
+              React.createElement("button",{onClick:function(){declineShare(s);},style:{padding:"8px 16px",borderRadius:10,border:"1px solid #ddd",background:"#f9f9f9",color:"#555",fontWeight:700,fontSize:13,cursor:"pointer"}},"Decline")));
+        }):null,
         courses.map(function(c){
           var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Never";
           return React.createElement("div",{key:c.id},
@@ -2758,6 +2842,7 @@ function Dashboard(pp){
               React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":c.program==="bsw"?"#FEF3C7":"#F0FDF4",color:c.program==="msw"?"#1E40AF":c.program==="bsw"?"#D97706":"#166534"}},c.program==="msw"?"MSW":c.program==="bsw"?"BSW":"DSW"),React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:c.cdmStatus==="Launched"?"#166534":c.cdmStatus==="Approved"?"#0369A1":c.cdmStatus==="Submitted"?"#92400E":"#888",color:"#fff"}},c.cdmStatus||"Draft"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
               React.createElement("div",{style:{fontSize:14,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+              React.createElement("button",{onClick:function(e){e.stopPropagation();openShare(c);},title:"Share a copy of this course with a colleague. They get their own independent copy; your course is not affected.",style:{padding:"9px 14px",borderRadius:10,border:"1px solid #990000",background:"#fff",color:"#990000",fontSize:12.5,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}},"Share a Copy"),
               React.createElement("button",{onClick:function(e){e.stopPropagation();onSel(c.id);},title:"Open this course and continue working on it",style:{padding:"9px 18px",borderRadius:10,border:"none",background:"#990000",color:"#fff",fontSize:13,fontWeight:800,cursor:"pointer",whiteSpace:"nowrap"}},"Open Course "+String.fromCharCode(8594)),
               React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X")))),
             parseFloat(c.cdmVersion||"1.0")>1?React.createElement("button",{onClick:function(e){e.stopPropagation();doShowChanges(c);},title:"See what has changed in this version compared to the previous one",style:{display:"block",width:"100%",marginTop:6,padding:"9px 16px",borderRadius:12,border:"1px solid #d9b8b8",background:"#fff",color:"#990000",fontSize:12.5,fontWeight:700,cursor:"pointer",textAlign:"center"}},(dashCmp&&dashCmp.id===c.id?"Hide changes":"What\u2019s changed in v"+(c.cdmVersion||"1.0"))):null,
@@ -2778,6 +2863,29 @@ function Dashboard(pp){
                 }));
             })():null,
             React.createElement("button",{onClick:function(e){e.stopPropagation();doNewVer(c.id,c.name,c.cdmVersion);},title:"Save the current version to history and continue in a new version with all content carried forward",style:{display:"block",width:"100%",marginTop:6,padding:"10px 16px",borderRadius:12,border:"1px solid #990000",background:"#fff",color:"#990000",fontSize:13,fontWeight:800,cursor:"pointer",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}},"+ Create New Version of \u201C"+c.name+"\u201D"));}))),
+    shareModal?React.createElement("div",{style:{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:9999,padding:20}},
+      React.createElement("div",{style:{background:"#fff",borderRadius:18,padding:32,maxWidth:560,width:"100%",boxShadow:"0 10px 40px rgba(0,0,0,0.2)",textAlign:"left"}},
+        shareSent?
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:34,marginBottom:6}},"\u2709\uFE0F"),
+            React.createElement("h2",{style:{fontSize:20,fontWeight:900,color:"#15803d",marginBottom:10}},"Copy sent"),
+            React.createElement("p",{style:{fontSize:14,color:"#444",lineHeight:1.55,marginBottom:16}},"A copy of \u201C"+shareModal.name+"\u201D is on its way. Your colleague will see it the next time they open the CDM and can accept it onto their dashboard. Your course is not affected."),
+            React.createElement("div",{style:{display:"flex",justifyContent:"flex-end"}},
+              React.createElement("button",{onClick:function(){setShareModal(null);},style:{padding:"10px 18px",borderRadius:10,border:"none",background:"#990000",color:"#fff",fontSize:13.5,fontWeight:800,cursor:"pointer"}},"Done"))):
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:34,marginBottom:6}},"\uD83E\uDD1D"),
+            React.createElement("h2",{style:{fontSize:21,fontWeight:900,color:"#990000",marginBottom:10}},"Share a copy of \u201C"+shareModal.name+"\u201D"),
+            React.createElement("p",{style:{fontSize:14,color:"#444",lineHeight:1.55,marginBottom:8}},"Your colleague receives their own ",React.createElement("strong",null,"independent copy")," of this course to work on. Your course is not affected, and edits do not sync between the two copies."),
+            React.createElement("p",{style:{fontSize:13,color:"#666",lineHeight:1.5,marginBottom:14}},"Nothing appears on their dashboard until they accept, and the copy is clearly labeled as shared by you."),
+            React.createElement("label",{style:{display:"block",fontSize:12.5,fontWeight:700,color:"#7a1414",marginBottom:5}},"Choose a colleague"),
+            facDir===null?React.createElement("div",{style:{fontSize:13,color:"#999",marginBottom:16}},"Loading colleagues\u2026"):
+            React.createElement("select",{value:shareSel,onChange:function(e){setShareSel(e.target.value);},style:{width:"100%",padding:"10px 12px",borderRadius:10,border:"1px solid #ddd",fontSize:14,marginBottom:16,background:"#fff"}},
+              [React.createElement("option",{key:"_",value:""},"Select a faculty member\u2026")].concat(
+                facDir.filter(function(f){return f.email!==(user.email||"").toLowerCase();}).map(function(f){
+                  return React.createElement("option",{key:f.uid,value:f.email},f.name+" - "+f.email);}))),
+            React.createElement("div",{style:{display:"flex",gap:10,justifyContent:"flex-end"}},
+              React.createElement("button",{onClick:function(){if(!shareBusy)setShareModal(null);},style:{padding:"10px 18px",borderRadius:10,border:"1px solid #ddd",background:"#f9f9f9",color:"#555",fontSize:13.5,fontWeight:700,cursor:"pointer"}},"Cancel"),
+              React.createElement("button",{onClick:doSendShare,disabled:shareBusy,style:{padding:"10px 18px",borderRadius:10,border:"none",background:"#990000",color:"#fff",fontSize:13.5,fontWeight:800,cursor:"pointer",opacity:shareBusy?0.7:1}},shareBusy?"Sending\u2026":"Send a Copy"))))):null,
     verModal?React.createElement("div",{style:{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:9999,padding:20}},
       React.createElement("div",{style:{background:"#fff",borderRadius:18,padding:32,maxWidth:560,width:"100%",boxShadow:"0 10px 40px rgba(0,0,0,0.2)",textAlign:"left"}},
         React.createElement("div",{style:{fontSize:34,marginBottom:6}},"\uD83D\uDCDA"),
