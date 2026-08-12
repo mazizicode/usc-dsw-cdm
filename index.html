@@ -2538,6 +2538,7 @@ function VersionPanel(props){
   var _vd=useState(null),viewData=_vd[0],setViewData=_vd[1];
   var _vi=useState(null),viewInfo=_vi[0],setViewInfo=_vi[1];
   var _pv=useState(null),prevViewData=_pv[0],setPrevViewData=_pv[1];
+  var _lc=useState(null),liveCmp=_lc[0],setLiveCmp=_lc[1];
 
   var uid=authUser.uid;
 
@@ -2572,7 +2573,9 @@ function VersionPanel(props){
           React.createElement("div",null,
             React.createElement("span",{className:"ver-badge"},"v"+(data.cdmVersion||"1.0")),
             React.createElement("span",{style:{fontSize:13,color:"#333",marginLeft:8,fontWeight:600}},"Current Working Version")),
-          React.createElement("span",{style:{fontSize:12,color:"#22c55e",fontWeight:600}},"Active")),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+            versions.length>0?React.createElement("button",{onClick:function(){loadVersionData(authUser.uid,courseId,versions[0].id,function(pd,pi){if(pd){setViewData(null);setViewInfo(null);setLiveCmp({prev:pd,prevNum:pi.versionNumber});}});},title:"See everything you have changed in this working version compared to the last locked version",style:{fontSize:12,fontWeight:700,color:"#990000",background:"#fff",border:"1px solid #990000",padding:"4px 12px",borderRadius:8,cursor:"pointer"}},"What\u2019s changed so far"):null,
+            React.createElement("span",{style:{fontSize:12,color:"#22c55e",fontWeight:600}},"Active"))),
         versions.map(function(v){
           var time=v.createdAt?new Date(v.createdAt.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"America/Los_Angeles"}):"Unknown";
           return React.createElement("div",{key:v.id,className:"ver-card",onClick:function(){
@@ -2589,6 +2592,25 @@ function VersionPanel(props){
               React.createElement("div",{style:{fontSize:12,color:"#999",marginTop:2}},"Saved by "+v.createdBy+" on "+time)),
             React.createElement("span",{style:{fontSize:12,color:"#990000"}},"View "+String.fromCharCode(8250)));
         }))):null,
+    liveCmp?(function(){
+      var vn=data.cdmVersion||"1.0";
+      var col=cdmVerColor(vn);
+      var changes=cdmDiffVersions(liveCmp.prev,data);
+      return React.createElement("div",{style:{marginTop:16,background:"#fff",border:"2px solid "+col,borderRadius:14,padding:20}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+            React.createElement("span",{style:{display:"inline-block",width:12,height:12,borderRadius:3,background:col,flexShrink:0}}),
+            React.createElement("span",{style:{fontSize:14,fontWeight:800,color:col}},changes.length===0?("No changes yet in v"+vn):(changes.length+" change"+(changes.length===1?"":"s")+" in v"+vn+" so far"))),
+          React.createElement("button",{onClick:function(){setLiveCmp(null);},style:{fontSize:12,color:"#990000",background:"none",border:"none",cursor:"pointer"}},"Close")),
+        React.createElement("div",{style:{fontSize:12,color:"#999",marginBottom:12}},"Compared to locked v"+liveCmp.prevNum+". This list updates as you edit \u2014 check back anytime."),
+        changes.length===0?React.createElement("div",{style:{fontSize:13,color:"#777"}},"Everything still matches v"+liveCmp.prevNum+". As you make updates, they will appear here in this version\u2019s color."):
+        changes.map(function(c,i){
+          return React.createElement("div",{key:i,style:{marginBottom:9,paddingLeft:10,borderLeft:"3px solid "+col}},
+            React.createElement("div",{style:{fontSize:12.5,fontWeight:700,color:col,marginBottom:2}},c.label),
+            React.createElement("div",{style:{fontSize:12.5,color:"#333",whiteSpace:"pre-wrap"}},c.newVal?(c.newVal.length>300?c.newVal.slice(0,300)+"\u2026":c.newVal):React.createElement("em",{style:{color:"#999"}},"(cleared)")),
+            c.oldVal?React.createElement("div",{style:{fontSize:11,color:"#aaa",marginTop:1}},"was: "+(c.oldVal.length>140?c.oldVal.slice(0,140)+"\u2026":c.oldVal)):null);
+        }));
+    })():null,
     viewData?React.createElement("div",{style:{marginTop:16,background:"#fff",border:"2px solid #990000",borderRadius:14,padding:20}},
       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
         React.createElement("div",null,
