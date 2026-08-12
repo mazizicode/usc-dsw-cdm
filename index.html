@@ -2703,22 +2703,30 @@ function Dashboard(pp){
   var _sc=useState(false),showCreate=_sc[0],setShowCreate=_sc[1];
   useEffect(function(){loadCourseList(user.uid,function(c){setCourses(c);});},[]);
   var doRm=function(id){if(!confirm("Delete this course CDM? Cannot be undone."))return;setDeling(id);deleteCourse(user.uid,id,function(){loadCourseList(user.uid,function(c){setCourses(c);setDeling(null);});});};
-  // Create a new version straight from the dashboard card. Same proven flow as the
-  // in-course button: snapshot current to history, then CARRY CONTENT FORWARD and
-  // bump the number. Never blanks or renames anything.
-  var doNewVer=function(id,name){
-    var note=prompt("Version note for \u201C"+name+"\u201D (describe what changed):","");
-    if(note===null)return;
+  // Create a new version straight from the dashboard card. Opens a friendly modal that
+  // EXPLAINS what a new version is (current version saved to history, all content carried
+  // forward, nothing lost) instead of a bare browser prompt. Same proven save flow.
+  var _vm=useState(null),verModal=_vm[0],setVerModal=_vm[1];
+  var _vn=useState(""),verNote=_vn[0],setVerNote=_vn[1];
+  var _vb=useState(false),verBusy=_vb[0],setVerBusy=_vb[1];
+  var doNewVer=function(id,name,curVer){
+    setVerNote("");setVerBusy(false);
+    setVerModal({id:id,name:name,cur:curVer||"1.0",next:(parseFloat(curVer||"1.0")+1).toFixed(1)});
+  };
+  var confirmNewVer=function(){
+    if(!verModal||verBusy)return;
+    setVerBusy(true);
+    var id=verModal.id,name=verModal.name,nextV=verModal.next;
     loadCourse(user.uid,id,function(d){
-      if(!d){alert("Could not load this course. Please try again.");return;}
-      createVersion(user.uid,id,d,note.trim()||"Updated version",function(updated,newNum){
+      if(!d){setVerBusy(false);alert("Could not load this course. Please try again.");return;}
+      createVersion(user.uid,id,d,(verNote.trim()||"Updated version"),function(updated,newNum){
         firebase.firestore().collection("cdm_data").doc(user.uid).collection("courses").doc(id).set({
           cdmData:JSON.stringify(updated),cdmVersion:newNum,
           lastUpdated:firebase.firestore.FieldValue.serverTimestamp()
         },{merge:true}).then(function(){
+          setVerModal(null);setVerBusy(false);
           loadCourseList(user.uid,function(c){setCourses(c);});
-          alert("Version saved. \u201C"+name+"\u201D is now v"+newNum+" \u2014 all content carried forward.");
-        }).catch(function(e){alert("Error: "+e.message);});
+        }).catch(function(e){setVerBusy(false);alert("Error: "+e.message);});
       });
     });
   };
@@ -2745,11 +2753,29 @@ function Dashboard(pp){
           return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
             React.createElement("div",{style:{flex:1}},
               React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":c.program==="bsw"?"#FEF3C7":"#F0FDF4",color:c.program==="msw"?"#1E40AF":c.program==="bsw"?"#D97706":"#166534"}},c.program==="msw"?"MSW":c.program==="bsw"?"BSW":"DSW"),React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:c.cdmStatus==="Launched"?"#166534":c.cdmStatus==="Approved"?"#0369A1":c.cdmStatus==="Submitted"?"#92400E":"#888",color:"#fff"}},c.cdmStatus||"Draft"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null,
-              React.createElement("button",{onClick:function(e){e.stopPropagation();doNewVer(c.id,c.name);},title:"Save the current version to history and continue in a new version \u2014 content carried forward",style:{fontSize:11.5,fontWeight:700,color:"#990000",background:"#fff",border:"1px solid #990000",padding:"3px 10px",borderRadius:8,cursor:"pointer",marginLeft:2}},"+ New Version")),
+              React.createElement("button",{onClick:function(e){e.stopPropagation();doNewVer(c.id,c.name,c.cdmVersion);},title:"Save the current version to history and continue in a new version \u2014 content carried forward",style:{fontSize:11.5,fontWeight:700,color:"#990000",background:"#fff",border:"1px solid #990000",padding:"3px 10px",borderRadius:8,cursor:"pointer",marginLeft:2}},"+ New Version")),
               React.createElement("div",{style:{fontSize:14,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X"),
-              React.createElement("span",{style:{color:"#990000",fontSize:18}},String.fromCharCode(8250))));}))));
+              React.createElement("span",{style:{color:"#990000",fontSize:18}},String.fromCharCode(8250))));}))),
+    verModal?React.createElement("div",{style:{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:9999,padding:20}},
+      React.createElement("div",{style:{background:"#fff",borderRadius:18,padding:32,maxWidth:560,width:"100%",boxShadow:"0 10px 40px rgba(0,0,0,0.2)",textAlign:"left"}},
+        React.createElement("div",{style:{fontSize:34,marginBottom:6}},"\uD83D\uDCDA"),
+        React.createElement("h2",{style:{fontSize:21,fontWeight:900,color:"#990000",marginBottom:10}},"Create a new version of \u201C"+verModal.name+"\u201D?"),
+        React.createElement("p",{style:{fontSize:14,color:"#444",lineHeight:1.55,marginBottom:10}},
+          "Your current v"+verModal.cur+" will be saved to Version History as a permanent record, and you will continue working in ",
+          React.createElement("strong",null,"v"+verModal.next),
+          " with ",React.createElement("strong",null,"all of your content carried forward"),
+          ". Nothing is deleted or lost \u2014 a new version is simply a checkpoint."),
+        React.createElement("p",{style:{fontSize:13.5,color:"#666",lineHeight:1.55,marginBottom:14}},
+          "Create a new version when you are about to make updates \u2014 for example, revisions for a new term \u2014 so reviewers can see what changed from one version to the next."),
+        React.createElement("div",{style:{marginBottom:16}},
+          React.createElement("label",{style:{display:"block",fontSize:12.5,fontWeight:700,color:"#7a1414",marginBottom:5}},"In a few words, what updates are you about to make? (optional)"),
+          React.createElement("input",{value:verNote,onChange:function(e){setVerNote(e.target.value);},placeholder:"e.g., Fall 2026 async updates",style:{width:"100%",padding:"10px 13px",borderRadius:10,border:"1px solid #ddd",fontSize:14,boxSizing:"border-box"}}),
+          React.createElement("div",{style:{fontSize:11.5,color:"#999",marginTop:4}},"This note appears next to v"+verModal.cur+" in Version History so it\u2019s easy to find later.")),
+        React.createElement("div",{style:{display:"flex",gap:10,justifyContent:"flex-end"}},
+          React.createElement("button",{onClick:function(){if(!verBusy)setVerModal(null);},style:{padding:"10px 18px",borderRadius:10,border:"1px solid #ddd",background:"#f9f9f9",color:"#555",fontSize:13.5,fontWeight:700,cursor:"pointer"}},"Cancel"),
+          React.createElement("button",{onClick:confirmNewVer,disabled:verBusy,style:{padding:"10px 18px",borderRadius:10,border:"none",background:"#990000",color:"#fff",fontSize:13.5,fontWeight:800,cursor:"pointer",opacity:verBusy?0.7:1}},verBusy?"Saving\u2026":"Save v"+verModal.cur+" & continue in v"+verModal.next)))):null);
 }
 
 // ===== Program Director Dashboard: submitted CDMs for the PD's program (view + comment) =====
