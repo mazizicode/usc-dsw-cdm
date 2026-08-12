@@ -641,6 +641,49 @@ function loadVersionData(uid,cid,versionId,cb){
   }).catch(function(){cb(null,null);});
 }
 
+// ===== VERSION COMPARISON (READ-ONLY) =====
+// Given two version snapshots, computes what changed between them, with friendly labels.
+// Pure/read-only: it only reads snapshots and never writes, so it cannot alter or lose data.
+// Unit-tested in isolation before wiring in. Modules are matched by stable id, so reordering
+// a module is NOT flagged as a change; whitespace-only edits are ignored; internal fields hidden.
+function cdmNorm(x){return (x==null?"":String(x)).trim();}
+function cdmFlatten(obj,prefix,out){
+  out=out||{};
+  if(obj==null){if(prefix)out[prefix]="";return out;}
+  if(Array.isArray(obj)){obj.forEach(function(it,i){var k=(it&&typeof it==="object"&&it.id!=null)?("#"+it.id):("["+i+"]");cdmFlatten(it,prefix+"/"+k,out);});return out;}
+  if(typeof obj==="object"){Object.keys(obj).forEach(function(k){cdmFlatten(obj[k],prefix?prefix+"/"+k:k,out);});return out;}
+  out[prefix]=obj;return out;
+}
+var CDM_TOP={courseName:"Course Name",courseDesc:"Course Description",courseLead:"Course Lead",leadEmail:"Lead Email",leadPhone:"Lead Phone",units:"Units",sectionNotes:"Section Notes",targetDelivery:"Target Delivery",devStarted:"Development Started",program:"Program"};
+var CDM_CLOF={text:"Objective",ces:"CSWE",adei:"ADEI",assess:"Assessment"};
+var CDM_SECT={startHere:"Start Here",learn:"Learn",skillBuilder:"Skill Builder",reflectConnect:"Reflect & Connect",wrapUp:"Wrap Up"};
+var CDM_AFLD={welcome:"Unit Overview",objectives:"Module Objectives",keyTopics:"Key Topics",readings:"Readings",miniLectures:"Lectures",guidedQuestions:"Guided Questions",knowledgeChecks:"Knowledge Checks",activities:"Activities",journal:"Journal / Reflection",competenceAssessment:"Self-Check",liveSessionQuestions:"Live Session Prep",lookingAhead:"Looking Ahead"};
+var CDM_MODF={title:"Title",overview:"Overview",terms:"Terms",syncMin:"Sync Minutes",asyncMin:"Async Minutes"};
+var CDM_OBJF={text:"Objective",materials:"Materials",syncAct:"Sync Activity",asyncAct:"Async Activity",assessment:"Assessment",strategies:"Strategies",adei:"ADEI"};
+var CDM_SKIP={id:1,_objSeeded:1,cdmVersion:1,cdmVersionNote:1,cdmCreated:1,lastUpdated:1};
+function cdmModLabel(id,ref){var mods=(ref&&ref.modules)||[];for(var i=0;i<mods.length;i++){if(("#"+mods[i].id)===id)return "Module "+(i+1)+(mods[i].title?" ("+mods[i].title+")":"");}return "Module";}
+function cdmLabelFor(path,ref){
+  var p=path.split("/");
+  if(p.length===1)return CDM_TOP[p[0]]||p[0];
+  if(p[0]==="clos"){var idx=p[1].replace(/[\[\]#]/g,"");return "CLO "+(parseInt(idx,10)+1)+": "+(CDM_CLOF[p[2]]||p[2]);}
+  if(p[0]==="modules"){
+    var ml=cdmModLabel(p[1],ref);
+    if(p[2]==="asyncContent")return ml+" \u2192 "+(CDM_SECT[p[3]]||p[3])+" \u2192 "+(CDM_AFLD[p[4]]||p[4]);
+    if(p[2]==="objectives"){var oi=p[3].replace(/[\[\]#]/g,"");return ml+" \u2192 Objective "+(parseInt(oi,10)+1)+(CDM_OBJF[p[4]]&&p[4]!=="text"?" ("+CDM_OBJF[p[4]]+")":"");}
+    if(p[2]==="timeEstimate")return ml+" \u2192 Time estimate";
+    return ml+" \u2192 "+(CDM_MODF[p[2]]||p[2]);
+  }
+  return path.replace(/\//g," \u2192 ");
+}
+function cdmDiffVersions(prev,cur){
+  var fp=cdmFlatten(prev),fc=cdmFlatten(cur),changed=[],all={};
+  Object.keys(fp).forEach(function(x){all[x]=1;});Object.keys(fc).forEach(function(x){all[x]=1;});
+  Object.keys(all).forEach(function(x){var seg=x.split("/").pop();if(CDM_SKIP[seg])return;if(cdmNorm(fp[x])!==cdmNorm(fc[x]))changed.push({path:x,label:cdmLabelFor(x,cur),oldVal:cdmNorm(fp[x]),newVal:cdmNorm(fc[x])});});
+  changed.sort(function(a,b){return a.label<b.label?-1:1;});
+  return changed;
+}
+function cdmVerColor(num){var n=Math.round(parseFloat(num)||1);return n<=1?"#1a1a1a":({2:"#15803d",3:"#7c3aed",4:"#2563eb",5:"#c2410c",6:"#0891b2"}[n]||"#990000");}
+
 // Save the course CDM and WAIT for the server acknowledgment, with automatic retry.
 // onStatus(state) is called with "saving", "saved", or "error" so the UI can show
 // the real save state instead of a fake "Saved" badge. Returns a Promise that
@@ -2494,6 +2537,7 @@ function VersionPanel(props){
   var _l=useState(false),creating=_l[0],setCreating=_l[1];
   var _vd=useState(null),viewData=_vd[0],setViewData=_vd[1];
   var _vi=useState(null),viewInfo=_vi[0],setViewInfo=_vi[1];
+  var _pv=useState(null),prevViewData=_pv[0],setPrevViewData=_pv[1];
 
   var uid=authUser.uid;
 
@@ -2532,7 +2576,12 @@ function VersionPanel(props){
         versions.map(function(v){
           var time=v.createdAt?new Date(v.createdAt.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"America/Los_Angeles"}):"Unknown";
           return React.createElement("div",{key:v.id,className:"ver-card",onClick:function(){
-            loadVersionData(authUser.uid,courseId,v.id,function(vData,vInfo){setViewData(vData);setViewInfo(vInfo);});
+            loadVersionData(authUser.uid,courseId,v.id,function(vData,vInfo){
+              setViewData(vData);setViewInfo(vInfo);setPrevViewData(null);
+              var prevNum=parseFloat(vInfo.versionNumber)-1.0;
+              var pe=versions.filter(function(x){return Math.abs(parseFloat(x.versionNumber)-prevNum)<0.05;})[0];
+              if(pe){loadVersionData(authUser.uid,courseId,pe.id,function(pData){setPrevViewData(pData);});}
+            });
           }},
             React.createElement("div",null,
               React.createElement("span",{className:"ver-badge locked"},"v"+v.versionNumber),
@@ -2549,7 +2598,24 @@ function VersionPanel(props){
       React.createElement("div",{style:{fontSize:13,color:"#666"}},
         React.createElement("p",null,"Course: "+(viewData.courseName||"Untitled")),
         React.createElement("p",null,"CLOs: "+viewData.clos.filter(function(c){return c.text;}).length+" defined"),
-        React.createElement("p",null,"Modules: "+viewData.modules.filter(function(m){return m.title;}).length+" built"))
+        React.createElement("p",null,"Modules: "+viewData.modules.filter(function(m){return m.title;}).length+" built")),
+      (function(){
+        var vn=viewInfo?viewInfo.versionNumber:1;
+        var col=cdmVerColor(vn);
+        var prevLabel="v"+(parseFloat(vn)-1).toFixed(1);
+        if(!prevViewData)return React.createElement("div",{style:{marginTop:14,paddingTop:14,borderTop:"1px solid #eee",fontSize:13,color:"#777"}},"This is the first version \u2014 there is no earlier version to compare it to.");
+        var changes=cdmDiffVersions(prevViewData,viewData);
+        return React.createElement("div",{style:{marginTop:14,paddingTop:14,borderTop:"1px solid #eee"}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:10}},
+            React.createElement("span",{style:{display:"inline-block",width:12,height:12,borderRadius:3,background:col,flexShrink:0}}),
+            React.createElement("span",{style:{fontSize:13,fontWeight:700,color:col}},changes.length===0?("No content changes from "+prevLabel):(changes.length+" change"+(changes.length===1?"":"s")+" in v"+vn+" (compared to "+prevLabel+")"))),
+          changes.map(function(c,i){
+            return React.createElement("div",{key:i,style:{marginBottom:9,paddingLeft:10,borderLeft:"3px solid "+col}},
+              React.createElement("div",{style:{fontSize:12.5,fontWeight:700,color:col,marginBottom:2}},c.label),
+              React.createElement("div",{style:{fontSize:12.5,color:"#333",whiteSpace:"pre-wrap"}},c.newVal?(c.newVal.length>300?c.newVal.slice(0,300)+"\u2026":c.newVal):React.createElement("em",{style:{color:"#999"}},"(cleared)")),
+              c.oldVal?React.createElement("div",{style:{fontSize:11,color:"#aaa",marginTop:1}},"was: "+(c.oldVal.length>140?c.oldVal.slice(0,140)+"\u2026":c.oldVal)):null);
+          }));
+      })()
     ):null);
 }
 
