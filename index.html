@@ -2848,15 +2848,17 @@ cdmVersion:"1.0",lastUpdated:firebase.firestore.FieldValue.serverTimestamp()}).t
 
 var doCreateNewVersion=function(existingId,name){
   loadCourse(authUser.uid,existingId,function(existingData){
-    createVersion(authUser.uid,existingId,existingData,"Archived before creating new version",function(updated,newNum){
-      var fresh=Object.assign({},INIT);
-      fresh.courseName=name;
-      fresh.cdmVersion=newNum;
-      fresh.cdmVersionNote="New version - started fresh";
+    // Snapshot the current version to history, then CARRY ITS CONTENT FORWARD into the new
+    // version. Previously this wrote a blank template here, which could surprise a faculty
+    // member into finding their working content wiped. createVersion already returns the
+    // content carried forward (only the version number advances); we use that instead of a
+    // blank. merge:true preserves any other top-level fields (e.g. leadName).
+    createVersion(authUser.uid,existingId,existingData,"New version (content carried forward)",function(updated,newNum){
+      updated.courseName=name;
       firebase.firestore().collection("cdm_data").doc(authUser.uid).collection("courses").doc(existingId).set({
-        cdmData:JSON.stringify(fresh),courseName:name,leadName:"",cdmVersion:newNum,
+        cdmData:JSON.stringify(updated),courseName:name,cdmVersion:newNum,
         lastUpdated:firebase.firestore.FieldValue.serverTimestamp()
-      }).then(function(){setDupInfo(null);openCourse(existingId);}).catch(function(e){alert("Error: "+e.message);});
+      },{merge:true}).then(function(){setDupInfo(null);openCourse(existingId);}).catch(function(e){alert("Error: "+e.message);});
     });
   });
 };
@@ -3090,7 +3092,7 @@ if(dupInfo){return React.createElement("div",{style:{minHeight:"100vh",backgroun
           React.createElement("div",{style:{fontSize:28}},"\u{1F504}"),
           React.createElement("div",null,
             React.createElement("div",{style:{fontSize:15,fontWeight:700,color:"#92400E"}},"Create New Version"),
-            React.createElement("div",{style:{fontSize:12,color:"#888"}},"Archive the current version and start a fresh update"))),
+            React.createElement("div",{style:{fontSize:12,color:"#888"}},"Save the current version to history and continue in a new version \u2014 your content is carried forward"))),
         React.createElement("button",{onClick:function(){doCreateSeparate(dupInfo.name);},style:{display:"flex",alignItems:"center",gap:12,width:"100%",padding:"16px 20px",borderRadius:14,border:"1px solid #ddd",background:"#f9f9f9",cursor:"pointer",textAlign:"left"}},
           React.createElement("div",{style:{fontSize:28}},"\u{1F4CB}"),
           React.createElement("div",null,
