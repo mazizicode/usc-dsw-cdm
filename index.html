@@ -2703,6 +2703,25 @@ function Dashboard(pp){
   var _sc=useState(false),showCreate=_sc[0],setShowCreate=_sc[1];
   useEffect(function(){loadCourseList(user.uid,function(c){setCourses(c);});},[]);
   var doRm=function(id){if(!confirm("Delete this course CDM? Cannot be undone."))return;setDeling(id);deleteCourse(user.uid,id,function(){loadCourseList(user.uid,function(c){setCourses(c);setDeling(null);});});};
+  // Create a new version straight from the dashboard card. Same proven flow as the
+  // in-course button: snapshot current to history, then CARRY CONTENT FORWARD and
+  // bump the number. Never blanks or renames anything.
+  var doNewVer=function(id,name){
+    var note=prompt("Version note for \u201C"+name+"\u201D (describe what changed):","");
+    if(note===null)return;
+    loadCourse(user.uid,id,function(d){
+      if(!d){alert("Could not load this course. Please try again.");return;}
+      createVersion(user.uid,id,d,note.trim()||"Updated version",function(updated,newNum){
+        firebase.firestore().collection("cdm_data").doc(user.uid).collection("courses").doc(id).set({
+          cdmData:JSON.stringify(updated),cdmVersion:newNum,
+          lastUpdated:firebase.firestore.FieldValue.serverTimestamp()
+        },{merge:true}).then(function(){
+          loadCourseList(user.uid,function(c){setCourses(c);});
+          alert("Version saved. \u201C"+name+"\u201D is now v"+newNum+" \u2014 all content carried forward.");
+        }).catch(function(e){alert("Error: "+e.message);});
+      });
+    });
+  };
   return showCreate?React.createElement(CreateCDMFlow,{authUser:user,onCancel:function(){setShowCreate(false);},onCreated:function(id,name){setShowCreate(false);loadCourseList(user.uid,function(cl){setCourses(cl);});onSel(id,name);}}):React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)"}},
     React.createElement("div",{className:"top-bar"}),React.createElement("div",{className:"gold-bar-top"}),
     React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",background:"#fff",borderBottom:"1px solid #eee"}},
@@ -2725,7 +2744,8 @@ function Dashboard(pp){
           var upd=c.lastUpdated?new Date(c.lastUpdated.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Never";
           return React.createElement("div",{key:c.id,style:{display:"flex",alignItems:"center",background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
             React.createElement("div",{style:{flex:1}},
-              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":c.program==="bsw"?"#FEF3C7":"#F0FDF4",color:c.program==="msw"?"#1E40AF":c.program==="bsw"?"#D97706":"#166534"}},c.program==="msw"?"MSW":c.program==="bsw"?"BSW":"DSW"),React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:c.cdmStatus==="Launched"?"#166534":c.cdmStatus==="Approved"?"#0369A1":c.cdmStatus==="Submitted"?"#92400E":"#888",color:"#fff"}},c.cdmStatus||"Draft"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":c.program==="bsw"?"#FEF3C7":"#F0FDF4",color:c.program==="msw"?"#1E40AF":c.program==="bsw"?"#D97706":"#166534"}},c.program==="msw"?"MSW":c.program==="bsw"?"BSW":"DSW"),React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:c.cdmStatus==="Launched"?"#166534":c.cdmStatus==="Approved"?"#0369A1":c.cdmStatus==="Submitted"?"#92400E":"#888",color:"#fff"}},c.cdmStatus||"Draft"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null,
+              React.createElement("button",{onClick:function(e){e.stopPropagation();doNewVer(c.id,c.name);},title:"Save the current version to history and continue in a new version \u2014 content carried forward",style:{fontSize:11.5,fontWeight:700,color:"#990000",background:"#fff",border:"1px solid #990000",padding:"3px 10px",borderRadius:8,cursor:"pointer",marginLeft:2}},"+ New Version")),
               React.createElement("div",{style:{fontSize:14,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("button",{onClick:function(e){e.stopPropagation();doRm(c.id);},style:{background:"none",border:"none",color:"#ccc",cursor:"pointer",fontSize:14,padding:"4px 8px"},title:"Delete"},deling===c.id?"...":"X"),
