@@ -529,7 +529,7 @@ function load(){return INIT;}
 // writes into anyone else's account, and copies are fully independent afterward.
 function loadFacultyDirectory(cb){
   firebase.firestore().collection("cdm_data").get().then(function(s){
-    var r=[];s.forEach(function(d){var x=d.data();if(x&&x.email&&x.name)r.push({uid:d.id,name:x.name,email:(""+x.email).toLowerCase()});});
+    var r=[];s.forEach(function(d){var x=d.data();if(!x||!x.email||!x.name)return;var em=(""+x.email).toLowerCase();if(em.slice(-8)!=="@usc.edu")return;r.push({uid:d.id,name:x.name,email:em});});
     r.sort(function(a,b){return a.name<b.name?-1:1;});cb(r);
   }).catch(function(e){console.error("Directory load:",e);cb([]);});
 }
