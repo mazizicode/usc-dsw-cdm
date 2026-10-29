@@ -1256,18 +1256,15 @@ React.createElement(F,{label:"Teaching Strategies",value:obj.strategies,onChange
 React.createElement(F,{label:"ADEI Integration",value:obj.adei,onChange:v=>setO(oi,"adei",v),placeholder:"Direct / Infused"})))),
 React.createElement("button",{onClick:addO,className:"btn-s",style:{marginTop:6}},"+ Add Objective"));}
 
-// ==== STEP 7: Review & Export ====
-function ReviewStep({data,set,authUser}){
-// Phase 2a: For mapped MSW courses, count addressed sub-competencies; otherwise count addressed competencies
-var mswMap_review=data.program==="msw"?getMSWMapping(data.courseName):null;
-const ckCES=mswMap_review?mswMap_review.subcomps.filter(function(s){return data.subcompChecked&&data.subcompChecked[s.id];}):(data.program==="msw"?MSW_COMPS:data.program==="bsw"?BSW_COMPS:CSWE_SKILLS).filter(c=>data.cesChecked[c.id]);
-const fCLOs=data.clos.filter(c=>c.text.trim());
-const fMods=data.modules.filter(m=>m.title.trim());
-const items=[{l:"Course Information",d:!!data.courseName&&!!data.courseLead},{l:"CSWE Mapping",d:ckCES.length>0},{l:"Learning Objectives",d:fCLOs.length>0},{l:"Learning Modules",d:fMods.length>0}];
-const pct=Math.round(items.filter(i=>i.d).length/items.length*100);
-const[gen,setGen]=useState(false);
+// ==== SHARED CDM REPORT BUILDER (faculty Review & Export + admin/PD Download PDF) ====
+// Builds the full report HTML (all pages incl. per-module Asynchronous Course Design),
+// everything except the auto-print script and closing tags. Extracted verbatim from the
+// Review & Export generator so faculty, admin, and Program Director PDFs stay identical.
+// Read-only: formats data already loaded in the browser; never writes to Firestore.
+function buildCDMReportHTML(data){
+// Defensive fill for optional maps on legacy CDMs; no effect on well-formed data.
+if(!data.cesChecked)data.cesChecked={};if(!data.cesClos)data.cesClos={};if(!data.cesExplain)data.cesExplain={};if(!data.mswComps)data.mswComps={};if(!Array.isArray(data.clos))data.clos=[];if(!Array.isArray(data.modules))data.modules=[];
 const esc=s=>(s||"\u2014").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
-const doExport=()=>{setGen(true);const w=window.open("","_blank");if(!w){alert("Please allow popups.");setGen(false);return;}
 let h=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CDM Report - ${esc(data.courseName)} v${data.cdmVersion||"1.0"}</title>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Source Sans 3',sans-serif;color:#1a1a1a;font-size:11px;line-height:1.5}@page{size:landscape;margin:.45in}.page{page-break-after:always;padding:6px}.page:last-child{page-break-after:auto}h1{font-size:22px;color:#990000;font-weight:900;margin-bottom:4px}h2{font-size:14px;color:#990000;font-weight:700;border-bottom:2px solid #990000;padding-bottom:3px;margin:14px 0 8px}h3{font-size:12px;color:#990000;font-weight:700;margin:8px 0 4px}.bar{height:2px;background:#FFCC00;margin-bottom:8px}table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10px}th{background:#990000;color:#fff;padding:5px 6px;text-align:left;font-weight:700;font-size:9px;text-transform:uppercase}td{padding:5px 6px;border:1px solid #ddd;vertical-align:top}tr:nth-child(even) td{background:#faf5ee}.badge{display:inline-block;background:#990000;color:#fff;font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:4px}.badge-gold{background:#FFCC00;color:#1a1a1a}.ig{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:8px 0}.ig div{background:#faf5ee;padding:5px 8px;border-radius:5px;border:1px solid #e8e0d0}.ig label{font-size:7px;font-weight:700;color:#990000;text-transform:uppercase;display:block;margin-bottom:1px}.ig span{font-size:10px}.ft{text-align:center;font-size:7px;color:#999;padding-top:6px;border-top:1px solid #990000;margin-top:10px}.mh{background:#faf5ee;border:2px solid #990000;border-radius:6px;padding:7px 10px;margin-bottom:6px}.mh h3{margin:0;font-size:13px}.ov{background:#fff8e7;border-left:3px solid #FFCC00;padding:5px 10px;font-size:10px;margin:5px 0;border-radius:0 5px 5px 0}.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #990000;padding-bottom:5px;margin-bottom:10px}.hdr .sub{font-size:9px;color:#999;font-style:italic}</style></head><body>`;
@@ -1380,6 +1377,33 @@ h+=`</table><div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${da
 var asyncBody=astep(mod,1,"Start Here: Welcome & Orientation",[["startHere","welcome","Unit Overview & Relevance"],["startHere","objectives","Module Learning Objectives"],["startHere","keyTopics","Key Topics Covered"],["startHere","readings","Readings & Resources"]])+astep(mod,2,"Learn",[["learn","miniLectures","Pre-Recorded Lectures / Mini-Lectures"],["learn","guidedQuestions","Guided Questions"],["learn","knowledgeChecks","Knowledge Checks (Automated Micro-Quizzes)"]])+astep(mod,3,"Skill Builder & Applications",[["skillBuilder","activities","Skill Builder Activities"]])+astep(mod,4,"Reflect & Connect",[["reflectConnect","activities","Discussion Board / Peer Interaction"],["reflectConnect","journal","Journal / Reflection (if applicable)"]])+astep(mod,5,"Wrap Up",[["wrapUp","competenceAssessment","Competence Assessment / Self-Check"],["wrapUp","liveSessionQuestions","Live Session Questions / Preparation"],["wrapUp","lookingAhead","Looking Ahead"]]);
 if(asyncBody){h+=`<div class="page"><div class="hdr"><div><strong style="color:#990000">Course Design Map</strong> \u2014 ${esc(data.courseName)} \u2014 Async Course Design</div><div class="sub">CDM v${data.cdmVersion||"1.0"}</div></div><div class="bar"></div><div class="mh"><h3>Module ${mi+1}: ${esc(mod.title)} \u2014 Asynchronous Course Design</h3><div style="font-size:9px;color:#666;margin-top:2px">The 5-step Canvas module structure (Async Design tab)</div></div>`+asyncBody+`<div class="ft">USC Suzanne Dworak-Peck School of Social Work | ${data.program==="msw"?"MSW":data.program==="bsw"?"BSW":"DSW"} Program | Module ${mi+1} \u2014 Async Design</div></div>`;}
 });
+return h;
+}
+
+// Admin / Program Director one-click PDF: same report, built from the course data
+// the viewer has already loaded. Opens the print dialog exactly like Review & Export.
+function adminExportPDF(data){
+  if(!data){alert("This CDM is still loading. Please try again in a moment.");return;}
+  var w=window.open("","_blank");
+  if(!w){alert("Please allow popups for this site to download the PDF.");return;}
+  var h=buildCDMReportHTML(data);
+  h+="<scr"+"ipt>window.onload=function(){setTimeout(function(){window.print()},700)}</scr"+"ipt></body></html>";
+  w.document.write(h);w.document.close();
+}
+
+// ==== STEP 7: Review & Export ====
+function ReviewStep({data,set,authUser}){
+// Phase 2a: For mapped MSW courses, count addressed sub-competencies; otherwise count addressed competencies
+var mswMap_review=data.program==="msw"?getMSWMapping(data.courseName):null;
+const ckCES=mswMap_review?mswMap_review.subcomps.filter(function(s){return data.subcompChecked&&data.subcompChecked[s.id];}):(data.program==="msw"?MSW_COMPS:data.program==="bsw"?BSW_COMPS:CSWE_SKILLS).filter(c=>data.cesChecked[c.id]);
+const fCLOs=data.clos.filter(c=>c.text.trim());
+const fMods=data.modules.filter(m=>m.title.trim());
+const items=[{l:"Course Information",d:!!data.courseName&&!!data.courseLead},{l:"CSWE Mapping",d:ckCES.length>0},{l:"Learning Objectives",d:fCLOs.length>0},{l:"Learning Modules",d:fMods.length>0}];
+const pct=Math.round(items.filter(i=>i.d).length/items.length*100);
+const[gen,setGen]=useState(false);
+const esc=s=>(s||"\u2014").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+const doExport=()=>{setGen(true);const w=window.open("","_blank");if(!w){alert("Please allow popups.");setGen(false);return;}
+let h=buildCDMReportHTML(data);
 h+="<scr"+"ipt>window.onload=function(){setTimeout(function(){window.print()},700)}</scr"+"ipt></body></html>";
 w.document.write(h);w.document.close();setTimeout(()=>setGen(false),800);};
 const resetAll=()=>{if(confirm("Delete this course CDM? This cannot be undone.")){var u=firebase.auth().currentUser;if(u&&currentCourseId){deleteCourse(u.uid,currentCourseId,function(){goToDashboard();});}}};
@@ -3349,12 +3373,7 @@ if(dupInfo){return React.createElement("div",{style:{minHeight:"100vh",backgroun
 }
 if(showDashboard){
   if(isAdmin(authUser.email)&&adminMode){
-    if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,facultyUid:adminViewInfo.facultyUid,courseId:adminViewInfo.courseId,authUser:authUser,onBack:function(){setAdminViewData(null);},onExport:function(){
-      var tmpData=adminViewData;var oldData=data;setData(tmpData);setTimeout(function(){
-        var revStep=document.querySelector('[class*="btn-p"]');
-        setData(oldData);alert("To download this CDM as PDF, open the faculty member's CDM in the app and use the Review & Export step.");
-      },100);
-    }});}
+    if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,facultyUid:adminViewInfo.facultyUid,courseId:adminViewInfo.courseId,authUser:authUser,onBack:function(){setAdminViewData(null);},onExport:function(){adminExportPDF(adminViewData);}});}
     if(pdPreview){
       return React.createElement(ProgramDirectorDashboard,{user:authUser,programOverride:pdPreview,onLogout:function(){firebase.auth().signOut();},onBackToAdmin:function(){setPdPreview(null);},onViewCourse:function(uid,cid,cname,fname){
         setAdminViewInfo({courseName:cname,facultyName:fname,facultyUid:uid,courseId:cid});
@@ -3367,7 +3386,7 @@ if(showDashboard){
     }});
   }
   if(isProgramDirector(authUser.email)&&!isAdmin(authUser.email)&&!pdAsFaculty){
-    if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,facultyUid:adminViewInfo.facultyUid,courseId:adminViewInfo.courseId,authUser:authUser,onBack:function(){setAdminViewData(null);},onExport:function(){alert("To download this CDM as PDF, the faculty member can use the Review & Export step in their CDM.");}});}
+    if(adminViewData){return React.createElement(AdminCDMViewer,{data:adminViewData,courseName:adminViewInfo.courseName,facultyName:adminViewInfo.facultyName,facultyUid:adminViewInfo.facultyUid,courseId:adminViewInfo.courseId,authUser:authUser,onBack:function(){setAdminViewData(null);},onExport:function(){adminExportPDF(adminViewData);}});}
     return React.createElement(ProgramDirectorDashboard,{user:authUser,onLogout:function(){firebase.auth().signOut();},onSwitchToFaculty:function(){setPdAsFaculty(true);},onViewCourse:function(uid,cid,cname,fname){
       setAdminViewInfo({courseName:cname,facultyName:fname,facultyUid:uid,courseId:cid});
       loadFacultyCourse(uid,cid,function(d){setAdminViewData(d);});
