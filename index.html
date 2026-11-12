@@ -620,6 +620,53 @@ function addComment(uid,cid,commentData,cb){
   ).then(function(){cb();}).catch(function(e){console.error("Comment error:",e);});
 }
 
+// ===== Comment edit/delete =====
+// Authors may edit and delete their own comments; admins may also delete any
+// comment. The Firestore security rules enforce these same limits server-side.
+function isMyComment(c,authUser){
+  if(!c||!authUser)return false;
+  if(c.authorUid)return c.authorUid===authUser.uid;
+  return !!c.authorEmail&&!!authUser.email&&String(c.authorEmail).toLowerCase()===String(authUser.email).toLowerCase();
+}
+function updateComment(uid,cid,commentId,newText,cb){
+  firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).collection("comments").doc(commentId).update({
+    text:newText,edited:true,lastEdited:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){cb&&cb(true);}).catch(function(e){console.error("Comment edit error:",e);alert("Could not save the edit. "+((e&&e.message)||""));cb&&cb(false);});
+}
+function deleteComment(uid,cid,commentId,cb){
+  firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).collection("comments").doc(commentId).delete()
+    .then(function(){cb&&cb(true);}).catch(function(e){console.error("Comment delete error:",e);alert("Could not delete the comment. "+((e&&e.message)||""));cb&&cb(false);});
+}
+// Small action row rendered under a comment: Edit + Delete on your own,
+// Delete alone for admins on anyone's. Renders nothing for everyone else.
+function CommentActions(props){
+  var c=props.comment,authUser=props.authUser,ownerUid=props.ownerUid,courseId=props.courseId,onChanged=props.onChanged;
+  var _e=useState(false),editing=_e[0],setEditing=_e[1];
+  var _d=useState(c.text||""),draft=_d[0],setDraft=_d[1];
+  var _b=useState(false),busy=_b[0],setBusy=_b[1];
+  var mine=isMyComment(c,authUser);
+  var mayDelete=mine||isAdmin(authUser.email);
+  if(!mine&&!mayDelete)return null;
+  var btn={background:"none",border:"1px solid #ddd",borderRadius:8,padding:"3px 12px",fontSize:12,cursor:"pointer",color:"#555"};
+  var btnRed={background:"none",border:"1px solid #FCA5A5",borderRadius:8,padding:"3px 12px",fontSize:12,cursor:"pointer",color:"#B91C1C"};
+  if(editing){
+    return React.createElement("div",{style:{marginTop:8}},
+      React.createElement("textarea",{value:draft,onChange:function(e){setDraft(e.target.value);},rows:3,style:{padding:"10px 12px",borderRadius:10,border:"1px solid #ddd",fontSize:13,width:"100%",fontFamily:"inherit"}}),
+      React.createElement("div",{style:{display:"flex",gap:8,marginTop:6}},
+        React.createElement("button",{disabled:busy||!draft.trim(),onClick:function(){
+          if(!draft.trim())return;setBusy(true);
+          updateComment(ownerUid,courseId,c.id,draft.trim(),function(ok){setBusy(false);if(ok){setEditing(false);onChanged&&onChanged();}});
+        },style:{background:busy||!draft.trim()?"#E5E7EB":"#990000",color:busy||!draft.trim()?"#9CA3AF":"#fff",border:"none",padding:"5px 16px",fontSize:12,fontWeight:700,borderRadius:8,cursor:busy||!draft.trim()?"not-allowed":"pointer"}},busy?"Saving...":"Save"),
+        React.createElement("button",{disabled:busy,onClick:function(){setEditing(false);setDraft(c.text||"");},style:btn},"Cancel")));
+  }
+  return React.createElement("div",{style:{display:"flex",gap:8,marginTop:8}},
+    mine?React.createElement("button",{disabled:busy,onClick:function(){setDraft(c.text||"");setEditing(true);},style:btn},"Edit"):null,
+    React.createElement("button",{disabled:busy,onClick:function(){
+      if(!confirm("Delete this comment? This cannot be undone."))return;
+      setBusy(true);deleteComment(ownerUid,courseId,c.id,function(ok){setBusy(false);if(ok)onChanged&&onChanged();});
+    },style:btnRed},busy?"Deleting...":"Delete"));
+}
+
 // Reviewer (admin or Program Director) sets a course's workflow status.
 // Updates ONLY the top-level status fields — never course content.
 function reviewerSetStatus(facultyUid,courseId,newStatus,actorName,note,cb){
@@ -1880,6 +1927,7 @@ function AdminCDMViewer(props){
       section:section,
       authorName:authUser.displayName||authUser.email,
       authorEmail:authUser.email,
+      authorUid:authUser.uid,
       role:"Administrator"
     },function(){
       setNewText("");setPosting(false);
@@ -1979,8 +2027,10 @@ function AdminCDMViewer(props){
               React.createElement("div",{style:{fontSize:12,color:"#888",marginBottom:6}},
                 React.createElement("strong",{style:{color:isAdminComment?"#990000":"#333"}},c.authorName||"Unknown"),
                 React.createElement("span",{style:{fontSize:10,fontWeight:700,padding:"1px 8px",borderRadius:8,marginLeft:6,background:isAdminComment?"#990000":"#f0fdf4",color:isAdminComment?"#fff":"#166534"}},c.role||"Faculty"),
-                React.createElement("span",{style:{marginLeft:8}},time)),
-              React.createElement("div",{style:{fontSize:14,color:"#333",lineHeight:1.5}},c.text));
+                React.createElement("span",{style:{marginLeft:8}},time),
+                c.edited?React.createElement("span",{style:{marginLeft:8,fontStyle:"italic",color:"#999"}},"(edited)"):null),
+              React.createElement("div",{style:{fontSize:14,color:"#333",lineHeight:1.5}},c.text),
+              React.createElement(CommentActions,{comment:c,authUser:authUser,ownerUid:facultyUid,courseId:courseId,onChanged:function(){loadComments(facultyUid,courseId,function(cc){setComments(cc);});}}));
           }))
       ):null));
 }
@@ -2546,6 +2596,7 @@ function CommentsStep(props){
       section:section,
       authorName:authUser.displayName||authUser.email,
       authorEmail:authUser.email,
+      authorUid:authUser.uid,
       role:amAdmin?"Administrator":"Faculty"
     },function(){setNewText("");setLoading(false);setTimeout(function(){refresh();},500);});
   };
@@ -2578,8 +2629,10 @@ function CommentsStep(props){
           React.createElement("div",{className:"comment-meta"},
             React.createElement("strong",{style:isAdminComment?{color:"#990000"}:{}},c.authorName||"Unknown"),
             React.createElement("span",{className:"comment-role "+(isAdminComment?"admin":"faculty")},c.role||"Faculty"),
-            React.createElement("span",{style:{marginLeft:8}},time)),
-          React.createElement("div",{className:"comment-text"},c.text));
+            React.createElement("span",{style:{marginLeft:8}},time),
+            c.edited?React.createElement("span",{style:{marginLeft:8,fontStyle:"italic",color:"#999"}},"(edited)"):null),
+          React.createElement("div",{className:"comment-text"},c.text),
+          React.createElement(CommentActions,{comment:c,authUser:authUser,ownerUid:uid,courseId:courseId,onChanged:refresh}));
       })));
 }
 
