@@ -628,10 +628,10 @@ function isMyComment(c,authUser){
   if(c.authorUid)return c.authorUid===authUser.uid;
   return !!c.authorEmail&&!!authUser.email&&String(c.authorEmail).toLowerCase()===String(authUser.email).toLowerCase();
 }
-function updateComment(uid,cid,commentId,newText,cb){
-  firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).collection("comments").doc(commentId).update({
-    text:newText,edited:true,lastEdited:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function(){cb&&cb(true);}).catch(function(e){console.error("Comment edit error:",e);alert("Could not save the edit. "+((e&&e.message)||""));cb&&cb(false);});
+function updateComment(uid,cid,commentId,newText,adminEditName,cb){
+  var payload={text:newText,edited:true,lastEdited:firebase.firestore.FieldValue.serverTimestamp()};
+  if(adminEditName){payload.editedByAdmin=true;payload.lastEditedByName=adminEditName;}
+  firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).collection("comments").doc(commentId).update(payload).then(function(){cb&&cb(true);}).catch(function(e){console.error("Comment edit error:",e);alert("Could not save the edit. "+((e&&e.message)||""));cb&&cb(false);});
 }
 function deleteComment(uid,cid,commentId,cb){
   firebase.firestore().collection("cdm_data").doc(uid).collection("courses").doc(cid).collection("comments").doc(commentId).delete()
@@ -645,8 +645,10 @@ function CommentActions(props){
   var _d=useState(c.text||""),draft=_d[0],setDraft=_d[1];
   var _b=useState(false),busy=_b[0],setBusy=_b[1];
   var mine=isMyComment(c,authUser);
-  var mayDelete=mine||isAdmin(authUser.email);
-  if(!mine&&!mayDelete)return null;
+  var amAdminUser=isAdmin(authUser.email);
+  var mayEdit=mine||amAdminUser;
+  var mayDelete=mine||amAdminUser;
+  if(!mayEdit&&!mayDelete)return null;
   var btn={background:"none",border:"1px solid #ddd",borderRadius:8,padding:"3px 12px",fontSize:12,cursor:"pointer",color:"#555"};
   var btnRed={background:"none",border:"1px solid #FCA5A5",borderRadius:8,padding:"3px 12px",fontSize:12,cursor:"pointer",color:"#B91C1C"};
   if(editing){
@@ -655,12 +657,12 @@ function CommentActions(props){
       React.createElement("div",{style:{display:"flex",gap:8,marginTop:6}},
         React.createElement("button",{disabled:busy||!draft.trim(),onClick:function(){
           if(!draft.trim())return;setBusy(true);
-          updateComment(ownerUid,courseId,c.id,draft.trim(),function(ok){setBusy(false);if(ok){setEditing(false);onChanged&&onChanged();}});
+          updateComment(ownerUid,courseId,c.id,draft.trim(),mine?null:(authUser.displayName||authUser.email),function(ok){setBusy(false);if(ok){setEditing(false);onChanged&&onChanged();}});
         },style:{background:busy||!draft.trim()?"#E5E7EB":"#990000",color:busy||!draft.trim()?"#9CA3AF":"#fff",border:"none",padding:"5px 16px",fontSize:12,fontWeight:700,borderRadius:8,cursor:busy||!draft.trim()?"not-allowed":"pointer"}},busy?"Saving...":"Save"),
         React.createElement("button",{disabled:busy,onClick:function(){setEditing(false);setDraft(c.text||"");},style:btn},"Cancel")));
   }
   return React.createElement("div",{style:{display:"flex",gap:8,marginTop:8}},
-    mine?React.createElement("button",{disabled:busy,onClick:function(){setDraft(c.text||"");setEditing(true);},style:btn},"Edit"):null,
+    mayEdit?React.createElement("button",{disabled:busy,onClick:function(){setDraft(c.text||"");setEditing(true);},style:btn},"Edit"):null,
     React.createElement("button",{disabled:busy,onClick:function(){
       if(!confirm("Delete this comment? This cannot be undone."))return;
       setBusy(true);deleteComment(ownerUid,courseId,c.id,function(ok){setBusy(false);if(ok)onChanged&&onChanged();});
@@ -1905,19 +1907,208 @@ React.createElement("div",{className:"field",style:{marginBottom:20}},
       )):null);
 }
 
+
+// ===== Review-screen shared pieces (Nov 2026) =====
+// Comment sections generated from the actual CDM, so CLO and module
+// counts always match the course (no more Module 5 cap).
+function commentSectionsFor(d){
+  var out=["General","Course Info","CSWE Mapping"];
+  var nClos=(d&&Array.isArray(d.clos))?d.clos.filter(function(c){return c&&c.text;}).length:0;
+  for(var i=1;i<=Math.max(nClos,1);i++)out.push("CLO "+i);
+  var nMods=(d&&Array.isArray(d.modules))?d.modules.filter(function(m){return m&&m.title;}).length:0;
+  for(var j=1;j<=Math.max(nMods,1);j++)out.push("Module "+j);
+  out.push("Assessment");out.push("ADEI");
+  return out;
+}
+// One rendered comment (used in section threads and the main conversation).
+function CommentBubble(props){
+  var c=props.comment;var authUser=props.authUser;
+  var time=c.timestamp?new Date(c.timestamp.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Just now";
+  var isAdminComment=c.role==="Administrator"||c.role==="Program Director";
+  return React.createElement("div",{style:{background:isAdminComment?"#FEF2F2":"#fff",border:isAdminComment?"2px solid #990000":"1px solid #e8e0d0",borderLeft:isAdminComment?"6px solid #990000":"1px solid #e8e0d0",borderRadius:10,padding:12,marginBottom:8}},
+    props.showSection?React.createElement("div",{style:{fontSize:11,color:"#990000",fontWeight:600,marginBottom:4}},c.section||"General"):null,
+    React.createElement("div",{style:{fontSize:12,color:"#888",marginBottom:6}},
+      React.createElement("strong",{style:{color:isAdminComment?"#990000":"#333"}},c.authorName||"Unknown"),
+      React.createElement("span",{style:{fontSize:10,fontWeight:700,padding:"1px 8px",borderRadius:8,marginLeft:6,background:isAdminComment?"#990000":"#f0fdf4",color:isAdminComment?"#fff":"#166534"}},c.role||"Faculty"),
+      React.createElement("span",{style:{marginLeft:8}},time),
+      c.edited?React.createElement("span",{style:{marginLeft:8,fontStyle:"italic",color:"#999"}},c.editedByAdmin?("(edited by "+(c.lastEditedByName||"administrator")+")"):"(edited)"):null),
+    React.createElement("div",{style:{fontSize:14,color:"#333",lineHeight:1.5,whiteSpace:"pre-wrap"}},c.text),
+    React.createElement(CommentActions,{comment:c,authUser:authUser,ownerUid:props.ownerUid,courseId:props.courseId,onChanged:props.onChanged}));
+}
+// A comment thread anchored under one section of the review screen.
+// Collapsed to a count by default; opens to the thread plus a post box.
+function SectionComments(props){
+  var sectionName=props.sectionName;var comments=props.comments;var authUser=props.authUser;
+  var ownerUid=props.ownerUid;var courseId=props.courseId;var onChanged=props.onChanged;var facultyName=props.facultyName;
+  var _t=useState(""),txt=_t[0],setTxt=_t[1];
+  var _b=useState(false),busy=_b[0],setBusy=_b[1];
+  var _o=useState(false),open=_o[0],setOpen=_o[1];
+  var _tc=useState(false),touched=_tc[0],setTouched=_tc[1];
+  var list=(comments||[]).filter(function(c){return (c.section||"General")===sectionName;});
+  useEffect(function(){if(!touched&&list.length>0)setOpen(true);},[comments]);
+  var post=function(){
+    if(!txt.trim()||busy)return;
+    setBusy(true);
+    addComment(ownerUid,courseId,{
+      text:txt.trim(),section:sectionName,
+      authorName:authUser.displayName||authUser.email,
+      authorEmail:authUser.email,authorUid:authUser.uid,
+      role:props.role||"Administrator"
+    },function(){setTxt("");setBusy(false);setOpen(true);setTimeout(onChanged,500);});
+  };
+  return React.createElement("div",{style:{marginTop:10,paddingTop:8,borderTop:"1px dashed #e3d9c8"}},
+    React.createElement("button",{onClick:function(){setTouched(true);setOpen(!open);},style:{background:"none",border:"none",cursor:"pointer",fontSize:12,fontWeight:700,color:list.length?"#990000":"#8a7a5c",padding:0}},
+      (open?"▾":"▸")+" Section Feedback — "+sectionName+" ("+list.length+")"),
+    open?React.createElement("div",{style:{marginTop:8}},
+      list.map(function(c){return React.createElement(CommentBubble,{key:c.id,comment:c,authUser:authUser,ownerUid:ownerUid,courseId:courseId,onChanged:onChanged});}),
+      React.createElement("div",{style:{display:"flex",gap:8,marginTop:6,alignItems:"flex-start"}},
+        React.createElement("textarea",{value:txt,onChange:function(e){setTxt(e.target.value);},rows:2,placeholder:"Feedback on "+sectionName+" for "+facultyName+"...",style:{flex:1,padding:"8px 12px",borderRadius:10,border:"1px solid #ddd",fontSize:13,fontFamily:"inherit"}}),
+        React.createElement("button",{onClick:post,disabled:busy||!txt.trim(),style:{background:busy||!txt.trim()?"#E5E7EB":"#990000",color:busy||!txt.trim()?"#9CA3AF":"#fff",border:"none",padding:"8px 16px",fontSize:13,fontWeight:700,borderRadius:8,cursor:busy||!txt.trim()?"not-allowed":"pointer"}},busy?"...":"Post"))):null);
+}
+// Labeled field used by the on-screen detail blocks; skips empty values
+// exactly like the PDF generator does.
+function rvField(label,val){
+  if(val===undefined||val===null||!String(val).trim())return null;
+  return React.createElement("div",{key:label,style:{margin:"4px 0 10px"}},
+    React.createElement("div",{style:{fontSize:10,fontWeight:700,color:"#990000",textTransform:"uppercase",letterSpacing:0.5,marginBottom:2}},label),
+    React.createElement("div",{style:{fontSize:13,color:"#333",lineHeight:1.5,whiteSpace:"pre-wrap"}},String(val)));
+}
+function rvTable(headers,rows){
+  return React.createElement("div",{style:{overflowX:"auto",marginBottom:8}},
+    React.createElement("table",{style:{width:"100%",borderCollapse:"collapse",fontSize:12}},
+      React.createElement("thead",null,React.createElement("tr",null,headers.map(function(hd,i){
+        return React.createElement("th",{key:i,style:{background:"#990000",color:"#fff",padding:"6px 8px",textAlign:"left",fontSize:11,whiteSpace:"nowrap"}},hd);}))),
+      React.createElement("tbody",null,rows.map(function(r,ri){
+        return React.createElement("tr",{key:ri,style:{background:ri%2?"#FAF5EE":"#fff"}},r.map(function(cell,ci){
+          return React.createElement("td",{key:ci,style:{padding:"6px 8px",borderBottom:"1px solid #eee",verticalAlign:"top",fontSize:12,color:"#333",whiteSpace:"pre-wrap"}},(cell===undefined||cell===null||cell==="")?"—":cell);}));}))));
+}
+// Competency mapping, mirroring the PDF generator's branches exactly.
+function renderMappingCard(d){
+  var mswMap=(d.program==="msw")?getMSWMapping(d.courseName):null;
+  var kids=[];
+  if(mswMap){
+    var yrLabel=mswMap.year===1?"Generalist Practice Behavior (Year 1)":"Specialized Practice Behavior (Year 2)";
+    kids.push(React.createElement("h3",{key:"h1",style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:6}},"CSWE 2022 EPAS Sub-Competency Mapping — "+yrLabel));
+    kids.push(React.createElement("p",{key:"p1",style:{fontSize:12,color:"#666",fontStyle:"italic",marginBottom:8}},"This course is mapped to "+mswMap.subcomps.length+" required sub-competencies. Per accreditation, the sub-competency text is set by the MSW Program and may not be edited."));
+    kids.push(rvTable(["Sub-Comp","Competency","Sub-Competency (Locked)","Addressed","How It Maps in This Course","Aligned CLOs"],
+      mswMap.subcomps.map(function(sub){
+        var compInfo=MSW_COMPS.filter(function(c){return c.id===sub.comp;})[0]||{};
+        var addressed=!!(d.subcompChecked&&d.subcompChecked[sub.id]);
+        return [React.createElement("span",{className:"badge"},sub.id.toUpperCase()),
+                "C"+sub.comp+": "+(compInfo.name||""),
+                sub.text,
+                React.createElement("span",{style:{fontWeight:700,color:addressed?"#990000":"#ccc",fontSize:15}},addressed?"✓":"—"),
+                (d.subcompExplain&&d.subcompExplain[sub.id])||"",
+                (d.subcompClos&&d.subcompClos[sub.id])||""];
+      })));
+    kids.push(React.createElement("h3",{key:"h2",style:{fontSize:16,fontWeight:700,color:"#990000",margin:"12px 0 6px"}},"Sub-Competency Coverage Map"));
+    kids.push(React.createElement("p",{key:"p2",style:{fontSize:12,color:"#666",fontStyle:"italic",marginBottom:8}},"Cross-reference showing where each required sub-competency is addressed across the course's learning modules, generated from module-level sub-competency tags."));
+    kids.push(rvTable(["Sub-Comp","Sub-Competency Text","Addressed in Modules","Module Count","Status","Aligned CLOs"],
+      mswMap.subcomps.map(function(sub){
+        var taggedMods=[];
+        if(Array.isArray(d.modules)){d.modules.forEach(function(mod,mi){
+          if(!mod.title)return;
+          if(Array.isArray(mod.subcompTags)&&mod.subcompTags.indexOf(sub.id)>=0)taggedMods.push("M"+(mi+1));});}
+        return [React.createElement("span",{className:"badge"},sub.id.toUpperCase()),
+                sub.text.length>180?sub.text.substring(0,180)+"…":sub.text,
+                taggedMods.length?taggedMods.join(", "):React.createElement("em",{style:{color:"#999"}},"Not tagged in any module"),
+                React.createElement("strong",null,String(taggedMods.length)),
+                React.createElement("span",{style:{fontWeight:700,color:taggedMods.length?"#990000":"#999"}},taggedMods.length?"✓ Covered":"⚠ Gap"),
+                (d.subcompClos&&d.subcompClos[sub.id])||""];
+      })));
+  }else{
+    var title=d.program==="msw"?"CSWE 2022 EPAS Competency Mapping":d.program==="bsw"?"CSWE 2022 EPAS — Baccalaureate Level Competency Mapping (Generalist Practice)":"CSWE 2025 Core Expertise & Skills Mapping";
+    var comps=d.program==="bsw"?BSW_COMPS:d.program==="msw"?MSW_COMPS:CSWE_SKILLS;
+    kids.push(React.createElement("h3",{key:"h1",style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:8}},title));
+    kids.push(rvTable(["CSWE","Description","Addressed","How It Maps","CLOs"],
+      comps.map(function(c){
+        var label=(d.program==="msw"||d.program==="bsw")?c.name:c.short;
+        var prefix=(d.program==="msw"||d.program==="bsw")?"C":"CES ";
+        var checked=!!(d.cesChecked&&d.cesChecked[c.id]);
+        return [React.createElement("span",null,React.createElement("span",{className:"badge"},prefix+c.id)," "+label),
+                c.desc,
+                React.createElement("span",{style:{fontWeight:700,color:checked?"#990000":"#ccc",fontSize:15}},checked?"✓":"—"),
+                (d.cesExplain&&d.cesExplain[c.id])||"",
+                (d.cesClos&&d.cesClos[c.id])||""];
+      })));
+  }
+  var mswAct=MSW_COMPS.filter(function(c){return d.mswComps&&d.mswComps[c.id];});
+  if(d.program!=="msw"&&mswAct.length){
+    kids.push(React.createElement("div",{key:"ext",style:{fontSize:13,marginTop:8}},
+      React.createElement("strong",{style:{color:"#990000"}},"MSW Competencies Extended: "),
+      mswAct.map(function(c){return "C"+c.id+": "+c.name;}).join(" • ")));
+  }
+  return kids;
+}
+// Module video plan, mirroring the PDF generator (skipped for BSW; hidden
+// when nothing is planned, with the same cap and requirement warnings).
+function renderVideoPlan(d,mod){
+  if(d.program==="bsw")return null;
+  var vp=mod.videoPlan;
+  if(!vp||typeof vp!=="object")return null;
+  var lec=Array.isArray(vp.lectureVideos)?vp.lectureVideos:[];
+  var sb=Array.isArray(vp.skillBuilderVideos)?vp.skillBuilderVideos:[];
+  if(lec.length===0&&sb.length===0)return null;
+  var sum=function(a){return a.reduce(function(t,v){var n=parseFloat(v.durationMin);return t+(isNaN(n)?0:n);},0);};
+  var totalLec=sum(lec),totalSb=sum(sb);
+  var row=function(v,vi,kind){
+    return [React.createElement("strong",null,(kind==="lec"?"L":"S")+(vi+1)),
+            React.createElement("strong",null,v.title||"Untitled"),
+            (v.durationMin||"—")+" min", v.format||"—",
+            v.status==="Existing"?React.createElement("span",{style:{color:"#166534",fontWeight:600}},"✓ Existing"):React.createElement("span",{style:{color:"#92400E",fontWeight:600}},"⛰ Needs creation"),
+            v.url?React.createElement("a",{href:v.url,target:"_blank",style:{color:"#990000"}},"link"):"—",
+            v.description||""];
+  };
+  var over=totalLec>30;
+  return React.createElement("div",{style:{margin:"8px 0"}},
+    React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#990000",marginBottom:4}},"📹 Module Video Plan"),
+    lec.length?React.createElement("div",null,
+      React.createElement("div",{style:{fontSize:12,fontWeight:600,color:over?"#991B1B":"#374151",margin:"4px 0"}},"Lecture Videos: "+lec.length+" of 3 • "+totalLec+" of 30 min total"+(over?" ⚠ EXCEEDS 30-MIN CAP":"")),
+      rvTable(["#","Title","Duration","Format","Status","Link","Description"],lec.map(function(v,vi){return row(v,vi,"lec");})))
+      :React.createElement("div",{style:{background:"#fef2f2",borderLeft:"3px solid #991B1B",padding:"4px 10px",fontSize:12,margin:"4px 0",color:"#991B1B",fontStyle:"italic"}},"No lecture videos planned yet for this module."),
+    sb.length?React.createElement("div",null,
+      React.createElement("div",{style:{fontSize:12,fontWeight:600,color:"#374151",margin:"6px 0 4px"}},"Skill Builder Videos: "+sb.length+" video"+(sb.length===1?"":"s")+" • "+totalSb+" min total ✓"),
+      rvTable(["#","Title","Duration","Format","Status","Link","Description"],sb.map(function(v,vi){return row(v,vi,"sb");})))
+      :React.createElement("div",{style:{background:"#FFFBEB",borderLeft:"3px solid #D97706",padding:"4px 10px",fontSize:12,margin:"4px 0",color:"#78350F",fontStyle:"italic"}},"⚠ No skill builder video planned (at least one is required per MSW Program standard)."));
+}
+// The five-step Async Design content, same fields and labels as the PDF.
+var RV_ASYNC_STEPS=[
+  [1,"Start Here: Welcome & Orientation",[["startHere","welcome","Unit Overview & Relevance"],["startHere","objectives","Module Learning Objectives"],["startHere","keyTopics","Key Topics Covered"],["startHere","readings","Readings & Resources"]]],
+  [2,"Learn",[["learn","miniLectures","Pre-Recorded Lectures / Mini-Lectures"],["learn","guidedQuestions","Guided Questions"],["learn","knowledgeChecks","Knowledge Checks (Automated Micro-Quizzes)"]]],
+  [3,"Skill Builder & Applications",[["skillBuilder","activities","Skill Builder Activities"]]],
+  [4,"Reflect & Connect",[["reflectConnect","activities","Discussion Board / Peer Interaction"],["reflectConnect","journal","Journal / Reflection (if applicable)"]]],
+  [5,"Wrap Up",[["wrapUp","competenceAssessment","Competence Assessment / Self-Check"],["wrapUp","liveSessionQuestions","Live Session Questions / Preparation"],["wrapUp","lookingAhead","Looking Ahead"]]]];
+function renderAsyncDesign(mod){
+  var steps=[];
+  RV_ASYNC_STEPS.forEach(function(st){
+    var fields=st[2].map(function(f){
+      var v=(mod.asyncContent&&mod.asyncContent[f[0]]&&mod.asyncContent[f[0]][f[1]])?mod.asyncContent[f[0]][f[1]]:"";
+      return rvField(f[2],v);
+    }).filter(function(x){return x;});
+    if(fields.length)steps.push(React.createElement("div",{key:st[0],style:{marginBottom:10}},
+      React.createElement("div",{style:{fontSize:14,fontWeight:700,color:"#990000",borderBottom:"2px solid #FFCC00",paddingBottom:3,marginBottom:6}},st[0]+" · "+st[1]),
+      fields));
+  });
+  if(!steps.length)return React.createElement("div",{style:{background:"#fef2f2",borderLeft:"3px solid #999",padding:"6px 10px",fontSize:12,color:"#666",fontStyle:"italic",margin:"6px 0"}},"No Asynchronous Course Design content has been entered for this module yet (Async Design tab).");
+  return React.createElement("div",{style:{background:"#fff",border:"1px solid #e8e0d0",borderRadius:10,padding:12,margin:"8px 0"}},
+    React.createElement("div",{style:{fontSize:14,fontWeight:800,color:"#990000",marginBottom:2}},"Asynchronous Course Design"),
+    React.createElement("div",{style:{fontSize:11,color:"#666",marginBottom:8}},"The 5-step Canvas module structure (Async Design tab)"),
+    steps);
+}
+
 function AdminCDMViewer(props){
   var cdmData=props.data;var courseName=props.courseName;var facultyName=props.facultyName;var onBack=props.onBack;var onExport=props.onExport;
   var facultyUid=props.facultyUid;var courseId=props.courseId;var authUser=props.authUser;
-  // Admin commenting state
   var _c=useState(null),comments=_c[0],setComments=_c[1];
   var _t=useState(""),newText=_t[0],setNewText=_t[1];
   var _sc=useState("General"),section=_sc[0],setSection=_sc[1];
   var _l=useState(false),posting=_l[0],setPosting=_l[1];
   var _vs=useState((cdmData&&cdmData.cdmStatus)||"Draft"),viewStatus=_vs[0],setViewStatus=_vs[1];
   var canComment=!!(facultyUid&&courseId&&authUser);
+  var refreshComments=function(){loadComments(facultyUid,courseId,function(c){setComments(c);});};
   useEffect(function(){
     if(!canComment)return;
-    loadComments(facultyUid,courseId,function(c){setComments(c);});
+    refreshComments();
   },[facultyUid,courseId]);
   var doPost=function(){
     if(!newText.trim()||!canComment)return;
@@ -1928,15 +2119,17 @@ function AdminCDMViewer(props){
       authorName:authUser.displayName||authUser.email,
       authorEmail:authUser.email,
       authorUid:authUser.uid,
-      role:"Administrator"
+      role:isAdmin(authUser.email)?"Administrator":"Program Director"
     },function(){
       setNewText("");setPosting(false);
-      setTimeout(function(){loadComments(facultyUid,courseId,function(c){setComments(c);});},500);
+      setTimeout(refreshComments,500);
     });
   };
-  var commentSections=["General","Course Info","CSWE Mapping","CLO 1","CLO 2","CLO 3","CLO 4","CLO 5","Module 1","Module 2","Module 3","Module 4","Module 5","Assessment","ADEI"];
   if(!cdmData)return React.createElement("div",{style:{padding:40,textAlign:"center"}},"Loading...");
   var d=cdmData;
+  var commentSections=commentSectionsFor(d);
+  var secProps=function(name){return {sectionName:name,comments:comments,authUser:authUser,ownerUid:facultyUid,courseId:courseId,onChanged:refreshComments,facultyName:facultyName,role:isAdmin(authUser.email)?"Administrator":"Program Director"};};
+  var mswMap=(d.program==="msw")?getMSWMapping(d.courseName):null;
   return React.createElement("div",{style:{minHeight:"100vh",background:"#f8f6f2"}},
     React.createElement("div",{className:"top-bar"}),React.createElement("div",{className:"gold-bar-top"}),
     React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",background:"#fff",borderBottom:"1px solid #eee",flexWrap:"wrap",gap:8}},
@@ -1946,64 +2139,83 @@ function AdminCDMViewer(props){
         React.createElement("span",{style:{color:"#990000",fontWeight:600,fontSize:14}},String.fromCharCode(8212)+" "+courseName)),
       React.createElement("button",{onClick:onExport,className:"btn-p",style:{padding:"8px 20px",fontSize:13}},"Download PDF")),
     React.createElement("div",{style:{maxWidth:1000,margin:"0 auto",padding:"24px"}},
-      React.createElement("div",{style:{background:"#fef2f2",border:"1px solid #990000",borderRadius:12,padding:"12px 18px",marginBottom:20,fontSize:14,color:"#990000",fontWeight:600}},"Admin View \u2014 You are viewing "+facultyName+"'s CDM. You can leave comments below; direct editing of this CDM is not available from this view."),
+      React.createElement("div",{style:{background:"#fef2f2",border:"1px solid #990000",borderRadius:12,padding:"12px 18px",marginBottom:20,fontSize:14,color:"#990000",fontWeight:600}},"Admin View — You are viewing "+facultyName+"'s CDM. Everything the faculty member entered is shown below, and you can leave feedback under each section; direct editing of this CDM is not available from this view."),
       React.createElement("div",{style:{background:"#fff",border:"2px solid #FFCC00",borderRadius:14,padding:"16px 20px",marginBottom:20}},
         React.createElement("div",{style:{fontSize:15,fontWeight:800,color:"#990000",marginBottom:4}},"CDM Review Status"),
         React.createElement("div",{style:{fontSize:13,color:"#666",marginBottom:12}},"Current status: ",React.createElement("b",{style:{color:STATUS_COLORS[viewStatus]||"#888"}},viewStatus)),
         (CDM_STATUSES.indexOf(viewStatus)>=CDM_STATUSES.indexOf("Approved"))
-          ? React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:8,background:"#ECFDF5",border:"1px solid #059669",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:700,color:"#059669"}},"\u2713 This CDM has been approved (status: "+viewStatus+").")
+          ? React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:8,background:"#ECFDF5",border:"1px solid #059669",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:700,color:"#059669"}},"✓ This CDM has been approved (status: "+viewStatus+").")
           : React.createElement("div",null,
-              React.createElement("div",{style:{fontSize:13,color:"#444",marginBottom:10}},"After reviewing this CDM and adding any comments below, click Approve to advance it. The faculty member will see it marked \u201CApproved.\u201D"),
+              React.createElement("div",{style:{fontSize:13,color:"#444",marginBottom:10}},"After reviewing this CDM and adding any comments below, click Approve to advance it. The faculty member will see it marked “Approved.”"),
               React.createElement("button",{onClick:function(){
-                if(!canComment){alert("Unable to approve \u2014 course information is missing.");return;}
-                if(!confirm("Approve this CDM? It will be marked \u201CApproved\u201D and the faculty member will see the updated status."))return;
+                if(!canComment){alert("Unable to approve — course information is missing.");return;}
+                if(!confirm("Approve this CDM? It will be marked “Approved” and the faculty member will see the updated status."))return;
                 var note=prompt("Add an optional note for this approval:")||"";
                 reviewerSetStatus(facultyUid,courseId,"Approved",(authUser&&(authUser.displayName||authUser.email))||"Reviewer",note,function(ok){
                   if(ok){setViewStatus("Approved");alert("This CDM has been approved. Thank you.");}
                   else alert("Could not update the status. Please try again.");
                 });
-              },style:{background:"linear-gradient(135deg,#0F9D58 0%,#059669 60%,#047857 100%)",color:"#fff",border:"none",borderRadius:12,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"\u2714 Approve CDM"))),
+              },style:{background:"linear-gradient(135deg,#0F9D58 0%,#059669 60%,#047857 100%)",color:"#fff",border:"none",borderRadius:12,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"✔ Approve CDM"))),
       React.createElement("div",{className:"card"},
         React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#990000",marginBottom:12}},"Course Information"),
         React.createElement("div",{className:"g3",style:{gap:12}},
-          ["Course: "+(d.courseName||"\u2014"),"Lead: "+(d.courseLead||"\u2014"),"Email: "+(d.leadEmail||"\u2014"),
-           "Program Director: "+(d.progDirector||"\u2014"),"Area of Focus: "+(d.areaOfFocus||"\u2014"),
+          ["Course: "+(d.courseName||"—"),"Lead: "+(d.courseLead||"—"),"Email: "+(d.leadEmail||"—"),
+           "Phone: "+(d.leadPhone||"—"),"Program Director: "+(d.progDirector||"—"),"Area of Focus: "+(d.areaOfFocus||"—"),
            "Modality: "+(d.modality==="async_sync"?"Async & Sync":"Async Only"),
-           "Sync Min: "+(d.syncMin||"\u2014"),"Async Min: "+(d.asyncMin||"\u2014"),
-           "ID: "+(d.instDesigner||"\u2014")].map(function(txt,i){
+           "Sync Min: "+(d.syncMin||"—"),"Async Min: "+(d.asyncMin||"—"),
+           "ID: "+(d.instDesigner||"—"),"Dev Started: "+(d.devStarted||"—"),"Target Delivery: "+(d.targetDelivery||"—"),
+           "CDM Version: v"+(d.cdmVersion||"1.0")].map(function(txt,i){
             return React.createElement("div",{key:i,style:{fontSize:14,color:"#555",padding:"4px 0"}},txt);
-          }))),
+          })),
+        canComment?React.createElement(SectionComments,secProps("Course Info")):null),
       d.courseDesc?React.createElement("div",{className:"card"},
         React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:8}},"Course Description"),
-        React.createElement("p",{style:{fontSize:14,color:"#444",lineHeight:1.6}},d.courseDesc)):null,
+        React.createElement("p",{style:{fontSize:14,color:"#444",lineHeight:1.6,whiteSpace:"pre-wrap"}},d.courseDesc),
+        d.program==="bsw"&&d.sectionNotes?rvField("Section Notes",d.sectionNotes):null):null,
+      React.createElement("div",{className:"card"},
+        renderMappingCard(d),
+        canComment?React.createElement(SectionComments,secProps("CSWE Mapping")):null),
       React.createElement("div",{className:"card"},
         React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:12}},"Course Learning Objectives"),
-        d.clos.filter(function(cl){return cl.text;}).map(function(cl,i){
+        d.clos.map(function(cl,i){
+          if(!cl.text)return null;
           return React.createElement("div",{key:i,style:{padding:"10px 0",borderBottom:"1px solid #f0f0f0"}},
-            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}},
               React.createElement("span",{className:"badge"},"CLO "+(i+1)),
-              React.createElement("span",{style:{fontSize:13,color:"#888"}},"CSWE: "+(cl.ces||"\u2014")+" | ADEI: "+(cl.adei||"\u2014"))),
-            React.createElement("p",{style:{fontSize:14,color:"#333"}},cl.text));
+              React.createElement("span",{style:{fontSize:13,color:"#888"}},"CSWE: "+(cl.ces||"—")+" | ADEI: "+(cl.adei||"—")+" | Assessment: "+(cl.assess||"—"))),
+            React.createElement("p",{style:{fontSize:14,color:"#333"}},cl.text),
+            canComment?React.createElement(SectionComments,secProps("CLO "+(i+1))):null);
         })),
       React.createElement("div",{className:"card"},
         React.createElement("h3",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:12}},"Learning Modules"),
-        d.modules.filter(function(m){return m.title;}).map(function(mod,mi){
-          return React.createElement("div",{key:mi,style:{marginBottom:16,padding:14,background:"#FAF5EE",borderRadius:12,border:"1px solid #e8e0d0"}},
-            React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:6}},"Module "+(mi+1)+": "+mod.title),
-            mod.overview?React.createElement("p",{style:{fontSize:13,color:"#666",marginBottom:8}},mod.overview):null,
-            React.createElement("div",{style:{fontSize:13,color:"#888",marginBottom:8}},"Sync: "+(mod.syncMin||"0")+" min | Async: "+(mod.asyncMin||"0")+" min"),
-            mod.objectives.filter(function(o){return o.text;}).map(function(obj,oi){
-              return React.createElement("div",{key:oi,style:{padding:"8px 0",borderTop:"1px solid #e0d8cc",fontSize:13}},
-                React.createElement("div",{style:{fontWeight:600,color:"#333",marginBottom:4}},"Obj "+(oi+1)+": "+obj.text),
-                React.createElement("div",{style:{color:"#888"}},"CLOs: "+(obj.clos||"\u2014")+" | CSWE: "+(obj.ces||"\u2014")+" | ADEI: "+(obj.adei||"\u2014")));
-            }));
+        d.modules.map(function(mod,mi){
+          if(!mod.title)return null;
+          var modTags=Array.isArray(mod.subcompTags)?mod.subcompTags:[];
+          return React.createElement("div",{key:mi,style:{marginBottom:18,padding:14,background:"#FAF5EE",borderRadius:12,border:"1px solid #e8e0d0"}},
+            React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#990000",marginBottom:4}},"Module "+(mi+1)+": "+mod.title),
+            React.createElement("div",{style:{fontSize:13,color:"#888",marginBottom:8}},"Sync: "+(mod.syncMin||"0")+" min | Async: "+(mod.asyncMin||"0")+" min"+(mod.terms?" | Terms: "+mod.terms:"")),
+            mod.overview?React.createElement("p",{style:{fontSize:13,color:"#666",marginBottom:8,whiteSpace:"pre-wrap"}},React.createElement("strong",null,"Overview: "),mod.overview):null,
+            mswMap?(modTags.length
+              ?React.createElement("div",{style:{background:"#fffbeb",borderLeft:"3px solid #D97706",padding:"5px 10px",fontSize:12,margin:"5px 0",borderRadius:"0 5px 5px 0"}},React.createElement("strong",null,"Sub-Competencies Addressed in This Module: "),modTags.map(function(t){return t.toUpperCase();}).join(", "))
+              :React.createElement("div",{style:{background:"#fef2f2",borderLeft:"3px solid #999",padding:"5px 10px",fontSize:12,margin:"5px 0",borderRadius:"0 5px 5px 0",color:"#666",fontStyle:"italic"}},"Sub-Competencies Addressed in This Module: None tagged")):null,
+            renderVideoPlan(d,mod),
+            (mod.objectives||[]).filter(function(o){return o.text;}).length
+              ?rvTable(["Objective","Materials","Sync","Async","Assessment","CLOs","CSWE","Strategies","ADEI"],
+                (mod.objectives||[]).map(function(o,oi){
+                  if(!o.text)return null;
+                  return [React.createElement("span",null,React.createElement("span",{className:"badge"},"Obj "+(oi+1)),React.createElement("div",null,o.text)),
+                          o.materials,o.syncAct,o.asyncAct,o.assessment,o.clos,o.ces,o.strategies,o.adei];
+                }).filter(function(r){return r;}))
+              :React.createElement("div",{style:{fontSize:12,color:"#999",fontStyle:"italic",margin:"6px 0"}},"No module objectives entered yet."),
+            renderAsyncDesign(mod),
+            canComment?React.createElement(SectionComments,secProps("Module "+(mi+1))):null);
         })),
       // ===== Admin Comment Panel =====
       canComment?React.createElement("div",{className:"card",style:{background:"#FFFBEB",border:"2px solid #FFCC00"}},
         React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:6}},
           React.createElement("span",{style:{fontSize:11,fontWeight:700,background:"#990000",color:"#fff",padding:"3px 10px",borderRadius:8,letterSpacing:0.5}},"ADMINISTRATOR"),
           React.createElement("h3",{style:{fontSize:18,fontWeight:700,color:"#990000",margin:0}},"Leave a Comment for "+facultyName)),
-        React.createElement("p",{style:{fontSize:13,color:"#78350F",marginBottom:14,lineHeight:1.5}},"Your comments will appear in this faculty member's Comments & Feedback tab (Step 8) highlighted in USC cardinal red so they can clearly see admin feedback."),
+        React.createElement("p",{style:{fontSize:13,color:"#78350F",marginBottom:14,lineHeight:1.5}},"Your comments will appear in this faculty member's Comments & Feedback tab (Step 8) highlighted in USC cardinal red so they can clearly see admin feedback. You can also leave feedback directly under any section above."),
         React.createElement("div",{style:{display:"grid",gridTemplateColumns:"200px 1fr",gap:12,marginBottom:12}},
           React.createElement("div",{className:"field"},
             React.createElement("label",null,"Section"),
@@ -2014,23 +2226,12 @@ function AdminCDMViewer(props){
           React.createElement("label",null,"Your Comment"),
           React.createElement("textarea",{value:newText,onChange:function(e){setNewText(e.target.value);},placeholder:"Type your feedback, suggestion, or request for changes...",rows:3,style:{padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14,width:"100%",fontFamily:"inherit"}})),
         React.createElement("button",{onClick:doPost,disabled:posting||!newText.trim(),style:{background:posting||!newText.trim()?"#E5E7EB":"#990000",color:posting||!newText.trim()?"#9CA3AF":"#fff",border:"none",padding:"10px 22px",fontSize:14,fontWeight:700,borderRadius:10,cursor:posting||!newText.trim()?"not-allowed":"pointer"}},posting?"Posting...":"Post Comment"),
-        // Existing comments
         !comments?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20,fontSize:13}},"Loading comments..."):
         comments.length===0?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20,fontSize:13,marginTop:16}},"No comments yet on this CDM."):
         React.createElement("div",{style:{marginTop:20,paddingTop:16,borderTop:"1px solid #FDE68A"}},
           React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#78350F",marginBottom:10}},"Conversation on this CDM ("+comments.length+")"),
           comments.map(function(c){
-            var time=c.timestamp?new Date(c.timestamp.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Just now";
-            var isAdminComment=c.role==="Administrator";
-            return React.createElement("div",{key:c.id,style:{background:isAdminComment?"#FEF2F2":"#fff",border:isAdminComment?"2px solid #990000":"1px solid #e8e0d0",borderLeft:isAdminComment?"6px solid #990000":"1px solid #e8e0d0",borderRadius:10,padding:12,marginBottom:8}},
-              React.createElement("div",{style:{fontSize:11,color:"#990000",fontWeight:600,marginBottom:4}},c.section||"General"),
-              React.createElement("div",{style:{fontSize:12,color:"#888",marginBottom:6}},
-                React.createElement("strong",{style:{color:isAdminComment?"#990000":"#333"}},c.authorName||"Unknown"),
-                React.createElement("span",{style:{fontSize:10,fontWeight:700,padding:"1px 8px",borderRadius:8,marginLeft:6,background:isAdminComment?"#990000":"#f0fdf4",color:isAdminComment?"#fff":"#166534"}},c.role||"Faculty"),
-                React.createElement("span",{style:{marginLeft:8}},time),
-                c.edited?React.createElement("span",{style:{marginLeft:8,fontStyle:"italic",color:"#999"}},"(edited)"):null),
-              React.createElement("div",{style:{fontSize:14,color:"#333",lineHeight:1.5}},c.text),
-              React.createElement(CommentActions,{comment:c,authUser:authUser,ownerUid:facultyUid,courseId:courseId,onChanged:function(){loadComments(facultyUid,courseId,function(cc){setComments(cc);});}}));
+            return React.createElement(CommentBubble,{key:c.id,comment:c,authUser:authUser,ownerUid:facultyUid,courseId:courseId,onChanged:refreshComments,showSection:true});
           }))
       ):null));
 }
@@ -2576,63 +2777,23 @@ function AsyncDesignStep(props){
 function CommentsStep(props){
   var data=props.data;var courseId=props.courseId;var authUser=props.authUser;
   var _c=useState(null),comments=_c[0],setComments=_c[1];
-  var _t=useState(""),newText=_t[0],setNewText=_t[1];
-  var _s=useState("General"),section=_s[0],setSection=_s[1];
-  var _l=useState(false),loading=_l[0],setLoading=_l[1];
-
   var uid=authUser.uid;
   var amAdmin=isAdmin(authUser.email);
-
   function refresh(){
     loadComments(uid,courseId,function(c){setComments(c);});
   }
   useEffect(function(){if(courseId)refresh();},[courseId]);
-
-  var doPost=function(){
-    if(!newText.trim())return;
-    setLoading(true);
-    addComment(uid,courseId,{
-      text:newText.trim(),
-      section:section,
-      authorName:authUser.displayName||authUser.email,
-      authorEmail:authUser.email,
-      authorUid:authUser.uid,
-      role:amAdmin?"Administrator":"Faculty"
-    },function(){setNewText("");setLoading(false);setTimeout(function(){refresh();},500);});
-  };
-
-  var sections=["General","Course Info","CSWE Mapping","CLO 1","CLO 2","CLO 3","CLO 4","CLO 5","Module 1","Module 2","Module 3","Module 4","Module 5","Assessment","ADEI"];
-
+  var sections=commentSectionsFor(data);
+  var myRole=amAdmin?"Administrator":"Faculty";
+  var total=comments?comments.length:0;
   return React.createElement("div",{className:"content",style:{paddingTop:20}},
     React.createElement("div",{className:"stitle"},"Comments & Feedback"),
-    React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:20}},"Leave notes for your instructional designer, program director, or review feedback from your team."),
-    React.createElement("div",{className:"card",style:{marginBottom:20}},
-      React.createElement("div",{className:"g2",style:{marginBottom:12}},
-        React.createElement("div",{className:"field"},
-          React.createElement("label",null,"Section"),
-          React.createElement("select",{value:section,onChange:function(e){setSection(e.target.value);},style:{padding:"10px 14px",borderRadius:12,border:"1px solid #ddd",fontSize:14,background:"#fff"}},
-            sections.map(function(s){return React.createElement("option",{key:s,value:s},s);}))),
-        React.createElement("div",null)),
-      React.createElement("div",{className:"field",style:{marginBottom:12}},
-        React.createElement("label",null,"Your Comment"),
-        React.createElement("textarea",{value:newText,onChange:function(e){setNewText(e.target.value);},placeholder:"Type your comment, note, or feedback here...",rows:3,style:{padding:"12px 16px",borderRadius:12,border:"1px solid #ddd",fontSize:14,width:"100%"}})),
-      React.createElement("button",{onClick:doPost,className:"btn-p",disabled:loading||!newText.trim(),style:{padding:"10px 24px",fontSize:14}},loading?"Posting...":"Post Comment")),
-    !comments?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20}},"Loading comments..."):
-    comments.length===0?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:30}},"No comments yet. Be the first to leave a note."):
-    React.createElement("div",null,
-      comments.map(function(c){
-        var time=c.timestamp?new Date(c.timestamp.seconds*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT":"Just now";
-        var isAdminComment=c.role==="Administrator";
-        return React.createElement("div",{key:c.id,className:"comment-bubble",style:isAdminComment?{background:"#FEF2F2",border:"2px solid #990000",borderLeft:"6px solid #990000"}:{}},
-          isAdminComment?React.createElement("div",{style:{fontSize:11,fontWeight:700,color:"#990000",marginBottom:6,letterSpacing:0.5}},"\u25C6 ADMIN FEEDBACK"):null,
-          React.createElement("div",{className:"comment-section"},c.section||"General"),
-          React.createElement("div",{className:"comment-meta"},
-            React.createElement("strong",{style:isAdminComment?{color:"#990000"}:{}},c.authorName||"Unknown"),
-            React.createElement("span",{className:"comment-role "+(isAdminComment?"admin":"faculty")},c.role||"Faculty"),
-            React.createElement("span",{style:{marginLeft:8}},time),
-            c.edited?React.createElement("span",{style:{marginLeft:8,fontStyle:"italic",color:"#999"}},"(edited)"):null),
-          React.createElement("div",{className:"comment-text"},c.text),
-          React.createElement(CommentActions,{comment:c,authUser:authUser,ownerUid:uid,courseId:courseId,onChanged:refresh}));
+    React.createElement("p",{style:{fontSize:15,color:"#888",marginBottom:6}},"Feedback from your program director and administrators is organized by section below, next to what it is about. Open a section to read the feedback, reply underneath it, or add your own note. Reviewer comments are highlighted in USC cardinal red."),
+    comments===null?React.createElement("p",{style:{textAlign:"center",color:"#999",padding:20}},"Loading comments..."):
+      React.createElement("p",{style:{fontSize:13,color:"#999",marginBottom:14}},total===0?"No comments yet on this CDM. You can start a conversation under any section.":"Conversation on this CDM: "+total+" comment"+(total===1?"":"s")+". Sections with feedback are open below."),
+    React.createElement("div",{className:"card"},
+      sections.map(function(s){
+        return React.createElement(SectionComments,{key:s,sectionName:s,comments:comments||[],authUser:authUser,ownerUid:uid,courseId:courseId,onChanged:refresh,facultyName:"your review team",role:myRole});
       })));
 }
 
