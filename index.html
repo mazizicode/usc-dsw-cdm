@@ -441,6 +441,7 @@ function programDirectorProgram(email){return email?(PROGRAM_DIRECTORS[email.toL
 // A CDM is visible to a Program Director once it reaches Submitted or any later workflow stage.
 function pdVisibleStatus(status){
   var s=status||"Draft";
+  if(s==="Edits Requested")return true; // stays visible to PDs while faculty revise
   var i=CDM_STATUSES.indexOf(s);
   var subIdx=CDM_STATUSES.indexOf("Submitted");
   return i>=subIdx&&subIdx>=0;
@@ -1072,6 +1073,21 @@ React.createElement("div",{style:{display:"flex",gap:16,marginTop:6}},
 React.createElement("input",{type:"radio",name:"mod",value:v,checked:data.modality===v,onChange:function(){set(function(d){return Object.assign({},d,{modality:v,contentType:v==="async_sync"?"both":v==="online_only"?"online":v==="on_ground"?"sync":v==="on_ground_async"?"both":v==="summer_flex"?"both":"async"});});},style:{accentColor:C.cardinal}}),v==="async_sync"?(data.program==="msw"?"Async/Sync":"Fully Online"):v==="online_only"?"100% Online":v==="async_only"?"Asynchronous Only":v==="on_ground"?"On-Ground (In-Person)":v==="on_ground_async"?"On-Ground + Async Components":v==="summer_flex"?"Summer Flex (Zoom + Field + Async)":"")))),
 React.createElement(F,{label:"Sync Min / Module",value:data.syncMin,onChange:v=>s("syncMin",v),placeholder:"75"}),
 React.createElement(F,{label:"Async Min / Module",value:data.asyncMin,onChange:v=>s("asyncMin",v),placeholder:"75"})),
+data.program==="dsw"?(function(){
+  var u=parseFloat(data.units);
+  var hasU=!isNaN(u)&&u>0;
+  var total=hasU?Math.round(u*50):null;
+  var asyncReq=hasU?Math.max(0,total-110):null;
+  return React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #FFCC00",borderRadius:12,padding:"12px 16px",marginBottom:12}},
+    React.createElement("div",{style:{fontSize:13,fontWeight:800,color:"#990000",marginBottom:6}},"DSW Weekly Minutes Calculator (program standard adopted Sept 30, 2026)"),
+    React.createElement("div",{className:"g3",style:{gap:12}},
+      React.createElement(F,{label:"Course Units",value:data.units,onChange:function(v){s("units",v);},placeholder:"3"}),
+      React.createElement("div",{style:{fontSize:13,color:"#444",lineHeight:1.5,alignSelf:"center"}},
+        hasU?(total+" min/week total ("+u+" units × 50). DSW standard: 110 synchronous (net of break) + "+asyncReq+" asynchronous."):"Enter the course units to calculate the weekly requirement (units × 50)."),
+      hasU?React.createElement("button",{onClick:function(){set(function(d){return Object.assign({},d,{syncMin:"110",asyncMin:String(asyncReq)});});},style:{alignSelf:"center",background:"#990000",color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontSize:13,fontWeight:700,cursor:"pointer"}},"Apply 110 / "+asyncReq+" to this CDM"):React.createElement("div",null)),
+    React.createElement("div",{style:{fontSize:11,color:"#92400E",marginTop:6,lineHeight:1.4}},"DSW sessions are scheduled at 120 minutes and include a standardized mid-class break, so 110 net synchronous minutes count toward the weekly requirement. For 2-unit courses the 110 synchronous minutes already exceed the 100-minute requirement, so required asynchronous time is 0. Nothing changes until you click Apply."));
+})():null,
+data.program==="msw"?React.createElement("div",{style:{fontSize:12,color:"#888",marginBottom:12}},"MSW/VAC standard: 75 synchronous + 75 asynchronous minutes per week (currently under program review)."):null,
 React.createElement(A,{label:"Course Description (do not modify)",value:data.courseDesc,onChange:v=>s("courseDesc",v),placeholder:"Paste the official course description here.",rows:5}),
 data.program==="bsw"&&React.createElement(A,{label:"Section Notes",value:data.sectionNotes,onChange:v=>s("sectionNotes",v),placeholder:"Describe the delivery format, scheduling, and any modality-specific details for this section (e.g., Summer Flex pilot format, Zoom and field activity schedule).",rows:5}));}
 
@@ -1548,6 +1564,7 @@ React.createElement("div",{style:{marginTop:24,marginBottom:8,background:"#FFF8E
     ? React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:8,background:"#ECFDF5",border:"1px solid #059669",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:700,color:"#059669"}},"\u2713 This CDM has been submitted (status: "+data.cdmStatus+")")
     : React.createElement("button",{onClick:function(){
         if(!set){alert("Unable to submit \u2014 please open this CDM from your dashboard.");return;}
+        if(!confirmSubmitWithCompleteness(data))return;
         if(!confirm("Mark this CDM as \u201CSubmitted\u201D? Your Program Director will be able to review it."))return;
         var note="Submitted by faculty from the Review & Export step.";
         set(function(d){
@@ -1560,6 +1577,35 @@ React.createElement("div",{style:{marginTop:24,marginBottom:8,background:"#FFF8E
 React.createElement("div",{style:{borderTop:"1px solid #eee",paddingTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}},
 React.createElement("span",{style:{fontSize:13,color:"#bbb"}},"\u{1F4BE} Data is auto-saved in your browser"),
 React.createElement("button",{onClick:resetAll,style:{fontSize:13,color:"#e55",background:"none",border:"none",cursor:"pointer",textDecoration:"underline"}},"Reset All Data")));}
+
+// ===== Submit-time completeness check (Nov 2026, 9/30 commitment) =====
+// Read-only scan of the CDM; never blocks on its own, faculty always decide.
+function cdmCompletenessIssues(d){
+  var issues=[];
+  if(!d.courseDesc||!String(d.courseDesc).trim())issues.push("Course Description is empty (Step 1)");
+  var clos=(Array.isArray(d.clos)?d.clos:[]).filter(function(c){return c&&c.text&&String(c.text).trim();});
+  if(clos.length===0)issues.push("No Course Learning Objectives entered (Step 5)");
+  var allMods=Array.isArray(d.modules)?d.modules:[];
+  var mods=allMods.filter(function(m){return m&&m.title&&String(m.title).trim();});
+  if(mods.length===0)issues.push("No learning modules entered (Step 6)");
+  mods.forEach(function(m){
+    var mi=allMods.indexOf(m)+1;
+    var objs=(Array.isArray(m.objectives)?m.objectives:[]).filter(function(o){return o&&o.text&&String(o.text).trim();});
+    if(objs.length===0)issues.push("Module "+mi+" (\""+m.title+"\") has no module objectives (Step 6)");
+    var ac=m.asyncContent;var hasAsync=false;
+    if(ac&&typeof ac==="object"){Object.keys(ac).forEach(function(k){var sec=ac[k];
+      if(sec&&typeof sec==="object"){Object.keys(sec).forEach(function(f){if(sec[f]&&String(sec[f]).trim())hasAsync=true;});}});}
+    if(!hasAsync)issues.push("Module "+mi+" (\""+m.title+"\") has no Async Design content (Step 7)");
+  });
+  return issues;
+}
+function confirmSubmitWithCompleteness(d){
+  var issues=cdmCompletenessIssues(d);
+  if(issues.length===0)return true;
+  var list=issues.slice(0,12).map(function(x){return "\u2022 "+x;}).join("\n");
+  if(issues.length>12)list+="\n\u2022 ...and "+(issues.length-12)+" more";
+  return confirm("Before you submit \u2014 this CDM looks incomplete:\n\n"+list+"\n\nYour reviewers will see these gaps. Submit anyway?");
+}
 
 // ==== MAIN APP ====
 function LoginScreen(){
@@ -1705,7 +1751,7 @@ React.createElement("h3",{style:{fontSize:22,fontWeight:700,color:"#990000",marg
 React.createElement("div",{style:{display:"flex",gap:12,flexWrap:"wrap",marginBottom:20}},
 React.createElement("div",{style:{flex:1,minWidth:180,background:"#fff",border:"1px solid #e8e0d0",borderRadius:14,padding:16}},
 React.createElement("div",{style:{fontSize:13,color:"#888",marginBottom:4}},"Status Breakdown"),
-CDM_STATUSES.map(function(status){
+CDM_STATUSES.concat(["Edits Requested"]).map(function(status){
 var count=faculty.reduce(function(t,f){return t+f.courses.filter(function(cc){return cc.cdmStatus===status;}).length;},0);
 return count>0?React.createElement("div",{key:status,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",fontSize:13}},
 React.createElement("span",{style:{display:"flex",alignItems:"center",gap:6}},React.createElement("span",{style:{width:10,height:10,borderRadius:5,background:STATUS_COLORS[status]||"#888"}}),status),
@@ -2146,7 +2192,9 @@ function AdminCDMViewer(props){
         (CDM_STATUSES.indexOf(viewStatus)>=CDM_STATUSES.indexOf("Approved"))
           ? React.createElement("div",{style:{display:"inline-flex",alignItems:"center",gap:8,background:"#ECFDF5",border:"1px solid #059669",borderRadius:10,padding:"10px 18px",fontSize:14,fontWeight:700,color:"#059669"}},"✓ This CDM has been approved (status: "+viewStatus+").")
           : React.createElement("div",null,
-              React.createElement("div",{style:{fontSize:13,color:"#444",marginBottom:10}},"After reviewing this CDM and adding any comments below, click Approve to advance it. The faculty member will see it marked “Approved.”"),
+              viewStatus==="Edits Requested"?React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #D97706",borderRadius:10,padding:"8px 14px",fontSize:13,color:"#78350F",marginBottom:10,fontWeight:600}},"Edits have been requested. The faculty member sees your note in the status history and can resubmit; you can approve once the updates are in."):null,
+              React.createElement("div",{style:{fontSize:13,color:"#444",marginBottom:10}},"After reviewing this CDM and adding any comments below, click Approve to advance it, or click Request Edits to send it back to the faculty member with a note."),
+              React.createElement("div",{style:{display:"flex",gap:10,flexWrap:"wrap"}},
               React.createElement("button",{onClick:function(){
                 if(!canComment){alert("Unable to approve — course information is missing.");return;}
                 if(!confirm("Approve this CDM? It will be marked “Approved” and the faculty member will see the updated status."))return;
@@ -2155,7 +2203,17 @@ function AdminCDMViewer(props){
                   if(ok){setViewStatus("Approved");alert("This CDM has been approved. Thank you.");}
                   else alert("Could not update the status. Please try again.");
                 });
-              },style:{background:"linear-gradient(135deg,#0F9D58 0%,#059669 60%,#047857 100%)",color:"#fff",border:"none",borderRadius:12,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"✔ Approve CDM"))),
+              },style:{background:"linear-gradient(135deg,#0F9D58 0%,#059669 60%,#047857 100%)",color:"#fff",border:"none",borderRadius:12,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"✔ Approve CDM"),
+              React.createElement("button",{onClick:function(){
+                if(!canComment){alert("Unable to update — course information is missing.");return;}
+                var note=prompt("What edits are you requesting? This note goes to the faculty member with the status change:");
+                if(note===null)return;
+                if(!note.trim()){alert("Please include a short note describing the requested edits.");return;}
+                reviewerSetStatus(facultyUid,courseId,"Edits Requested",(authUser&&(authUser.displayName||authUser.email))||"Reviewer",note.trim(),function(ok){
+                  if(ok){setViewStatus("Edits Requested");alert("Done — this CDM is marked “Edits Requested” and your note is saved in its status history for the faculty member.");}
+                  else alert("Could not update the status. Please try again.");
+                });
+              },style:{background:"#fff",color:"#92400E",border:"2px solid #D97706",borderRadius:12,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"✎ Request Edits")))),
       React.createElement("div",{className:"card"},
         React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#990000",marginBottom:12}},"Course Information"),
         React.createElement("div",{className:"g3",style:{gap:12}},
@@ -2239,7 +2297,7 @@ function AdminCDMViewer(props){
 
 
 var CDM_STATUSES=["Draft","Submitted","Approved","In Build","Build Review","Ready for Launch","Launched"];
-var STATUS_COLORS={"Draft":"#888","Submitted":"#92400E","Approved":"#0369A1","In Build":"#7C3AED","Build Review":"#DB2777","Ready for Launch":"#059669","Launched":"#166534"};
+var STATUS_COLORS={"Draft":"#888","Submitted":"#92400E","Edits Requested":"#D97706","Approved":"#0369A1","In Build":"#7C3AED","Build Review":"#DB2777","Ready for Launch":"#059669","Launched":"#166534"};
 var ASYNC_TEMPLATES={
 welcome:"Welcome to Module [X: Module Title]. In this module, you will explore [brief summary of focus]. You will complete readings, mini-lectures, guided exercises, and reflective activities designed to help you [connect to course outcomes/professional practice]. Key activities this week include [list readings, discussion boards, assignments, quizzes].",
 objectives:"By the end of this module, you will be able to:\n1. [module objective 1]\n2. [module objective 2]\n3. [module objective 3]",
@@ -2352,6 +2410,7 @@ function WorkflowPanel(props){
   var data=props.data;var set=props.set;var authUser=props.authUser;
   var amAdmin=isAdmin(authUser.email);
   var currentIdx=CDM_STATUSES.indexOf(data.cdmStatus||"Draft");
+  var navIdx=currentIdx<0?0:currentIdx; // "Edits Requested" is outside the linear flow
 
   var changeStatus=function(newStatus){
     var note=prompt("Add a note for this status change (optional):");
@@ -2376,10 +2435,13 @@ function WorkflowPanel(props){
           React.createElement("div",{style:{fontSize:12,fontWeight:isActive?700:400,color:isActive?"#990000":isPast?"#22c55e":"#999"}},s));
       })),
     amAdmin?React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
-      currentIdx<CDM_STATUSES.length-1?React.createElement("button",{onClick:function(){changeStatus(CDM_STATUSES[currentIdx+1]);},style:{fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10,border:"none",background:"#990000",color:"#fff",cursor:"pointer"}},"Advance to: "+CDM_STATUSES[currentIdx+1]):null,
-      currentIdx>0?React.createElement("button",{onClick:function(){changeStatus(CDM_STATUSES[currentIdx-1]);},style:{fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10,border:"1px solid #ddd",background:"#fff",color:"#666",cursor:"pointer"}},"Move Back to: "+CDM_STATUSES[currentIdx-1]):null
+      navIdx<CDM_STATUSES.length-1?React.createElement("button",{onClick:function(){changeStatus(CDM_STATUSES[navIdx+1]);},style:{fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10,border:"none",background:"#990000",color:"#fff",cursor:"pointer"}},"Advance to: "+CDM_STATUSES[navIdx+1]):null,
+      navIdx>0?React.createElement("button",{onClick:function(){changeStatus(CDM_STATUSES[navIdx-1]);},style:{fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10,border:"1px solid #ddd",background:"#fff",color:"#666",cursor:"pointer"}},"Move Back to: "+CDM_STATUSES[navIdx-1]):null
     ):React.createElement("div",{style:{fontSize:13,color:"#888"}},
-      data.cdmStatus==="Draft"?React.createElement("button",{onClick:function(){changeStatus("Submitted");},style:{fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10,border:"none",background:"#990000",color:"#fff",cursor:"pointer"}},"Submit CDM for Approval"):
+      data.cdmStatus==="Draft"?React.createElement("button",{onClick:function(){if(!confirmSubmitWithCompleteness(data))return;changeStatus("Submitted");},style:{fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10,border:"none",background:"#990000",color:"#fff",cursor:"pointer"}},"Submit CDM for Approval"):
+      data.cdmStatus==="Edits Requested"?React.createElement("div",null,
+        React.createElement("div",{style:{background:"#FFFBEB",border:"1px solid #D97706",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#78350F",marginBottom:8,fontWeight:600}},"Your reviewer requested edits on this CDM. Check the Comments & Feedback tab and the status note below, make the updates, then resubmit."),
+        React.createElement("button",{onClick:function(){if(!confirmSubmitWithCompleteness(data))return;changeStatus("Submitted");},style:{fontSize:13,fontWeight:600,padding:"8px 16px",borderRadius:10,border:"none",background:"#990000",color:"#fff",cursor:"pointer"}},"Resubmit for Review")):
       "Status: "+data.cdmStatus+" "+String.fromCharCode(8212)+" Your instructional designer or curriculum director will update the status."),
     (data.cdmStatusHistory||[]).length>0?React.createElement("div",{style:{marginTop:16,borderTop:"1px solid #eee",paddingTop:12}},
       React.createElement("h4",{style:{fontSize:13,fontWeight:700,color:"#990000",marginBottom:8}},"Status History"),
@@ -3077,7 +3139,7 @@ function Dashboard(pp){
             React.createElement("div",{style:{background:"#fff",border:"1px solid #e8e0d0",borderRadius:12,padding:"14px 18px",cursor:"pointer",transition:"all 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"},onClick:function(){onSel(c.id);}},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12}},
             React.createElement("div",{style:{flex:1}},
-              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":c.program==="bsw"?"#FEF3C7":"#F0FDF4",color:c.program==="msw"?"#1E40AF":c.program==="bsw"?"#D97706":"#166534"}},c.program==="msw"?"MSW":c.program==="bsw"?"BSW":"DSW"),React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:c.cdmStatus==="Launched"?"#166534":c.cdmStatus==="Approved"?"#0369A1":c.cdmStatus==="Submitted"?"#92400E":"#888",color:"#fff"}},c.cdmStatus||"Draft"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},React.createElement("span",{style:{fontSize:12,fontWeight:700,padding:"2px 8px",borderRadius:8,background:c.program==="msw"?"#DBEAFE":c.program==="bsw"?"#FEF3C7":"#F0FDF4",color:c.program==="msw"?"#1E40AF":c.program==="bsw"?"#D97706":"#166534"}},c.program==="msw"?"MSW":c.program==="bsw"?"BSW":"DSW"),React.createElement("span",{style:{fontSize:12,fontWeight:600,padding:"2px 8px",borderRadius:8,background:c.cdmStatus==="Launched"?"#166534":c.cdmStatus==="Approved"?"#0369A1":c.cdmStatus==="Submitted"?"#92400E":c.cdmStatus==="Edits Requested"?"#D97706":"#888",color:"#fff"}},c.cdmStatus||"Draft"),React.createElement("span",{style:{fontSize:18,fontWeight:700,color:"#990000"}},c.name),c.cdmVersion?React.createElement("span",{style:{fontSize:12,fontWeight:700,background:"#990000",color:"#fff",padding:"2px 8px",borderRadius:8}},"v"+c.cdmVersion):null),
               React.createElement("div",{style:{fontSize:14,color:"#999"}},c.leadName?(c.leadName+" | "):"","Last edited: "+upd)),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("button",{onClick:function(e){e.stopPropagation();openShare(c);},title:"Share a copy of this course with a colleague. They get their own independent copy; your course is not affected.",style:{padding:"9px 14px",borderRadius:10,border:"1px solid #990000",background:"#fff",color:"#990000",fontSize:12.5,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}},"Share a Copy"),
