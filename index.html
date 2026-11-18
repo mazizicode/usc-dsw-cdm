@@ -2178,8 +2178,6 @@ function AdminCDMViewer(props){
   var _sc=useState("General"),section=_sc[0],setSection=_sc[1];
   var _l=useState(false),posting=_l[0],setPosting=_l[1];
   var _vs=useState((cdmData&&cdmData.cdmStatus)||"Draft"),viewStatus=_vs[0],setViewStatus=_vs[1];
-  var _re=useState(false),reOpen=_re[0],setReOpen=_re[1];
-  var _rn=useState(""),reNote=_rn[0],setReNote=_rn[1];
   var _rm=useState(""),reMsg=_rm[0],setReMsg=_rm[1];
   var canComment=!!(facultyUid&&courseId&&authUser);
   var refreshComments=function(){loadComments(facultyUid,courseId,function(c){setComments(c);});};
@@ -2237,19 +2235,12 @@ function AdminCDMViewer(props){
               },style:{background:"linear-gradient(135deg,#0F9D58 0%,#059669 60%,#047857 100%)",color:"#fff",border:"none",borderRadius:12,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"✔ Approve CDM"),
               React.createElement("button",{onClick:function(){
                 if(!canComment){alert("Unable to update — course information is missing.");return;}
-                setReMsg("");setReOpen(!reOpen);
-              },style:{background:reOpen?"#FEF3C7":"#fff",color:"#92400E",border:"2px solid #D97706",borderRadius:12,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"✎ Request Edits")),
-              reOpen?React.createElement("div",{style:{marginTop:14,background:"#FFFBEB",border:"1px solid #D97706",borderRadius:10,padding:"14px 16px"}},
-                React.createElement("div",{style:{fontSize:14,fontWeight:800,color:"#78350F",marginBottom:8}},"Send this CDM back to "+facultyName+" for edits"),
-                React.createElement("textarea",{value:reNote,onChange:function(e){setReNote(e.target.value);},rows:3,placeholder:"Optional note to the faculty member. They will also see any section feedback you left below.",style:{width:"100%",border:"1px solid #ddd",borderRadius:8,padding:"10px 12px",fontSize:14,fontFamily:"inherit",boxSizing:"border-box",resize:"vertical"}}),
-                React.createElement("div",{style:{display:"flex",gap:14,marginTop:10,alignItems:"center"}},
-                  React.createElement("button",{onClick:function(){
-                    reviewerSetStatus(facultyUid,courseId,"Edits Requested",(authUser&&(authUser.displayName||authUser.email))||"Reviewer",(reNote.trim()||"Edits requested. Please see the section feedback comments."),function(ok){
-                      if(ok){setViewStatus("Edits Requested");setReOpen(false);setReNote("");setReMsg("Sent. This CDM is now marked Edits Requested, and the faculty member will see your note and section feedback.");}
-                      else setReMsg("Could not update the status. Please try again.");
-                    });
-                  },style:{background:"#D97706",color:"#fff",border:"none",borderRadius:10,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"Send to Faculty"),
-                  React.createElement("button",{onClick:function(){setReOpen(false);setReNote("");},style:{background:"none",border:"none",color:"#888",fontSize:14,fontWeight:700,cursor:"pointer",textDecoration:"underline"}},"Cancel"))):null,
+                setReMsg("");
+                reviewerSetStatus(facultyUid,courseId,"Edits Requested",(authUser&&(authUser.displayName||authUser.email))||"Reviewer","Edits requested. Please see the section feedback comments.",function(ok){
+                  if(ok){setViewStatus("Edits Requested");setReMsg("Sent. This CDM is now marked Edits Requested; the faculty member will see the status change and your section feedback below.");}
+                  else setReMsg("Could not update the status. Please try again.");
+                });
+              },style:{background:"#fff",color:"#92400E",border:"2px solid #D97706",borderRadius:12,padding:"12px 26px",fontSize:15,fontWeight:800,cursor:"pointer"}},"✎ Request Edits")),
               reMsg?React.createElement("div",{style:{marginTop:10,fontSize:14,fontWeight:700,color:reMsg.indexOf("Sent.")===0?"#166534":"#B91C1C"}},reMsg):null)),
       React.createElement("div",{className:"card"},
         React.createElement("h3",{style:{fontSize:20,fontWeight:900,color:"#990000",marginBottom:12}},"Course Information"),
