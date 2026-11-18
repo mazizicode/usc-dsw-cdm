@@ -17,8 +17,8 @@ input,textarea,select,button{font-family:inherit}
 input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 2px #FFCC00}
 .top-bar{height:4px;background:#990000}
 .gold-bar-top{height:2px;background:#FFCC00}
-.step-nav{display:flex;align-items:center;justify-content:center;gap:5px;padding:12px 8px;flex-wrap:wrap}
-.step-btn{display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:20px;font-size:11px;font-weight:700;border:none;cursor:pointer;transition:all .2s}
+.step-nav{display:flex;align-items:stretch;justify-content:center;gap:8px;padding:12px 10px;flex-wrap:wrap}
+.step-btn{display:flex;align-items:center;justify-content:center;flex:1 1 auto;white-space:nowrap;gap:6px;padding:10px 14px;border-radius:22px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:all .2s}
 .step-btn.active{background:#990000;color:#fff;box-shadow:0 2px 10px rgba(153,0,0,.3);transform:scale(1.05)}
 .step-btn.done{background:#e8d5d5;color:#990000}
 .step-btn.pending{background:#f0ece6;color:#999}
@@ -85,7 +85,7 @@ body{font-size:17px;line-height:1.6}
 .btn-p{padding:16px 36px;font-size:16px;border-radius:14px}
 .btn-s{font-size:15px;padding:14px;border-radius:14px}
 .btn-o{font-size:15px;padding:12px 24px;border-radius:12px}
-.step-btn{font-size:13px;padding:10px 16px;border-radius:24px}
+.step-btn{font-size:16px;padding:14px 20px;border-radius:28px}
 .card{padding:24px;border-radius:16px}
 .bullet-item{font-size:16px;padding:6px 0}
 .bullet-dot{font-size:20px}
@@ -107,7 +107,7 @@ body{font-size:17px;line-height:1.6}
 .mod-tabs{gap:10px}
 .mod-tab{font-size:14px;padding:12px 22px;border-radius:12px}
 .bot-nav{padding:14px 24px}
-.step-nav{padding:14px 12px;gap:6px}
+.step-nav{padding:16px 16px;gap:10px}
 .card-accent{border-radius:16px}
 
 /* Admin Dashboard styles */
@@ -1626,16 +1626,16 @@ function LoginScreen(){
     firebase.auth().signInWithPopup(provider).catch(function(e){alert("Sign-in failed: "+e.message);});
   };
   return React.createElement("div",{style:{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#faf5ee 0%,#fff 50%,#fef8f0 100%)"}},
-    React.createElement("div",{style:{textAlign:"center",maxWidth:540,padding:"0 28px"}},
-      React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:50,marginBottom:20}}),
-      React.createElement("h1",{style:{fontSize:40,fontWeight:900,color:"#990000",marginBottom:8}},"Course Design Map"),
-      React.createElement("p",{style:{fontSize:18,color:"#333",marginBottom:6}},"BSW, MSW & DSW Programs"),
-      React.createElement("p",{style:{fontSize:14,color:"#999",fontStyle:"italic",marginBottom:30}},"Aligned with CSWE Accreditation Standards"),
-      React.createElement("div",{style:{height:2,background:"#FFCC00",width:80,margin:"0 auto 30px"}}),
-      React.createElement("button",{onClick:doLogin,style:{display:"flex",alignItems:"center",justifyContent:"center",gap:10,margin:"0 auto",padding:"16px 48px",borderRadius:14,border:"1px solid #ddd",background:"#fff",cursor:"pointer",fontSize:17,fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",transition:"all 0.2s"}},
-        React.createElement("img",{src:"https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg",alt:"G",style:{width:20,height:20}}),
+    React.createElement("div",{style:{textAlign:"center",maxWidth:720,padding:"0 28px"}},
+      React.createElement("img",{src:USC_LOGO,alt:"USC",style:{height:74,marginBottom:26}}),
+      React.createElement("h1",{style:{fontSize:56,fontWeight:900,color:"#990000",marginBottom:12,lineHeight:1.1}},"Course Design Map"),
+      React.createElement("p",{style:{fontSize:26,color:"#222",fontWeight:600,marginBottom:10}},"BSW, MSW & DSW Programs"),
+      React.createElement("p",{style:{fontSize:19,color:"#777",fontStyle:"italic",marginBottom:34}},"Aligned with CSWE Accreditation Standards"),
+      React.createElement("div",{style:{height:3,background:"#FFCC00",width:130,margin:"0 auto 34px",borderRadius:2}}),
+      React.createElement("button",{onClick:doLogin,style:{display:"flex",alignItems:"center",justifyContent:"center",gap:10,margin:"0 auto",padding:"22px 64px",borderRadius:18,border:"1px solid #ccc",background:"#fff",cursor:"pointer",fontSize:22,fontWeight:700,boxShadow:"0 3px 12px rgba(0,0,0,0.12)",transition:"all 0.2s"}},
+        React.createElement("img",{src:"https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg",alt:"G",style:{width:28,height:28}}),
         "Sign in with Google"),
-      React.createElement("p",{style:{fontSize:14,color:"#bbb",marginTop:16}},"Use your USC Google account to sign in"),React.createElement("p",{style:{fontSize:12,color:"#ccc",marginTop:8}},"Always use the same Google account to access your saved work")
+      React.createElement("p",{style:{fontSize:18,color:"#666",marginTop:22,fontWeight:600}},"Use your USC Google account to sign in"),React.createElement("p",{style:{fontSize:16,color:"#888",marginTop:10}},"Always use the same Google account to access your saved work")
     )
   );
 }
